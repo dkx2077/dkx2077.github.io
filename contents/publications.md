@@ -1,7 +1,13 @@
-For full paper list (not now, but I'm sure there will be more great work in the future), please refer to my [Google Scholar](https://scholar.google.com/citations?user=7gsdLw4AAAAJ&hl=en).
+For full paper list (not now, but I'm sure there will be more great work in the future), please refer to my [Google Scholar](https://scholar.google.com/citations?user=WsJD-ukAAAAJ).
 
-- *W. Zhu, Y. Ni, <strong><strong>C. Yin</strong></strong>, A. Tian, X. Wang, G. Xie. (2024). IAPT: Instance-Aware Prompt Turing for Large Language Models. The 62nd Annual Meeting of the Association for Computational Linguistics <strong><strong>(ACL 2024)</strong></strong>.*[[Paper]](https://arxiv.org/pdf/2405.18203)
+- **Deng, K.** *(2024). IWN: Image Watermarking Based on Idempotency. arXiv preprint arXiv:2409.19506.* [[Paper]](https://arxiv.org/abs/2409.19506)
 
-- *X. Gao, W. Zhu, J. Gao and <strong><strong>C. Yin</strong></strong>. (2023). F-PABEE: Flexible-Patience-Based Early Exiting For Single-Label and Multi-Label Text Classification Tasks. 2023 IEEE International Conference on Acoustics, Speech and Signal Processing <strong><strong>(ICASSP 2023)</strong></strong>.* [[Paper]](https://ieeexplore.ieee.org/abstract/document/10095864)
+- *Zhang, C., Feng, X., Bai, Y., Du, X., Hou, J.,* **Deng, K.** *, ... & Ni, S. (2024). Can MLLMs Understand the Deep Implication Behind Chinese Images?. arXiv preprint arXiv:2410.13854.*[[Paper]](https://arxiv.org/abs/2410.13854) *(This paper has been submitted to the **ICLR 2025** conference)
 
-- *<strong><strong>C. Yin</strong></strong>. (2023). Multi-scale and multi-task learning for human audio forensics based on convolutional networks. International Conference on Image, Signal Processing, and Pattern Recognition <strong><strong>(ISPP 2023)</strong></strong>.* [[Paper]](https://doi.org/10.1117/12.2681344)
+- *Wu, Z., Wen, Q., Yang, F., &* **Deng, K.** *(2024). An Innovative Personalized Recommendation Approach Based on Deep Learning and User Review Content. IEEE Access.* [[Paper]](https://ieeexplore.ieee.org/abstract/document/10643549)
+
+
+- **Deng, K.** *, Lei, J., Li, X., Shuai, S., Lin, M., & Li, S. (2023, November). An improved lightweight segmentation neural network for dermoscopic lesion images based on knowledge distillation. In 2023 International Conference on Image Processing, Computer Vision and Machine Learning (ICICML) (pp. 268-271). IEEE.* [[Paper]](https://ieeexplore.ieee.org/abstract/document/10424947)
+
+
+- *温泉, 邬兆望, 黄于鉴, 王志民, 冯何阳, &* **邓楷馨** *等. 基于深度学习及用户评论内容的个性化推荐方法.*[[Invention Patent]](https://xueshu.baidu.com/usercenter/paper/show?paperid=130s0080qs640mx0nm7t0x40k3662202&site=xueshu_se)

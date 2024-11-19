@@ -1,3 +1,3 @@
+- I collaborated with researchers from the University of Tokyo to design a multi-stage simulation framework utilizing LLMs. This framework analyzes how residents perceive, process, and respond to disaster risk information, aiming to enhance disaster management strategies by modeling cognitive and social decision-making behaviors.(This work has been submitted to the Systems journal.)
 
-- Reviewer for EMNLP'2024
-- Reviewer for ACL'2024
+- I collaborated with researchers from the Chinese Academy of Sciences to develop a new benchmark designed to replace MMLU and MMLU-pro as the standard for LLM pre-training and fine-tuning. This dataset emphasizes a top-down, anthropologically structured distribution across 300+ academic disciplines and prioritizes reasoning logic over computational tasks, with rigorous decontamination and quality control to set a new benchmark for LLM development.
