@@ -2,7 +2,7 @@ For full paper list (not now, but I'm sure there will be more great work in the 
 
 - **Deng, K.** *(2024). IWN: Image Watermarking Based on Idempotency. arXiv preprint arXiv:2409.19506.* [[Paper]](https://arxiv.org/abs/2409.19506)
 
-- *Zhang, C., Feng, X., Bai, Y., Du, X., Hou, J.,* **Deng, K.** *, ... & Ni, S. (2024). Can MLLMs Understand the Deep Implication Behind Chinese Images?. arXiv preprint arXiv:2410.13854.*[[Paper]](https://arxiv.org/abs/2410.13854) (This paper has been submitted to the **ICLR 2025** conference)
+- *Zhang, C., Feng, X., Bai, Y., Du, X., Hou, J.,* **Deng, K.** *, ... & Ni, S. (2024). Can MLLMs Understand the Deep Implication Behind Chinese Images?. arXiv preprint arXiv:2410.13854.*[[Paper]](https://arxiv.org/abs/2410.13854)[[Code]](https://cii-bench.github.io/) (This paper has been submitted to the **ICLR 2025** conference)
 
 - *Wu, Z., Wen, Q., Yang, F., &* **Deng, K.** *(2024). An Innovative Personalized Recommendation Approach Based on Deep Learning and User Review Content. IEEE Access.* [[Paper]](https://ieeexplore.ieee.org/abstract/document/10643549)
 
