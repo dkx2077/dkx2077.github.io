@@ -20,5 +20,5 @@
 - [**SF-X Tanke Cup Smart Supply Chain University Elite Challenge**](https://www.be-loved.cn/sf-express/login)  
   **Award**: First Prize    
 
-- **Chengdu University of Technology First Campus Elementary Electronic Design Competition**  
+- **Chengdu University of Technology Elementary Electronic Design Competition**  
   **Award**: Third Prize  
