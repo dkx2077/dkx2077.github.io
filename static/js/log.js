@@ -14,7 +14,7 @@ function getQueryParam(param) {
  * @param {Object} data - 要发送的数据
  */
 function sendLog(endpoint, data) {
-    fetch(`http://43.136.129.192:5000/${endpoint}`, {
+    fetch(`https://www.den999.com:5000/${endpoint}`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -144,7 +144,7 @@ function cacheUnsentLog(endpoint, data) {
 
 // 在日志发送失败时，启用离线缓存机制
 function sendLogWithRetry(endpoint, data) {
-    fetch(`http://43.136.129.192:5000/${endpoint}`, {
+    fetch(`https://www.den999.com:5000/${endpoint}`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
