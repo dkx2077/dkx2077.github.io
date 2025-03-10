@@ -18,7 +18,7 @@ During my undergraduate studies, I maintained an average grade of 84.1/100 (top 
 - **Assistant Engineer**, **Jiangxi Qiushi Academy for Advanced Studies (Zhejiang University Nanchang Research Institute)**, Nanchang, China (2024.07 – 2024.08) 
 <!-- (http://www.cs.zju.edu.cn/_upload/article/files/69/39/698485324e8787af1817d068e995/7e0090ea-5b6a-44fb-88fe-43583a7d545b.pdf) -->
 
-- **Python Intern**, **Wuhan University and Star-Earth Link Technology Co., Ltd.**, Wuhan, China (2024.03 – 2024.06)  
+- **Python Intern**, **Wuhan University (Intelligent Linked Open Data)**, Wuhan, China (2024.03 – 2024.06)  
  <!-- (http://www.xdzlink.cn/) -->
 
 <!-- #### Research Interests<p id="contact-info"></p>
