@@ -1,5 +1,6 @@
 For full paper list (not now, but I'm sure there will be more great work in the future), please refer to my [**Google Scholar**](https://scholar.google.com/citations?user=WsJD-ukAAAAJ).
 
+- <strong style="color:red;">**(Systems)**</strong> *Zhao X, Wang H, Dai C, Tang J,* **Deng K**, *Zhong Z, Kong F, Wang S, Morikawa S. Multi-Stage Simulation of Residents’ Disaster Risk Perception and Decision-Making Behavior: An Exploratory Study on Large Language Model-Driven Social–Cognitive Agent Framework. Systems. 2025; 13(4):240.* [**[Paper]**](https://www.mdpi.com/2079-8954/13/4/240)
 
 - <strong style="color:red;">**(Research Project Organized by ByteDance)**</strong> *Du, X., Yao, Y., Ma, K., Wang, B., Zheng, T., Zhu, K., ... **Deng, K.** ... & P Team. (2025). SuperGPQA: Scaling LLM Evaluation across 285 Graduate Disciplines. arXiv preprint arXiv:2502.14739.*[**[Paper]**](https://arxiv.org/abs/2502.14739)[**[Homepage]**](https://supergpqa.github.io)[**[code]**](https://github.com/SuperGPQA/SuperGPQA)
 
@@ -7,7 +8,7 @@ For full paper list (not now, but I'm sure there will be more great work in the 
 - <strong style="color:red;">**(Submitted to XXX Conference)**</strong> *Zhang, C., Feng, X., Bai, Y., Du, X., Hou, J.,* **Deng, K.** *, ... & Ni, S. (2024). Can MLLMs Understand the Deep Implication Behind Chinese Images?. arXiv preprint arXiv:2410.13854.*[**[Paper]**](https://arxiv.org/abs/2410.13854)[**[Homepage]**](https://cii-bench.github.io/)[**[code]**](https://github.com/MING-ZCH/CII-Bench)
 
 
-- <strong style="color:red;">**(Submitted to XXXX Workshop)**</strong> **Deng, K.** *(2024). IWN: Image Watermarking Based on Idempotency. arXiv preprint arXiv:2409.19506.* [**[Paper]**](https://arxiv.org/abs/2409.19506)
+- **Deng, K.** *(2024). IWN: Image Watermarking Based on Idempotency. arXiv preprint arXiv:2409.19506.* [**[Paper]**](https://arxiv.org/abs/2409.19506)
 
 
 - <strong style="color:red;">**(IEEE ACCESS)**</strong> *Wu, Z., Wen, Q., Yang, F., &* **Deng, K.** *(2024). An Innovative Personalized Recommendation Approach Based on Deep Learning and User Review Content. IEEE Access.* [**[Paper]**](https://ieeexplore.ieee.org/abstract/document/10643549)
