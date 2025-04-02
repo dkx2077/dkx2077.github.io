@@ -1,1 +1,2 @@
-- Under the guidance of Professor Wen from **Chengdu University of Technology**, We developed a novel detection model for brain tumor detection. This model outperforms state-of-the-art YOLO models in key metrics, demonstrating significant advancements in precision and efficiency on the Br35H dataset. **(This work has been accepted by *PLOS ONE* journal on March 20(2025))**
+<!-- - Under the guidance of Professor Wen from **Chengdu University of Technology**, We developed a novel detection model for brain tumor detection. This model outperforms state-of-the-art YOLO models in key metrics, demonstrating significant advancements in precision and efficiency on the Br35H dataset. **(This work has been accepted by *PLOS ONE* journal on March 20(2025))** -->
+...
