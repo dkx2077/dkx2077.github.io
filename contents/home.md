@@ -30,3 +30,7 @@ _(Mar 2024 – Jun 2024)_
 ### 📫 Contact
 
 ✉️ dengkaixin2077@gmail.com  
+
+
+I’m always eager to learn and humbled by new challenges—whether in cutting‑edge research or hands‑on engineering.  
+Please feel free to reach out if you’d like to discuss ideas, explore collaborations, or have any questions!
