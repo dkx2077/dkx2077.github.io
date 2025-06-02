@@ -1,18 +1,65 @@
-@import "./styles.css";
+/* Main Custom Styles */
 
-
-:root{
-    --h-title-color:#000000;
+:root {
+    --h-title-color: #000000;
+    --primary-color: #0d6efd;
+    --secondary-color: #6c757d;
+    --light-bg: #f8f9fa;
+    --gray-bg: #f0f0f0;
+    --card-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    --card-shadow-hover: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    --transition-speed: 0.3s;
+    --card-border-light: rgba(0, 0, 0, 0.08);
+    --card-bg-light: #fafbfc;
+    --card-bg-gray: rgba(255, 255, 255, 0.95);
 }
 
+/* Navigation Header */
 .header {
-    border-bottom: solid 2px var(--bs-blue);
+    border-bottom: solid 2px var(--primary-color);
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    transition: all var(--transition-speed) ease;
 }
 
+.navbar-brand {
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    transition: color var(--transition-speed) ease;
+}
+
+.navbar-brand:hover {
+    color: var(--primary-color) !important;
+}
+
+.nav-link {
+    transition: all var(--transition-speed) ease;
+    position: relative;
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -2px;
+    left: 50%;
+    background-color: var(--primary-color);
+    transition: all var(--transition-speed) ease;
+    transform: translateX(-50%);
+}
+
+.nav-link:hover::after,
+.nav-link.active::after {
+    width: 80%;
+}
+
+/* Footer */
 .bg-bottom {
     background-color: var(--h-title-color);
 }
 
+/* Hero Section */
 .top-section {
     position: relative;
     padding: 10rem 0;
@@ -40,33 +87,341 @@
     background: rgba(0, 0, 0, 0.5);
 }
 
-section header h2{
-    font-family: "Kanit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji" !important;
-    color: var(--h-title-color);
-    font-size: 2.3rem;
-    line-height: 4rem;
+/* Section样式增强 */
+section {
+    padding: 3rem 0;
+    position: relative;
+    overflow: hidden;
 }
 
-section .main-body{
-    font-size: 1.3rem;
-    font-weight: 200;
-    line-height: 2.4rem;
-}
-
-
+/* 背景渐变定义 - 统一管理 */
 .bg-gradient-primary-to-secondary-light {
-    background: linear-gradient(45deg, #fcfcfc, #ffffff) !important;
+    background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
+    position: relative;
+}
+
+.bg-gradient-primary-to-secondary-light::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 20% 80%, rgba(13, 110, 253, 0.02) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(13, 110, 253, 0.02) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(13, 110, 253, 0.01) 0%, transparent 50%);
+    pointer-events: none;
 }
 
 .bg-gradient-primary-to-secondary-gray {
-    background: linear-gradient(45deg, #f0f0f0, #f1f1f1) !important;
+    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+    position: relative;
 }
 
+.bg-gradient-primary-to-secondary-gray::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 60% 70%, rgba(108, 117, 125, 0.02) 0%, transparent 50%),
+        radial-gradient(circle at 30% 30%, rgba(108, 117, 125, 0.02) 0%, transparent 50%);
+    pointer-events: none;
+}
 
+/* Section间的分隔优化 */
+section + section {
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
 
+/* 为section标题添加装饰性元素 */
+section header {
+    position: relative;
+}
+
+section header h2 {
+    font-family: "Kanit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: var(--h-title-color);
+    font-size: 2.3rem;
+    line-height: 4rem;
+    margin-bottom: 2rem;
+    position: relative;
+    padding-bottom: 0.5rem;
+    display: inline-block;
+}
+
+/* 为特定section的标题添加背景装饰 */
+.bg-gradient-primary-to-secondary-light section header h2::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: -2rem;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 60%;
+    background: linear-gradient(to bottom, var(--primary-color), transparent);
+    opacity: 0.5;
+}
+
+/* Section标题图标样式 */
+section header h2 i {
+    color: var(--primary-color);
+    opacity: 0.8;
+    font-size: 0.9em;
+    margin-right: 0.3rem;
+}
+
+/* Section Body */
+section .main-body {
+    font-size: 1.1rem;
+    font-weight: 300;
+    line-height: 1.8;
+    color: #333;
+}
+
+/* 卡片样式 - 基础样式 */
+section .main-body > p,
+section .main-body > ul,
+section .main-body > ol,
+section .main-body > blockquote {
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+    transition: all var(--transition-speed) ease;
+    background-color: white;
+    border: 1px solid var(--card-border-light);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* 灰色背景section的卡片样式 */
+.bg-gradient-primary-to-secondary-gray .main-body > p,
+.bg-gradient-primary-to-secondary-gray .main-body > ul,
+.bg-gradient-primary-to-secondary-gray .main-body > ol,
+.bg-gradient-primary-to-secondary-gray .main-body > blockquote {
+    background-color: var(--card-bg-gray);
+    box-shadow: var(--card-shadow);
+}
+
+.bg-gradient-primary-to-secondary-gray .main-body > p:hover,
+.bg-gradient-primary-to-secondary-gray .main-body > ul:hover,
+.bg-gradient-primary-to-secondary-gray .main-body > ol:hover {
+    box-shadow: var(--card-shadow-hover);
+    transform: translateY(-2px);
+}
+
+/* 白色背景section的卡片样式 - 更突出的效果 */
+.bg-gradient-primary-to-secondary-light .main-body > p,
+.bg-gradient-primary-to-secondary-light .main-body > ul,
+.bg-gradient-primary-to-secondary-light .main-body > ol,
+.bg-gradient-primary-to-secondary-light .main-body > blockquote {
+    background: linear-gradient(to bottom, #ffffff, #fafbfc);
+    border: 1px solid var(--card-border-light);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.bg-gradient-primary-to-secondary-light .main-body > p:hover,
+.bg-gradient-primary-to-secondary-light .main-body > ul:hover,
+.bg-gradient-primary-to-secondary-light .main-body > ol:hover {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
+    transform: translateY(-2px);
+    border-color: rgba(13, 110, 253, 0.15);
+}
+
+/* 标题样式优化 */
+section .main-body h3 {
+    font-size: 1.5rem;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    border-left: 4px solid var(--primary-color);
+    padding-left: 1rem;
+}
+
+section .main-body h4 {
+    font-size: 1.2rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.8rem;
+    font-weight: 500;
+    color: #495057;
+}
+
+section .main-body p {
+    margin-bottom: 1rem;
+}
+
+section .main-body ul, 
+section .main-body ol {
+    margin-bottom: 1rem;
+    padding-left: 2rem;
+}
+
+section .main-body li {
+    margin-bottom: 0.5rem;
+}
+
+/* Links */
+section .main-body a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: all var(--transition-speed) ease;
+    position: relative;
+}
+
+section .main-body a:hover {
+    color: #0056b3;
+}
+
+/* 徽章样式优化 */
+section .main-body a img[alt="Google Scholar"],
+section .main-body a img[alt="GitHub"] {
+    transition: all var(--transition-speed) ease;
+    filter: brightness(1);
+}
+
+section .main-body a:hover img[alt="Google Scholar"],
+section .main-body a:hover img[alt="GitHub"] {
+    filter: brightness(1.1);
+    transform: translateY(-2px);
+}
+
+/* Code blocks */
+section .main-body code {
+    background-color: #f5f5f5;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.9em;
+}
+
+section .main-body pre {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 5px;
+    overflow-x: auto;
+    margin-bottom: 1rem;
+}
+
+section .main-body pre code {
+    background-color: transparent;
+    padding: 0;
+}
+
+/* 分隔线样式 */
+section .main-body hr {
+    margin: 2rem 0;
+    border: none;
+    height: 1px;
+    background: linear-gradient(to right, transparent, #dee2e6, transparent);
+}
+
+/* Utility Classes */
 .on-top {
     position: relative;
     z-index: 10000;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991px) {
+    .top-section {
+        height: 20rem;
+        padding: 8rem 0;
+    }
+    
+    section header h2 {
+        font-size: 2rem;
+    }
+    
+    /* 移动端隐藏标题装饰线 */
+    .bg-gradient-primary-to-secondary-light section header h2::before {
+        display: none;
+    }
+    
+    section .main-body {
+        font-size: 1rem;
+    }
+    
+    /* 移动端卡片样式调整 */
+    section .main-body > p,
+    section .main-body > ul,
+    section .main-body > ol {
+        padding: 1rem;
+    }
+    
+    /* 移动端减少卡片阴影 */
+    .bg-gradient-primary-to-secondary-light section .main-body > p,
+    .bg-gradient-primary-to-secondary-light section .main-body > ul,
+    .bg-gradient-primary-to-secondary-light section .main-body > ol {
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+}
+
+@media (max-width: 576px) {
+    .top-section {
+        height: 18rem;
+        padding: 6rem 0;
+    }
+    
+    .top-section h2 {
+        font-size: 2rem !important;
+    }
+    
+    section header h2 {
+        font-size: 1.8rem;
+        line-height: 2.5rem;
+    }
+    
+    section {
+        padding: 2rem 0;
+    }
+    
+    /* 移动端导航栏调整 */
+    .navbar-toggler {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    /* 移动端内容调整 */
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Active navigation link */
+.navbar-nav .nav-link.active {
+    color: var(--primary-color) !important;
+    font-weight: 500;
+}
+
+/* 滚动动画 */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+section {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+/* Math display */
+.MathJax_Display {
+    overflow-x: auto;
+    overflow-y: hidden;
+    max-width: 100%;
 }
 
 .top-bg {
@@ -86,8 +441,6 @@ section .main-body{
     background: rgba(0, 0, 0, 0.4);
 }
 
-
-
 .photo {
     position: relative;
 }
@@ -97,7 +450,6 @@ section .main-body{
     height: 12rem;
     margin-top: 8rem;
 }
-
 
 .photo .screen {
     position: absolute;
@@ -111,20 +463,36 @@ section .main-body{
 }
 
 @media screen and (max-width: 991px) {
-
     .photo img {
         height: 12rem;
         margin-top: 3rem;
     }
-
 }
 
 @media screen and (max-width: 736px) {
-
     .photo img {
         height: 7rem;
         margin-top: 7rem;
     }
+}
 
+/* 修复首页section的样式问题 */
+#page-top.bg-gradient-primary-to-secondary-light {
+    scroll-margin-top: 74px; /* 导航栏高度 */
+}
+
+/* 优化Home section中的内容样式 */
+#home-md > p:first-child {
+    background: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    margin-bottom: 1rem !important;
+    border: none !important;
+}
+
+#home-md > p:first-child:hover {
+    transform: none !important;
+    box-shadow: none !important;
+    border: none !important;
 }
 

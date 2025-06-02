@@ -4,7 +4,7 @@
 const CONTENT_DIR   = 'contents/';                // Markdown 和 config.yml 存放目录
 const CONFIG_FILE   = 'config.yml';               // 配置文件名
 const SECTION_NAMES = ['home', 'publications', 'awards', 'project', 'service'];
-const VERSION_URL   = 'static/json/version.json'; // 版本文件（相对路径）
+const VERSION_URL   = 'package.json'; // 从package.json获取版本
 const CACHE_PREFIX  = 'site-cache-';              // 仅清除此前缀的 Cache Storage
 
 // ———— 入口：版本检查 + 页面初始化 ————
@@ -13,7 +13,8 @@ const CACHE_PREFIX  = 'site-cache-';              // 仅清除此前缀的 Cache
     try {
       const res = await fetch(VERSION_URL, { cache: 'no-store' });
       if (res.ok) {
-        const { version } = await res.json();
+        const packageData = await res.json();
+        const version = packageData.version;
         const old = localStorage.getItem('site_version');
         if (old !== version) {
           console.log('[Version] Detected new version:', version);

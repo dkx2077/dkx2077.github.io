@@ -1,6 +1,10 @@
 For full paper list (not now, but I'm sure there will be more great work in the future), please refer to my [**Google Scholar**](https://scholar.google.com/citations?user=WsJD-ukAAAAJ).
 
 <!-- #e67e22 #e74c3c #27ae60 #2980b9-->
+- <span style="background:#e74c3c;color:white;border-radius:3px;padding:2px 6px;font-size:0.9em">ACL</span> _Zhang, C._, _Feng, X._, _Bai, Y._, _Du, X._, _Hou, J._, **_Deng, K._**, … & _Ni, S._ (2024). **Can MLLMs Understand the Deep Implication Behind Chinese Images?**.  
+  [arXiv:2410.13854 ↗](https://arxiv.org/abs/2410.13854) | [Homepage ↗](https://cii-bench.github.io/) | [Code ↗](https://github.com/MING-ZCH/CII-Bench)  
+  <span style="color:#3498db;font-size:0.9em">Chinese Academy of Sciences</span>
+
 - <span style="background:#e74c3c;color:white;border-radius:3px;padding:2px 6px;font-size:0.9em">CVPR Workshop</span> _Li, X._, _Jin, Y._, _Jin, X._, _Wu, Z._, _Li, B._, … **_Deng, K._**, … & _NTIRE 2025 Team_ (2025). **NTIRE 2025 Challenge on Day and Night Raindrop Removal for Dual-Focused Images: Methods and Results**.  
   [arXiv:2504.12711 ↗](https://arxiv.org/abs/2504.12711) | [Homepage ↗](https://lixinustc.github.io/CVPR-NTIRE2025-RainDrop-Competition.github.io/)   
   <span style="color:#3498db;font-size:0.9em">Hokkaido University</span>
@@ -16,10 +20,6 @@ For full paper list (not now, but I'm sure there will be more great work in the 
 - <span style="background:#e67e22;color:white;border-radius:3px;padding:2px 6px;font-size:0.9em">arXiv</span> _Du, X._, _Yao, Y._, _Ma, K._, _Wang, B._, _Zheng, T._, … **_Deng, K._**, … & _MAP Team_ (2025). **SuperGPQA: Scaling LLM Evaluation across 285 Graduate Disciplines**.  
   [arXiv:2502.14739 ↗](https://arxiv.org/abs/2502.14739) | [Homepage ↗](https://supergpqa.github.io) | [Code ↗](https://github.com/SuperGPQA/SuperGPQA)  
   <span style="color:#3498db;font-size:0.9em">ByteDance DOUBAO LLM Team</span>
-
-- <span style="background:#e74c3c;color:white;border-radius:3px;padding:2px 6px;font-size:0.9em">ACL</span> _Zhang, C._, _Feng, X._, _Bai, Y._, _Du, X._, _Hou, J._, … **_Deng, K._**, … & _Ni, S._ (2024). **Can MLLMs Understand the Deep Implication Behind Chinese Images?**.  
-  [arXiv:2410.13854 ↗](https://arxiv.org/abs/2410.13854) | [Homepage ↗](https://cii-bench.github.io/) | [Code ↗](https://github.com/MING-ZCH/CII-Bench)  
-  <span style="color:#3498db;font-size:0.9em">Chinese Academy of Sciences</span>
 
 - <span style="background:#e67e22;color:white;border-radius:3px;padding:2px 6px;font-size:0.9em">arXiv</span> **_Deng, K._** (2024). **IWN: Image Watermarking Based on Idempotency**.  
   [arXiv:2409.19506 ↗](https://arxiv.org/abs/2409.19506)  
