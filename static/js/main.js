@@ -106,81 +106,142 @@ async function initAnalytics() {
 
 // 设置分析系统集成（新增功能）
 function setupAnalyticsIntegration() {
-  // 监听自定义Analytics的部分变化事件，同步到GA4
-  window.addEventListener('section-change', (event) => {
-    const { fromSection, toSection } = event.detail;
-    ga4Instance.trackSectionChange(fromSection, toSection);
-  });
-  
-  // 设置论文点击跟踪
-  setupPublicationTracking();
-  
-  // 设置外部链接跟踪
-  setupExternalLinkTracking();
-  
-  // 设置滚动跟踪集成
-  setupScrollTrackingIntegration();
-  
-  console.log('[App] Analytics integration setup completed');
+  try {
+    // 监听自定义Analytics的部分变化事件，同步到GA4
+    window.addEventListener('section-change', (event) => {
+      const { fromSection, toSection } = event.detail;
+      if (ga4Instance && ga4Instance.isInitialized) {
+        ga4Instance.trackSectionChange(fromSection, toSection);
+        ga4Instance.trackAcademicSectionView(toSection);
+      }
+    });
+    
+    // 设置论文点击跟踪
+    setupPublicationTracking();
+    
+    // 设置外部链接跟踪
+    setupExternalLinkTracking();
+    
+    // 设置滚动跟踪集成
+    setupScrollTrackingIntegration();
+    
+    // 设置参与度里程碑跟踪
+    setupEngagementMilestones();
+    
+    // 设置性能指标跟踪
+    setupPerformanceIntegration();
+    
+    console.log('[App] Analytics integration setup completed');
+    
+  } catch (error) {
+    console.error('[App] Analytics integration setup failed:', error);
+    if (ga4Instance) {
+      ga4Instance.trackError('integration_setup_error', error.message);
+    }
+  }
 }
 
-// 设置论文点击跟踪（新增功能）
+// 设置论文点击跟踪（增强版本）
 function setupPublicationTracking() {
   document.addEventListener('click', (event) => {
-    const link = event.target.closest('a');
-    if (link && link.href) {
-      const publicationSection = link.closest('#publications-md');
-      if (publicationSection) {
-        ga4Instance.trackPublicationClick(link, link.href);
-        
-        // 同时发送到自定义分析系统
-        if (analytics) {
-          analytics.trackLinkClick(link.href, link.textContent, 'publication');
+    try {
+      const link = event.target.closest('a');
+      if (link && link.href) {
+        const publicationSection = link.closest('#publications-md');
+        if (publicationSection) {
+          // GA4追踪
+          if (ga4Instance && ga4Instance.isInitialized) {
+            ga4Instance.trackPublicationClick(link, link.href);
+          }
+          
+          // 同时发送到自定义分析系统
+          if (analytics) {
+            analytics.trackLinkClick(link.href, link.textContent, 'publication');
+          }
         }
+      }
+    } catch (error) {
+      console.error('[App] Publication tracking error:', error);
+      if (ga4Instance) {
+        ga4Instance.trackError('publication_tracking_error', error.message);
       }
     }
   });
 }
 
-// 设置外部链接跟踪（新增功能）
+// 设置外部链接跟踪（增强版本）
 function setupExternalLinkTracking() {
   document.addEventListener('click', (event) => {
-    const link = event.target.closest('a');
-    if (link && link.href && !link.href.startsWith('#')) {
-      const isExternal = !link.href.includes(window.location.hostname);
-      if (isExternal) {
-        ga4Instance.trackExternalLink(link.href, link.textContent, {
-          section: ga4Instance.currentSection
-        });
-        
-        // 同时发送到自定义分析系统
-        if (analytics) {
-          analytics.trackLinkClick(link.href, link.textContent, 'external');
+    try {
+      const link = event.target.closest('a');
+      if (link && link.href && !link.href.startsWith('#')) {
+        const isExternal = !link.href.includes(window.location.hostname);
+        if (isExternal) {
+          // GA4追踪
+          if (ga4Instance && ga4Instance.isInitialized) {
+            ga4Instance.trackExternalLink(link.href, link.textContent, {
+              section: ga4Instance.currentSection,
+              click_timestamp: Date.now()
+            });
+          }
+          
+          // 同时发送到自定义分析系统
+          if (analytics) {
+            analytics.trackLinkClick(link.href, link.textContent, 'external');
+          }
         }
+      }
+    } catch (error) {
+      console.error('[App] External link tracking error:', error);
+      if (ga4Instance) {
+        ga4Instance.trackError('external_link_tracking_error', error.message);
       }
     }
   });
 }
 
-// 设置滚动跟踪集成（新增功能）
+// 设置滚动跟踪集成（优化版本）
 function setupScrollTrackingIntegration() {
   let lastScrollPercentage = 0;
+  let scrollStartTime = Date.now();
   
   const handleScroll = () => {
-    const scrollTop = window.scrollY;
-    const documentHeight = document.documentElement.scrollHeight - window.innerHeight;
-    const scrollPercentage = Math.round((scrollTop / documentHeight) * 100);
-    
-    // 检查是否达到新的里程碑
-    const milestones = [25, 50, 75, 100];
-    for (const milestone of milestones) {
-      if (scrollPercentage >= milestone && lastScrollPercentage < milestone) {
-        ga4Instance.trackScroll(milestone, ga4Instance.currentSection);
-        break;
+    try {
+      const scrollTop = window.scrollY;
+      const documentHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const scrollPercentage = Math.round((scrollTop / documentHeight) * 100);
+      
+      // 检查是否达到新的里程碑
+      const milestones = [25, 50, 75, 100];
+      for (const milestone of milestones) {
+        if (scrollPercentage >= milestone && lastScrollPercentage < milestone) {
+          const scrollTime = Date.now() - scrollStartTime;
+          
+          // GA4追踪
+          if (ga4Instance && ga4Instance.isInitialized) {
+            ga4Instance.trackScroll(milestone, ga4Instance.currentSection);
+          }
+          
+          // 同时发送到自定义分析系统
+          if (analytics) {
+            analytics.trackCustomEvent('scroll_milestone', {
+              percentage: milestone,
+              section: ga4Instance?.currentSection || 'unknown',
+              scroll_time: scrollTime
+            });
+          }
+          break;
+        }
+      }
+      
+      lastScrollPercentage = scrollPercentage;
+      
+    } catch (error) {
+      console.error('[App] Scroll tracking error:', error);
+      if (ga4Instance) {
+        ga4Instance.trackError('scroll_tracking_error', error.message);
       }
     }
-    
-    lastScrollPercentage = scrollPercentage;
   };
   
   // 节流滚动事件
@@ -192,6 +253,88 @@ function setupScrollTrackingIntegration() {
       scrollTimeout = null;
     }, 250);
   }, { passive: true });
+}
+
+// 设置参与度里程碑跟踪（新增功能）
+function setupEngagementMilestones() {
+  const milestones = [
+    { time: 10000, name: '10_seconds' },
+    { time: 30000, name: '30_seconds' },
+    { time: 60000, name: '1_minute' },
+    { time: 300000, name: '5_minutes' }
+  ];
+  
+  milestones.forEach(milestone => {
+    setTimeout(() => {
+      if (ga4Instance && ga4Instance.isInitialized) {
+        ga4Instance.trackEngagementMilestone(milestone.name, {
+          milestone_time: milestone.time,
+          page_active: !document.hidden
+        });
+      }
+    }, milestone.time);
+  });
+  
+  // 页面焦点变化时的参与度追踪
+  let focusStartTime = Date.now();
+  
+  document.addEventListener('visibilitychange', () => {
+    try {
+      if (document.hidden) {
+        const focusTime = Date.now() - focusStartTime;
+        if (ga4Instance && ga4Instance.isInitialized && focusTime > 5000) { // 至少5秒
+          ga4Instance.trackEngagementMilestone('focus_lost', {
+            focus_duration: focusTime,
+            lost_at_section: ga4Instance.currentSection
+          });
+        }
+      } else {
+        focusStartTime = Date.now();
+        if (ga4Instance && ga4Instance.isInitialized) {
+          ga4Instance.trackEngagementMilestone('focus_regained', {
+            regained_at_section: ga4Instance.currentSection
+          });
+        }
+      }
+    } catch (error) {
+      console.error('[App] Engagement milestone tracking error:', error);
+    }
+  });
+}
+
+// 设置性能指标集成（新增功能）
+function setupPerformanceIntegration() {
+  if (!ANALYTICS_CONFIG.trackPerformance) return;
+  
+  // Web Vitals集成
+  if ('web-vitals' in window) {
+    window['web-vitals'].getCLS((metric) => {
+      if (ga4Instance) ga4Instance.trackPerformance('CLS', metric.value);
+    });
+    
+    window['web-vitals'].getFID((metric) => {
+      if (ga4Instance) ga4Instance.trackPerformance('FID', metric.value);
+    });
+    
+    window['web-vitals'].getFCP((metric) => {
+      if (ga4Instance) ga4Instance.trackPerformance('FCP', metric.value);
+    });
+    
+    window['web-vitals'].getLCP((metric) => {
+      if (ga4Instance) ga4Instance.trackPerformance('LCP', metric.value);
+    });
+  }
+  
+  // 基本性能指标
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      const navigation = performance.getEntriesByType('navigation')[0];
+      if (navigation && ga4Instance) {
+        ga4Instance.trackPerformance('page_load_time', navigation.loadEventEnd - navigation.loadEventStart);
+        ga4Instance.trackPerformance('dom_content_loaded', navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart);
+      }
+    }, 1000);
+  });
 }
 
 // 等待用户交互或延迟

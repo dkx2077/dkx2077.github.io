@@ -18,10 +18,13 @@
         
         // 基础配置 - 针对学术网站优化
         gtag('config', 'G-KR0MCDLGWW', {
-            // 隐私设置
+            // 隐私设置 
             anonymize_ip: false,
             allow_google_signals: false,
             allow_ad_personalization_signals: false,
+            cookie_expires: 365 * 24 * 60 * 60, // Cookie过期时间1年
+            cookie_domain: 'auto',
+            cookie_flags: 'secure;samesite=lax',
             
             // 增强测量 - 针对学术网站优化
             enhanced_measurements: {
@@ -33,33 +36,55 @@
                 page_changes: true
             },
             
-            // 自定义参数映射
+            // 统一的自定义参数映射
             custom_map: {
                 'custom_parameter_1': 'academic_section',
                 'custom_parameter_2': 'visitor_type',
-                'custom_parameter_3': 'interaction_depth'
+                'custom_parameter_3': 'interaction_depth',
+                'custom_parameter_4': 'publication_type',
+                'custom_parameter_5': 'engagement_level'
             },
             
             // 会话配置
             session_timeout: 1800, // 30分钟
             
             // 发送页面浏览量
-            send_page_view: true
+            send_page_view: true,
+            
+            // 调试模式（生产环境应设为false）
+            debug_mode: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
         });
         
         // 设置用户属性
         gtag('set', 'user_properties', {
             'site_type': 'academic_homepage',
-            'content_language': 'en'
+            'content_language': 'en',
+            'visitor_segment': 'academic_visitor'
         });
         
-        // 预定义学术网站相关的自定义维度
+        // 设置转换事件
         gtag('config', 'G-KR0MCDLGWW', {
-            custom_map: {
-                'section_name': 'academic_section',
-                'publication_type': 'content_type',
-                'engagement_level': 'interaction_depth'
-            }
+            'conversion_events': [
+                'publication_click',
+                'engagement_milestone',
+                'academic_section_view'
+            ]
+        });
+        
+        // 错误处理
+        window.addEventListener('error', function(e) {
+            gtag('event', 'exception', {
+                description: e.error ? e.error.toString() : 'Unknown error',
+                fatal: false,
+                error_source: 'global_handler'
+            });
+        });
+        
+        // 设置数据流配置
+        gtag('config', 'G-KR0MCDLGWW', {
+            'app_name': 'Kaixin Deng Academic Homepage',
+            'app_version': '2.0',
+            'developer_id': 'dkx2077'
         });
     </script>
     
