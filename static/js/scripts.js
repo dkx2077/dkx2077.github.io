@@ -3,7 +3,7 @@
 // ———— 全局配置 ————
 const CONTENT_DIR   = 'contents/';                // Markdown 和 config.yml 存放目录
 const CONFIG_FILE   = 'config.yml';               // 配置文件名
-const SECTION_NAMES = ['home', 'publications', 'awards', 'project', 'service'];
+const SECTION_NAMES = ['home', 'publications', 'awards', 'service'];
 const VERSION_URL   = 'package.json'; // 从package.json获取版本
 const CACHE_PREFIX  = 'site-cache-';              // 仅清除此前缀的 Cache Storage
 

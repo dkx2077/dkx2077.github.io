@@ -2,7 +2,7 @@
 export const CONFIG = {
   CONTENT_DIR: 'contents/',
   CONFIG_FILE: 'config.yml',
-  SECTION_NAMES: ['home', 'publications', 'awards', 'project', 'service'],
+  SECTION_NAMES: ['home', 'publications', 'awards', 'service'],
   VERSION_URL: 'package.json',
   CACHE_PREFIX: 'site-cache-',
 };

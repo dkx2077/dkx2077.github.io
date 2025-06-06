@@ -17,7 +17,6 @@
 │   ├── home.md          # Home section content
 │   ├── publications.md  # Publications list
 │   ├── awards.md        # Awards and honors
-│   ├── project.md       # Projects (optional)
 │   └── service.md       # Service/ongoing work
 ├── package.json         # Node.js dependencies
 ├── .eslintrc.json      # ESLint configuration
@@ -37,16 +36,6 @@ Write your content using standard Markdown syntax. The site supports:
 - Tables
 - Mathematical expressions using `$...$` for inline and `$$...$$` for display math
 
-Example:
-```markdown
-## Research Interests
-
-My research focuses on $f(x) = x^2$ and other mathematical concepts.
-
-$$
-\int_{0}^{\infty} e^{-x^2} dx = \frac{\sqrt{\pi}}{2}
-$$
-```
 
 #### Configuration File
 The `config.yml` file contains site-wide settings:
@@ -58,13 +47,6 @@ home-subtitle: About Me
 copyright-text: © 2024 Your Name
 ```
 
-## Browser Support
-
-- Chrome (latest)
-- Firefox (latest)
-- Safari (latest)
-- Edge (latest)
-- Mobile browsers
 
 ## Technologies Used
 
