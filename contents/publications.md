@@ -2,7 +2,7 @@ For full paper list (not now, but I'm sure there will be more great work in the 
 
 <!-- #e74c3c #e67e22 #8e44ad #2980b9 #27ae60 -->
 <span style="background:#e74c3c;color:white;border-radius:3px;padding:2px 6px;font-size:0.9em">NeurIPS</span> _Du, X._, _Yao, Y._, _Ma, K._, _Wang, B._, _Zheng, T._, … **_Deng, K._**, … & _MAP Team_ (2025). **SuperGPQA: Scaling LLM Evaluation across 285 Graduate Disciplines**.  
-  [arXiv:2502.14739 ↗](https://arxiv.org/abs/2502.14739) | [Homepage ↗](https://supergpqa.github.io) | [Code ↗](https://github.com/SuperGPQA/SuperGPQA)  
+  [Paper ↗](https://neurips.cc/virtual/2025/poster/121825) |[arXiv:2502.14739 ↗](https://arxiv.org/abs/2502.14739) | [Homepage ↗](https://supergpqa.github.io) | [Code ↗](https://github.com/SuperGPQA/SuperGPQA)  
   <span style="color:#3498db;font-size:0.9em">ByteDance DOUBAO LLM Team</span>
 <span style="background:#e74c3c;color:white;border-radius:3px;padding:2px 6px;font-size:0.9em">ACL</span> _Zhang, C._, _Feng, X._, _Bai, Y._, _Du, X._, _Hou, J._, **_Deng, K._**, … & _Ni, S._ (2025). **Can MLLMs Understand the Deep Implication Behind Chinese Images?**
   [Paper ↗](https://aclanthology.org/2025.acl-long.700/) | [arXiv:2410.13854 ↗](https://arxiv.org/abs/2410.13854) | [Homepage ↗](https://cii-bench.github.io/) | [Code ↗](https://github.com/MING-ZCH/CII-Bench)  
