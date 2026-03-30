@@ -6,7 +6,7 @@
 
 **Research Student**  
 Faculty of Information Science and Technology, **HOKKAIDO UNIVERSITY**  
-_(Apr 2025 – Present)_
+_(Apr 2025 – Mar 2026)_
 
 **Undergraduate Student**  
 College of Computer Science and Cyber Security, **CHENGDU UNIVERSITY OF TECHNOLOGY**  
