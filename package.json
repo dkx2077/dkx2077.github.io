@@ -1,6 +1,6 @@
 {
   "name": "dkx2077-homepage",
-  "version": "1.0.44",
+  "version": "1.0.45",
   "description": "Personal academic homepage for Kaixin Deng",
   "author": "Kaixin Deng",
   "license": "MIT",
@@ -28,4 +28,4 @@
     "js-yaml": "^4.1.0",
     "mathjax": "^3.2.2"
   }
-} 
+}
