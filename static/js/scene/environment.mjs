@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { DISTRICT_LIGHTS } from './design.mjs';
+import { DISTRICT_LIGHTS, FACADE_LIGHTS } from './design.mjs';
 
-/** Instanced architecture, no shadow maps, and a single lightweight ground shader. */
+/** Instanced architecture and a single lightweight wet-ground shader. */
 export function createEnvironment(scene, { low, reducedMotion, onInvalidate = () => {} }) {
   let seed = 2077;
   const random = () => {
@@ -10,16 +10,20 @@ export function createEnvironment(scene, { low, reducedMotion, onInvalidate = ()
   };
   const geometry = new THREE.BoxGeometry(1, 1, 1);
   const metal = new THREE.MeshStandardMaterial({
-    color: 0x26313d,
-    roughness: 0.48,
-    metalness: 0.68,
+    color: 0x546172,
+    roughness: 0.43,
+    metalness: 0.32,
   });
   const dark = new THREE.MeshStandardMaterial({
-    color: 0x101724,
-    roughness: 0.76,
-    metalness: 0.35,
+    color: 0x242e42,
+    roughness: 0.66,
+    metalness: 0.18,
   });
-  const trim = new THREE.MeshStandardMaterial({ color: 0x485363, roughness: 0.34, metalness: 0.8 });
+  const trim = new THREE.MeshStandardMaterial({
+    color: 0x78869b,
+    roughness: 0.29,
+    metalness: 0.72,
+  });
   const cyan = new THREE.MeshBasicMaterial({
     color: new THREE.Color('#54dfed').multiplyScalar(2.4),
   });
@@ -350,6 +354,16 @@ export function createEnvironment(scene, { low, reducedMotion, onInvalidate = ()
     blade.rotation.z = (Math.PI * i) / 4;
   }
 
+  // Visible housings identify the upper-storey light sources.
+  for (const light of FACADE_LIGHTS) {
+    const fixture = new THREE.Group();
+    fixture.position.set(...light.at);
+    fixture.lookAt(new THREE.Vector3(...light.target));
+    scene.add(fixture);
+    addBox(fixture, [0, 0, -0.08], [0.95, 0.42, 0.45], dark);
+    addBox(fixture, [0, 0, 0.16], [0.75, 0.25, 0.05], light.at[0] > 0 ? amber : violet);
+  }
+
   // All static facade boxes share one draw call per material, including small ribs.
   scene.updateMatrixWorld(true);
   const batches = new Map();
@@ -407,8 +421,8 @@ export function createEnvironment(scene, { low, reducedMotion, onInvalidate = ()
           float streak=exp(-pow(across/width,2.))
             *smoothstep(0.,3.,along)*(1.-smoothstep(reach*.75,reach+3.,along));
           float broken=.24+.76*pow(ripple,3.);
-          base+=lightColors[i]*streak*broken*(.09+puddle*.65)*grazing;
-          base+=lightColors[i]*exp(-length(p-light)*.46)*.055;
+          base+=lightColors[i]*streak*broken*(.12+puddle*.95)*grazing;
+          base+=lightColors[i]*exp(-length(p-light)*.4)*.08;
         }
         base=mix(base,vec3(.022,.023,.041),smoothstep(20.,68.,dist));
         gl_FragColor=vec4(base,1.);

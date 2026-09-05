@@ -5,7 +5,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { createEnvironment } from './environment.mjs';
 import { createSigns } from './signs.mjs';
-import { DISTRICT_LIGHTS } from './design.mjs';
+import { createLighting, createReflections } from './lighting.mjs';
 import { createLookControls, direction, viewportFov, FIXED_POSITION, DISTRICTS } from './look.mjs';
 
 export function createWorld(settings, callbacks = {}) {
@@ -45,14 +45,15 @@ export function createWorld(settings, callbacks = {}) {
   renderer.setClearColor(0x080b16);
   renderer.domElement.setAttribute('aria-hidden', 'true');
   world.appendChild(renderer.domElement);
-  scene.add(new THREE.HemisphereLight(0x899cce, 0x171123, 0.8));
-  const sun = new THREE.DirectionalLight(0x86a3d2, 1.15);
-  sun.position.set(-9, 20, 12);
-  scene.add(sun);
-  for (const { color, power, at } of DISTRICT_LIGHTS) {
-    const light = new THREE.PointLight(color, power, 27, 2);
-    light.position.set(...at);
-    scene.add(light);
+  let reflections;
+  try {
+    reflections = createReflections(renderer, scene);
+  } catch (error) {
+    // Startup can fail before the caller receives dispose(); release this owned context here.
+    renderer.dispose();
+    renderer.forceContextLoss();
+    renderer.domElement.remove();
+    throw error;
   }
   const environment = createEnvironment(scene, {
     low,
@@ -60,9 +61,15 @@ export function createWorld(settings, callbacks = {}) {
     onInvalidate: requestFrame,
   });
   const signs = createSigns(scene, signLayer);
+  const lighting = createLighting(scene);
   let composer = null;
 
   function configureEffects() {
+    renderer.shadowMap.enabled = !low;
+    renderer.shadowMap.type = THREE.PCFShadowMap;
+    renderer.shadowMap.autoUpdate = false;
+    renderer.shadowMap.needsUpdate = !low;
+    lighting.setQuality(low);
     if (composer) {
       for (const pass of composer.passes) pass.dispose?.();
       composer.dispose();
@@ -235,6 +242,8 @@ export function createWorld(settings, callbacks = {}) {
       abort.abort();
       environment.dispose();
       signs.dispose();
+      lighting.dispose();
+      reflections.dispose();
       const geometries = new Set(),
         materials = new Set(),
         textures = new Set();

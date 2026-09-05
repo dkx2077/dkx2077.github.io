@@ -13,9 +13,15 @@ export const SIGN_LAYOUT = Object.freeze({
 
 // A bounded number of real lights, each paired with its actual facade and wet-ground glow.
 export const DISTRICT_LIGHTS = Object.freeze([
-  { at: [-8.8, 5.6, -10.8], color: '#48dfe7', power: 90 },
-  { at: [9, 5.2, -12.8], color: '#df59b8', power: 88 },
-  { at: [15.7, 5.1, -6.5], color: '#68caff', power: 82 },
-  { at: [1.2, 5.5, 17.5], color: '#edaa5b', power: 82 },
-  { at: [-16.5, 4.8, 0.5], color: '#cb69ce', power: 84 },
+  { at: [-8.8, 5.6, -10.8], color: '#48dfe7', power: 230, reach: 48 },
+  { at: [9, 5.2, -12.8], color: '#df59b8', power: 215, reach: 48 },
+  { at: [15.7, 5.1, -6.5], color: '#68caff', power: 220, reach: 48 },
+  { at: [1.2, 5.5, 17.5], color: '#edaa5b', power: 250, reach: 48 },
+  { at: [-16.5, 4.8, 0.5], color: '#cb69ce', power: 245, reach: 48 },
+]);
+
+// Upper-storey floodlights have separate targets and do not create extra shadow maps.
+export const FACADE_LIGHTS = Object.freeze([
+  { at: [3, 7.5, 23], target: [3, 27, 39], color: '#ffb76d', power: 1700 },
+  { at: [-23, 7.5, -1], target: [-39, 25, -1], color: '#df83f0', power: 1650 },
 ]);
