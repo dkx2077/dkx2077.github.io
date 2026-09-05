@@ -1,6 +1,6 @@
 # Kaixin Deng 的个人主页
 
-GitHub Pages 托管的静态学术主页。内容使用 Markdown 维护，构建时生成完整 HTML；浏览器不需要解析 Markdown、加载配置或等待统计服务，即可阅读全部正文。
+GitHub Pages 托管的 Three.js 赛博朋克学术主页：固定机位、连续水平环视、有限俯仰、可编辑 HTML 霓虹招牌。内容使用 Markdown 维护，构建时生成完整 HTML，兼顾 3D 场景与直接阅读。
 
 ## 本地运行
 
@@ -13,24 +13,29 @@ npm run build
 npm run serve
 ```
 
-打开 `http://localhost:8000`。`dist/` 是可重新生成的部署产物，不要直接编辑。构建后双击 `dist/index.html` 也可阅读内容；统计只在配置的正式域名运行。
+打开 `http://localhost:8000`。也可在构建后运行 `npm run dev` 使用 Vite 预览；开发地址的 `/__qa` 提供响应式视口检查，测试界面不会发布。`dist/` 是可重新生成的部署产物，不要直接编辑。3D 模块必须通过 HTTP 访问；双击 `dist/index.html` 仍可读取静态正文。统计只在配置的正式域名运行。
 
 ## 文件职责
 
 | 文件                          | 职责                                             |
 | ----------------------------- | ------------------------------------------------ |
 | `contents/config.yml`         | 标题、停更说明、正式网址、Umami Website ID       |
+| `contents/scene.yml`          | 招牌文字、默认画质、俯仰范围                     |
 | `contents/*.md`               | 个人介绍、论文、奖项和现有工作内容               |
 | `templates/index.html`        | 页面结构、标题层级、导航和元数据                 |
 | `scripts/build.mjs`           | 渲染 Markdown，生成稳定的事件标记和部署产物      |
 | `static/css/main.css`         | 桌面、手机、打印和减少动态效果的样式             |
-| `static/js/navigation.js`     | 当前栏目高亮；不依赖统计服务                     |
+| `static/js/experience.mjs`    | 3D 入口、阅读面板、偏好和失败降级                |
+| `static/js/scene/*.mjs`       | Three.js 世界、建筑、招牌和固定相机控制          |
+| `static/js/navigation.js`     | 阅读/场景栏目高亮；不依赖统计服务                |
 | `static/js/analytics.js`      | Umami 加载及三种点击事件                         |
 | `static/js/math.js`           | 仅在内容包含公式时加载 MathJax                   |
 | `tests/homepage.test.mjs`     | 静态页面、事件分类、拒绝追踪和失败降级的回归测试 |
 | `.github/workflows/pages.yml` | PR 检查；master 构建并部署 `dist/`               |
 
-浏览器端没有 Bootstrap、Google Fonts、Markdown/YAML 解析器或旧版兼容脚本。原有横幅图片与蓝色视觉风格保留。导航直接显示并自动换行，避免菜单脚本失效后无法导航。正文、论文与联系链接在禁用 JavaScript 时仍可使用。
+浏览器端没有 Bootstrap、Google Fonts 或 Markdown/YAML 解析器。Three.js 固定版本在站内分块打包，原创城市贴图保存在项目中。正文、论文与联系链接在禁用 JavaScript 时仍可使用。
+
+[场景编辑、交互与兼容策略](docs/SCENE.md) · [素材来源与生成提示词](docs/ASSETS.md) · [浏览器检查记录](docs/QA-2026-09-05.md)
 
 ## 接入 Umami Cloud
 
@@ -85,7 +90,7 @@ Markdown 支持原有可信 HTML 标签，例如会议徽章；源文件应仅�
 
 ## 验证范围
 
-`npm test` 不访问真实 Umami，不污染生产统计；覆盖完整 HTML、所有 11 篇论文和 24 个已标记链接、唯一 ID、锚点、事件参数、中键/嵌套点击、DNT、本地排除、存储权限异常、统计失败和长栏目高亮。
+`npm test` 不访问真实 Umami，不污染生产统计；覆盖完整 HTML、所有 11 篇论文和 24 个已标记链接、唯一 ID、锚点、事件参数、中键/嵌套点击、DNT、本地排除、存储权限异常、统计失败、长栏目高亮，以及 3D 视角边界、触屏拖动、阅读面板和降级逻辑。
 
 布局包含窄屏断点、可换行长链接、44px 导航点击高度和减少动态效果支持。自动 DOM 测试不等于真实手机/桌面视觉验收；发布前仍可在 Safari、Chrome、Firefox 中检查 320px、390px、768px、1440px 和 200% 文字缩放。Umami 实际入库需要配置真实 Website ID 后核验。
 

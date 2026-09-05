@@ -10,6 +10,19 @@
 
   function update() {
     scheduled = false;
+    if (document.body.classList.contains('scene-active')) {
+      var openSection = document.querySelector('.content-section.is-open');
+      for (var n = 0; n < links.length; n++) {
+        if (
+          document.body.classList.contains('reader-open') &&
+          openSection &&
+          links[n].getAttribute('href') === '#' + openSection.id
+        )
+          links[n].setAttribute('aria-current', 'location');
+        else links[n].removeAttribute('aria-current');
+      }
+      return;
+    }
     var active = 0;
     var header = document.querySelector('.site-header');
     var offset = header ? header.getBoundingClientRect().height + 24 : 24;
@@ -31,5 +44,6 @@
   window.addEventListener('scroll', schedule);
   window.addEventListener('resize', schedule);
   window.addEventListener('hashchange', schedule);
+  document.addEventListener('viewchange', schedule);
   update();
 })();

@@ -1,0 +1,255 @@
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { createEnvironment } from './environment.mjs';
+import { createSigns } from './signs.mjs';
+import { createLookControls, direction, FIXED_POSITION, DISTRICTS } from './look.mjs';
+
+export function createWorld(settings, callbacks = {}) {
+  const world = document.getElementById('world');
+  const shell = document.getElementById('scene-shell');
+  const signLayer = document.getElementById('sign-layer');
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  const compact = matchMedia('(pointer: coarse)');
+  const lowHardware =
+    compact.matches ||
+    navigator.connection?.saveData ||
+    (navigator.deviceMemory && navigator.deviceMemory <= 4);
+  let quality = settings.quality || 'auto';
+  let low = quality === 'low' || (quality === 'auto' && lowHardware);
+  let paused = reduced.matches;
+  let suspended = false;
+  let disposed = false;
+  let dirty = true;
+  let raf = 0;
+  let last = 0;
+  let elapsed = 0;
+  let frames = 0;
+  let frameTime = 0;
+  const abort = new AbortController();
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x061019);
+  scene.fog = new THREE.FogExp2(0x0a1b26, 0.011);
+  const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 180);
+  camera.position.set(...FIXED_POSITION);
+  const renderer = new THREE.WebGLRenderer({
+    antialias: true,
+    powerPreference: low ? 'low-power' : 'default',
+  });
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.12;
+  renderer.setClearColor(0x061019);
+  renderer.domElement.setAttribute('aria-hidden', 'true');
+  world.appendChild(renderer.domElement);
+  scene.add(new THREE.HemisphereLight(0x82c9d2, 0x0b181a, 1.4));
+  const sun = new THREE.DirectionalLight(0x639cb5, 1.8);
+  sun.position.set(-9, 20, 12);
+  scene.add(sun);
+  for (const [color, intensity, x, y, z] of [
+    [0x93ffb0, 55, -3, 7, -12],
+    [0x48ffe7, 65, -10, 7, -10],
+    [0xff754c, 60, 11, 6, -12],
+    [0x70d3db, 50, 12, 7, 6],
+  ]) {
+    const light = new THREE.PointLight(color, intensity, 32, 2);
+    light.position.set(x, y, z);
+    scene.add(light);
+  }
+  const environment = createEnvironment(scene, { low, reducedMotion: paused });
+  const signs = createSigns(scene, signLayer);
+  let composer = null;
+
+  function configureEffects() {
+    if (composer) {
+      for (const pass of composer.passes) pass.dispose?.();
+      composer.dispose();
+      composer = null;
+    }
+    if (!low) {
+      composer = new EffectComposer(renderer);
+      composer.addPass(new RenderPass(scene, camera));
+      const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.38, 0.5, 1.1);
+      composer.addPass(bloom);
+      composer.addPass(new OutputPass());
+    }
+  }
+  function requestFrame() {
+    dirty = true;
+    if (!raf && !suspended && !document.hidden && !disposed) raf = requestAnimationFrame(frame);
+  }
+  const controls = createLookControls(shell, {
+    minPitch: settings.pitchMin,
+    maxPitch: settings.pitchMax,
+    reducedMotion: () => reduced.matches,
+    onChange: requestFrame,
+    signal: abort.signal,
+  });
+  function resize() {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    // A wider vertical field on portrait screens keeps the name and nearby signs in view.
+    camera.fov = width < height ? 76 : height < 500 ? 68 : 60;
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, low ? 1 : 1.5));
+    renderer.setSize(width, height);
+    composer?.setPixelRatio(renderer.getPixelRatio());
+    composer?.setSize(width, height);
+    signs.resize(width, height);
+    requestFrame();
+  }
+  function frame(now) {
+    raf = 0;
+    if (suspended || document.hidden || disposed) {
+      last = 0;
+      return;
+    }
+    const dt = last ? Math.min((now - last) / 1000, 0.08) : 1 / 60;
+    // Cap low quality to ~30 fps, including adaptive rendering after a slow start.
+    if (low && last && now - last < 30 && !dirty) {
+      raf = requestAnimationFrame(frame);
+      return;
+    }
+    last = now;
+    elapsed += paused ? 0 : dt;
+    const moving = controls.update(dt);
+    const vector = direction(controls.current.yaw, controls.current.pitch);
+    camera.lookAt(
+      camera.position.x + vector[0],
+      camera.position.y + vector[1],
+      camera.position.z + vector[2]
+    );
+    environment.update(elapsed, dt, !paused);
+    if (composer) composer.render(dt);
+    else renderer.render(scene, camera);
+    signs.render(camera);
+    const bearing = ((controls.current.yaw % 360) + 360) % 360;
+    const display = `${String(Math.round(bearing) % 360).padStart(3, '0')}°`;
+    const bearingElement = document.getElementById('bearing');
+    if (bearingElement.textContent !== display) bearingElement.textContent = display;
+    const nearest = Object.entries(DISTRICTS).reduce(
+      (best, item) => {
+        const distance = Math.abs(((bearing - item[1] + 540) % 360) - 180);
+        return distance < best.distance ? { name: item[0], distance } : best;
+      },
+      { name: 'home', distance: 361 }
+    ).name;
+    document.querySelectorAll('[data-look]').forEach(button => {
+      button.classList.toggle('active', button.dataset.look === nearest);
+      button.setAttribute('aria-pressed', String(button.dataset.look === nearest));
+    });
+    // Desktop Auto drops expensive post-processing when the sustained frame budget is exceeded.
+    if (quality === 'auto' && !low && !paused && elapsed > 2) {
+      frameTime += dt;
+      frames++;
+      if (frames >= 120) {
+        if (frameTime / frames > 0.038) {
+          low = true;
+          configureEffects();
+          resize();
+          callbacks.onQuality?.('low');
+        }
+        frames = 0;
+        frameTime = 0;
+      }
+    }
+    dirty = false;
+    if ((!paused || moving) && !raf) raf = requestAnimationFrame(frame);
+  }
+  configureEffects();
+  resize();
+  window.addEventListener('resize', resize, { signal: abort.signal });
+  document.addEventListener(
+    'visibilitychange',
+    () => {
+      last = 0;
+      if (document.hidden) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+      } else requestFrame();
+    },
+    { signal: abort.signal }
+  );
+  reduced.addEventListener(
+    'change',
+    event => {
+      paused = event.matches;
+      environment.setMotion(!paused);
+      callbacks.onMotion?.(paused);
+      requestFrame();
+    },
+    { signal: abort.signal }
+  );
+  renderer.domElement.addEventListener(
+    'webglcontextlost',
+    event => {
+      event.preventDefault();
+      callbacks.onFailure?.(
+        'The 3D view was interrupted. All content is available in reading mode.'
+      );
+    },
+    { signal: abort.signal }
+  );
+  return {
+    lookAt(name) {
+      controls.lookAt(DISTRICTS[name] ?? 0);
+      requestFrame();
+    },
+    reset() {
+      controls.lookAt(0);
+      requestFrame();
+    },
+    setPaused(value) {
+      paused = value;
+      environment.setMotion(!paused);
+      requestFrame();
+    },
+    get paused() {
+      return paused;
+    },
+    setQuality(value) {
+      quality = value;
+      low = value === 'low' || (value === 'auto' && lowHardware);
+      configureEffects();
+      resize();
+    },
+    suspend(value) {
+      suspended = value;
+      last = 0;
+      if (value) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+      } else requestFrame();
+    },
+    dispose() {
+      disposed = true;
+      cancelAnimationFrame(raf);
+      abort.abort();
+      environment.dispose();
+      signs.dispose();
+      const geometries = new Set(),
+        materials = new Set(),
+        textures = new Set();
+      scene.traverse(object => {
+        if (object.geometry) geometries.add(object.geometry);
+        for (const material of Array.isArray(object.material)
+          ? object.material
+          : [object.material]) {
+          if (!material) continue;
+          materials.add(material);
+          for (const value of Object.values(material)) if (value?.isTexture) textures.add(value);
+        }
+      });
+      geometries.forEach(x => x.dispose());
+      materials.forEach(x => x.dispose());
+      textures.forEach(x => x.dispose());
+      composer?.passes.forEach(pass => pass.dispose?.());
+      composer?.dispose();
+      renderer.dispose();
+      renderer.domElement.remove();
+    },
+  };
+}
