@@ -5,9 +5,9 @@
   --ink: #edf3ed;
   --muted: #a0b0b8;
   --line: #2b3a42;
-  --acid: #d5ff62;
-  --cyan: #75efe6;
-  --orange: #ff714d;
+  --acid: #56e7d4;
+  --cyan: #56dce7;
+  --orange: #f49d52;
   font-family: 'Arial', 'Helvetica Neue', sans-serif;
   font-synthesis: none;
 }
@@ -569,18 +569,18 @@ a.world-sign:focus-visible {
   font-weight: 600;
   letter-spacing: 0.015em;
   line-height: 0.82;
-  color: #dceef0;
+  color: #b9d5e3;
   text-shadow:
-    0 0 2px #f2ffff,
-    0 0 15px #b6e5e54d,
-    0 0 40px #69adca28;
+    0 0 2px #d4e9f4,
+    0 0 12px #68c8e13d,
+    0 0 32px #389dc424;
 }
 .name-sign > div > span {
-  color: #b9edba;
+  color: #56e7d4;
   text-shadow:
-    0 0 3px #ddffdc,
-    0 0 16px #8aff8f75,
-    0 0 48px #75ff9b32;
+    0 0 2px #a8fbed,
+    0 0 14px #26d5bd69,
+    0 0 36px #10bcb333;
 }
 .name-sign small {
   display: block;
@@ -639,9 +639,9 @@ a.world-sign:focus-visible {
   color: var(--neon);
   -webkit-text-stroke: 0.45px rgba(var(--neon-rgb), 0.8);
   text-shadow:
-    0 0 2px #d9f8ffb3,
-    0 0 8px rgba(var(--neon-rgb), 0.52),
-    0 0 23px rgba(var(--neon-rgb), 0.23),
+    0 0 2px rgba(var(--neon-rgb), 0.9),
+    0 0 8px rgba(var(--neon-rgb), 0.48),
+    0 0 20px rgba(var(--neon-rgb), 0.2),
     0 2px 1px #02070e;
 }
 .sign-footer {

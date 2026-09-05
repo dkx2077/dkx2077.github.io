@@ -55,7 +55,7 @@ export function createSigns(worldScene, container) {
       mount(housing, metal, 0, 0, -0.18, w + 0.2, h + 0.2, 0.3);
       mount(housing, enamel, 0, 0, -0.016, w, h, 0.024);
       // Recessed luminous rails belong to the same 3D housing as the lettering.
-      const tube = new THREE.MeshBasicMaterial({ color: color.clone().multiplyScalar(2.4) });
+      const tube = new THREE.MeshBasicMaterial({ color: color.clone().multiplyScalar(1.6) });
       mount(housing, tube, 0, h / 2 + 0.055, 0.003, w + 0.12, 0.035, 0.035);
       mount(housing, tube, 0, -h / 2 - 0.055, 0.003, w + 0.12, 0.025, 0.035);
       for (const side of [-1, 1]) {

@@ -10,34 +10,34 @@ export function createEnvironment(scene, { low, reducedMotion, onInvalidate = ()
   };
   const geometry = new THREE.BoxGeometry(1, 1, 1);
   const metal = new THREE.MeshStandardMaterial({
-    color: 0x546172,
-    roughness: 0.43,
+    color: 0x303c50,
+    roughness: 0.56,
     metalness: 0.32,
   });
   const dark = new THREE.MeshStandardMaterial({
-    color: 0x242e42,
+    color: 0x151e30,
     roughness: 0.66,
     metalness: 0.18,
   });
   const trim = new THREE.MeshStandardMaterial({
-    color: 0x78869b,
-    roughness: 0.29,
+    color: 0x4c5c72,
+    roughness: 0.34,
     metalness: 0.72,
   });
   const cyan = new THREE.MeshBasicMaterial({
-    color: new THREE.Color('#54dfed').multiplyScalar(2.4),
+    color: new THREE.Color('#00b7ee').multiplyScalar(1.35),
   });
   const violet = new THREE.MeshBasicMaterial({
-    color: new THREE.Color('#d575dd').multiplyScalar(2.4),
+    color: new THREE.Color('#ec18b0').multiplyScalar(2.1),
   });
   const amber = new THREE.MeshBasicMaterial({
-    color: new THREE.Color('#f1b46a').multiplyScalar(2.2),
+    color: new THREE.Color('#ff8d28').multiplyScalar(1.55),
   });
-  const muted = new THREE.MeshBasicMaterial({ color: 0x203b42 });
+  const muted = new THREE.MeshBasicMaterial({ color: 0x152731 });
   // Window interiors stay below the bloom threshold; only architectural rails glow strongly.
-  const coolWindow = new THREE.MeshBasicMaterial({ color: 0x4d8f9f });
-  const warmWindow = new THREE.MeshBasicMaterial({ color: 0xb78654 });
-  const violetWindow = new THREE.MeshBasicMaterial({ color: 0x8b639f });
+  const coolWindow = new THREE.MeshBasicMaterial({ color: 0x247f91 });
+  const warmWindow = new THREE.MeshBasicMaterial({ color: 0x9c6331 });
+  const violetWindow = new THREE.MeshBasicMaterial({ color: 0x813268 });
   const addBox = (parent, position, size, material = metal) => {
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(...position);
@@ -74,7 +74,7 @@ export function createEnvironment(scene, { low, reducedMotion, onInvalidate = ()
           x: x + column,
           y: row,
           z: z + faceZ * (depth / 2 + 0.02),
-          color: [0x83d5e1, 0x486a91, 0xc88abd, 0xd5a66f][Math.floor(random() * 4)],
+          color: [0x32bacb, 0x345586, 0xa83d8d, 0xa76b36][Math.floor(random() * 4)],
         });
       }
       for (let column = -depth / 2 + 0.7; column < depth / 2 - 0.3; column += 1.5) {
@@ -85,7 +85,7 @@ export function createEnvironment(scene, { low, reducedMotion, onInvalidate = ()
           y: row,
           z: z + column,
           side: true,
-          color: random() > 0.6 ? 0x8b5c9d : 0x3d748c,
+          color: random() > 0.6 ? 0x813369 : 0x27627e,
         });
       }
     }
@@ -361,7 +361,7 @@ export function createEnvironment(scene, { low, reducedMotion, onInvalidate = ()
     fixture.lookAt(new THREE.Vector3(...light.target));
     scene.add(fixture);
     addBox(fixture, [0, 0, -0.08], [0.95, 0.42, 0.45], dark);
-    addBox(fixture, [0, 0, 0.16], [0.75, 0.25, 0.05], light.at[0] > 0 ? amber : violet);
+    addBox(fixture, [0, 0, 0.16], [0.75, 0.25, 0.05], light.at[0] > 0 ? cyan : violet);
   }
 
   // All static facade boxes share one draw call per material, including small ribs.
@@ -405,7 +405,7 @@ export function createEnvironment(scene, { low, reducedMotion, onInvalidate = ()
         float puddle=smoothstep(.3,.72,noise(p*.36)+noise(p*.91)*.2);
         float ripple=sin(p.y*15.+noise(p*1.7)*3.+time*.65)*.5+.5;
         float grain=noise(p*16.)*.006;
-        vec3 base=vec3(.012,.016,.028)+grain;
+        vec3 base=vec3(.008,.01,.018)+grain;
         vec2 tile=abs(fract(p*vec2(.7,.55))-.5);
         vec2 aa=max(fwidth(p*vec2(.7,.55)),vec2(.002));
         vec2 edge=smoothstep(vec2(.477)-aa,vec2(.477)+aa,tile);
@@ -417,14 +417,14 @@ export function createEnvironment(scene, { low, reducedMotion, onInvalidate = ()
           float reach=length(light);vec2 axis=light/reach;
           float along=dot(p,axis);
           float across=dot(p,vec2(-axis.y,axis.x));
-          float width=.7+max(along,0.)*.085;
+          float width=.55+max(along,0.)*.07;
           float streak=exp(-pow(across/width,2.))
             *smoothstep(0.,3.,along)*(1.-smoothstep(reach*.75,reach+3.,along));
           float broken=.24+.76*pow(ripple,3.);
-          base+=lightColors[i]*streak*broken*(.12+puddle*.95)*grazing;
-          base+=lightColors[i]*exp(-length(p-light)*.4)*.08;
+          base+=lightColors[i]*streak*broken*(.08+puddle*.58)*grazing;
+          base+=lightColors[i]*exp(-length(p-light)*.46)*.055;
         }
-        base=mix(base,vec3(.022,.023,.041),smoothstep(20.,68.,dist));
+        base=mix(base,vec3(.013,.016,.031),smoothstep(20.,68.,dist));
         gl_FragColor=vec4(base,1.);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
@@ -484,9 +484,9 @@ export function createEnvironment(scene, { low, reducedMotion, onInvalidate = ()
   const rain = new THREE.LineSegments(
     rainGeometry,
     new THREE.LineBasicMaterial({
-      color: 0x9aa8c8,
+      color: 0x628aaf,
       transparent: true,
-      opacity: 0.15,
+      opacity: 0.12,
       depthWrite: false,
     })
   );
