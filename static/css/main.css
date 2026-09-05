@@ -807,8 +807,18 @@ a.world-sign:focus-visible {
   letter-spacing: 0.12em;
   margin-top: 12px;
 }
-.district-sign strong {
-  font-size: 46px;
+.scholar-sign strong {
+  font-size: 52px;
+  letter-spacing: 0.045em;
+}
+.scholar-sign > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.scholar-sign i {
+  color: var(--neon);
+  font-size: 24px;
 }
 @media (min-width: 1800px) {
   .site-header {

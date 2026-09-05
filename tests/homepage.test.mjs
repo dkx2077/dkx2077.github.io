@@ -118,6 +118,29 @@ test('classification distinguishes paper, code, project, profiles and unrelated 
   );
 });
 
+test('Scholar replaces only the small district plaque and remains a native external link', () => {
+  const p = page();
+  const signs = p.document.getElementById('world-signs').content;
+  assert.equal(signs.querySelector('[data-sign="district"]'), null);
+  assert.match(signs.querySelector('[data-sign="name"]').textContent, /KAIXIN/i);
+  const scholar = signs.querySelector('[data-sign="scholar"]').cloneNode(true);
+  assert.equal(scholar.tagName, 'A');
+  assert.equal(scholar.href, 'https://scholar.google.com/citations?user=WsJD-ukAAAAJ');
+  assert.match(scholar.textContent, /Google Scholar/);
+  assert.equal(scholar.target, '_blank');
+  assert.match(scholar.rel, /noopener noreferrer/);
+  assert.match(scholar.getAttribute('aria-label'), /opens in a new tab/);
+  // CSS3D clones this same anchor; delegation must still annotate a single profile click.
+  p.document.body.append(scholar);
+  const event = new p.window.MouseEvent('click', { bubbles: true, cancelable: true, button: 0 });
+  scholar.dispatchEvent(event);
+  assert.equal(event.defaultPrevented, false, 'The browser owns the external navigation');
+  assert.equal(p.events.length, 1);
+  assert.equal(p.events[0].name, 'profile_click');
+  assert.deepEqual(p.events[0].data, { platform: 'google_scholar' });
+  p.dom.window.close();
+});
+
 test('production requires a real-shaped Website ID; preview can remain untracked', () => {
   assert.equal(analyticsTag('', 'https://www.dengkaixin.com', 'v1'), '');
   assert.throws(

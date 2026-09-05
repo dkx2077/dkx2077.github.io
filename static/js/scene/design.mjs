@@ -8,7 +8,7 @@ export const SIGN_LAYOUT = Object.freeze({
   awards: { at: [1.4, 6.3, 19], scale: 0.014, width: 650, height: 265, color: '#ffa94e' },
   work: { at: [-18.3, 5.5, 0.6], scale: 0.012, width: 670, height: 238, color: '#ff3cb4' },
   contact: { at: [-13.7, 2.8, 9], scale: 0.011, width: 600, height: 230, color: '#40ddec' },
-  district: { at: [12.5, 9.5, 12], scale: 0.01, width: 480, height: 142, color: '#839af0' },
+  scholar: { at: [12.5, 9.5, 12], scale: 0.01, width: 540, height: 162, color: '#65bfff' },
 });
 
 // A bounded number of real lights, each paired with its actual facade and wet-ground glow.

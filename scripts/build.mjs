@@ -124,6 +124,7 @@ export async function build() {
       'js/scene/look.mjs',
       'js/scene/design.mjs',
       'js/scene/lighting.mjs',
+      'js/scene/puddles.mjs',
     ].map(path => readFile(resolve(root, 'static', path)))
   );
   const version = createHash('sha256').update(Buffer.concat(assets)).digest('hex').slice(0, 12);

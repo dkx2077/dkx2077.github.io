@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import { JSDOM } from 'jsdom';
 import * as THREE from 'three';
 import { createSigns } from '../static/js/scene/signs.mjs';
-import { createEnvironment } from '../static/js/scene/environment.mjs';
+import { createEnvironment, RAIN_COUNTS } from '../static/js/scene/environment.mjs';
 import { createLighting } from '../static/js/scene/lighting.mjs';
 import { SIGN_LAYOUT } from '../static/js/scene/design.mjs';
 import {
@@ -168,18 +168,29 @@ test('quality changes reduce rain drawing and updates; static facade details rem
     environment = createEnvironment(scene, { low: false, reducedMotion: false });
     const rain = scene.children.find(object => object.isLineSegments);
     const positions = rain.geometry.attributes.position.array;
-    assert.equal(rain.geometry.drawRange.count, 1300);
+    assert.equal(rain.geometry.drawRange.count, RAIN_COUNTS.high * 2);
     const firstY = positions[1];
-    const lastY = positions[649 * 6 + 1];
+    const lastIndex = (RAIN_COUNTS.high - 1) * 6 + 1;
+    const lastY = positions[lastIndex];
     environment.setQuality(true);
-    assert.equal(rain.geometry.drawRange.count, 480);
+    assert.equal(rain.geometry.drawRange.count, RAIN_COUNTS.low * 2);
     environment.update(1, 1 / 60, true);
+    assert.deepEqual(
+      rain.geometry.attributes.position.updateRanges,
+      [{ start: 0, count: RAIN_COUNTS.low * 6 }],
+      'Low uploads only its active rain positions'
+    );
     assert.notEqual(positions[1], firstY);
-    assert.equal(positions[649 * 6 + 1], lastY, 'Inactive rain avoids CPU updates');
+    assert.equal(positions[lastIndex], lastY, 'Inactive rain avoids CPU updates');
     environment.setQuality(false);
-    assert.equal(rain.geometry.drawRange.count, 1300);
+    assert.equal(rain.geometry.drawRange.count, RAIN_COUNTS.high * 2);
     environment.update(2, 1 / 60, true);
-    assert.notEqual(positions[649 * 6 + 1], lastY);
+    assert.notEqual(positions[lastIndex], lastY);
+    const colors = rain.geometry.attributes.color.array;
+    for (let i = 0; i < RAIN_COUNTS.high; i++) {
+      assert.ok(colors[i * 6] > colors[i * 6 + 3], 'Rain tails fade without a second draw');
+      assert.ok(positions[i * 6 + 1] - positions[i * 6 + 4] >= 0.64);
+    }
     environment.setMotion(false);
     assert.equal(rain.visible, false);
     const paused = positions.slice();

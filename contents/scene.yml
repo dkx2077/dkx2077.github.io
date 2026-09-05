@@ -10,6 +10,9 @@ research-sign-label: Research
 awards-label: Awards
 work-label: Ongoing work
 contact-label: Get in touch
+scholar-label: Google Scholar
+scholar-detail: VIEW SCHOLAR PROFILE
+scholar-url: https://scholar.google.com/citations?user=WsJD-ukAAAAJ
 # 相机只允许旋转。俯仰角单位为度；水平无限旋转。
 pitch-min: -28
 pitch-max: 48

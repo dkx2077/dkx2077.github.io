@@ -6,6 +6,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { createEnvironment } from './environment.mjs';
 import { createSigns } from './signs.mjs';
 import { createLighting, createReflections } from './lighting.mjs';
+import { createPuddles } from './puddles.mjs';
 import { createLookControls, direction, viewportFov, FIXED_POSITION, DISTRICTS } from './look.mjs';
 
 export function createWorld(settings, callbacks = {}) {
@@ -55,13 +56,18 @@ export function createWorld(settings, callbacks = {}) {
     renderer.domElement.remove();
     throw error;
   }
+  let puddles;
   const environment = createEnvironment(scene, {
     low,
     reducedMotion: paused,
-    onInvalidate: requestFrame,
+    onInvalidate: () => {
+      puddles?.invalidate();
+      requestFrame();
+    },
   });
   const signs = createSigns(scene, signLayer);
   const lighting = createLighting(scene);
+  puddles = createPuddles(scene, { low });
   let composer = null;
 
   function configureEffects() {
@@ -70,6 +76,7 @@ export function createWorld(settings, callbacks = {}) {
     renderer.shadowMap.autoUpdate = false;
     renderer.shadowMap.needsUpdate = !low;
     lighting.setQuality(low);
+    puddles.setQuality(low);
     if (composer) {
       for (const pass of composer.passes) pass.dispose?.();
       composer.dispose();
@@ -108,6 +115,7 @@ export function createWorld(settings, callbacks = {}) {
     composer?.setPixelRatio(renderer.getPixelRatio());
     composer?.setSize(width, height);
     signs.resize(width, height);
+    puddles.invalidate();
     requestFrame();
   }
   function frame(now) {
@@ -132,6 +140,9 @@ export function createWorld(settings, callbacks = {}) {
       camera.position.z + vector[2]
     );
     environment.update(elapsed, dt, !paused);
+    puddles.update(elapsed);
+    // A paused/reduced-motion view may get just one input frame; never leave its reflection stale.
+    if (paused) puddles.invalidate();
     if (composer) composer.render(dt);
     else renderer.render(scene, camera);
     signs.render(camera);
@@ -245,6 +256,7 @@ export function createWorld(settings, callbacks = {}) {
       environment.dispose();
       signs.dispose();
       lighting.dispose();
+      puddles.dispose();
       reflections.dispose();
       const geometries = new Set(),
         materials = new Set(),
