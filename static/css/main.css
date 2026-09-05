@@ -689,35 +689,6 @@ a.world-sign:focus-visible {
   font-size: 73px;
   letter-spacing: 0.045em;
 }
-.university-sign {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  padding: 30px 12px 24px;
-  border: 1px solid rgba(var(--neon-rgb), 0.4);
-  background: linear-gradient(90deg, #050c1499, rgba(var(--neon-rgb), 0.055), #06091399);
-  text-transform: uppercase;
-  box-shadow: inset 0 0 25px #00000099;
-}
-.university-sign strong {
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  font-size: 76px;
-  letter-spacing: 0.13em;
-  font-weight: 600;
-  line-height: 1.15;
-  color: #a2e9f2;
-  text-shadow:
-    0 0 3px #bdefff,
-    0 0 14px #3ddbe65e,
-    0 0 36px #37ddeb35;
-}
-.university-sign > span {
-  color: #a9c9d5;
-  font-size: 27px;
-  letter-spacing: 0.065em;
-}
 .small-sign {
   display: flex;
   flex-direction: column;

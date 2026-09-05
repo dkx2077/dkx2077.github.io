@@ -1,7 +1,6 @@
 /** Shared dimensions and lighting keep editable faces, their housings, and reflections aligned. */
 export const SIGN_LAYOUT = Object.freeze({
   name: { at: [-1.6, 7.2, -18.5], scale: 0.012, width: 840, height: 455, color: '#b7ecb8' },
-  university: { at: [-10.8, 7.4, -12.5], scale: 0.011, width: 225, height: 590, color: '#74dcec' },
   about: { at: [-5.5, 2.8, -12], scale: 0.009, width: 600, height: 230, color: '#7de3df' },
   research: { at: [17.2, 6, -7.6], scale: 0.011, width: 760, height: 255, color: '#7cdaff' },
   featured: { at: [5.8, 3.5, -15], scale: 0.01, width: 620, height: 230, color: '#caa5ec' },

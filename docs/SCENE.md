@@ -4,17 +4,17 @@
 
 ## 内容与招牌
 
-| 要修改的内容                                       | 源文件                                       |
-| -------------------------------------------------- | -------------------------------------------- |
-| 姓名、大学名、招牌标题、欢迎语、默认画质、俯仰范围 | `contents/scene.yml`                         |
-| 简介、教育、经历、Google Scholar、GitHub、邮箱     | `contents/home.md`                           |
-| 论文标题、作者、论文/项目/代码链接                 | `contents/publications.md`                   |
-| 奖项、现有工作                                     | `contents/awards.md`、`contents/service.md`  |
-| 正式域名、停更说明、统计 ID、版权说明              | `contents/config.yml`                        |
-| 招牌 HTML、精选论文入口                            | `templates/index.html` 的 `world-signs` 模板 |
-| 招牌位置、尺寸、配色、灯光位置                     | `static/js/scene/design.mjs`                 |
-| 招牌实体底板、灯管与支架                           | `static/js/scene/signs.mjs`                  |
-| 建筑、灯管、材质、雨与远景                         | `static/js/scene/environment.mjs`            |
+| 要修改的内容                                   | 源文件                                       |
+| ---------------------------------------------- | -------------------------------------------- |
+| 姓名、招牌标题、欢迎语、默认画质、俯仰范围     | `contents/scene.yml`                         |
+| 简介、教育、经历、Google Scholar、GitHub、邮箱 | `contents/home.md`                           |
+| 论文标题、作者、论文/项目/代码链接             | `contents/publications.md`                   |
+| 奖项、现有工作                                 | `contents/awards.md`、`contents/service.md`  |
+| 正式域名、停更说明、统计 ID、版权说明          | `contents/config.yml`                        |
+| 招牌 HTML、精选论文入口                        | `templates/index.html` 的 `world-signs` 模板 |
+| 招牌位置、尺寸、配色、灯光位置                 | `static/js/scene/design.mjs`                 |
+| 招牌实体底板、灯管与支架                       | `static/js/scene/signs.mjs`                  |
+| 建筑、灯管、材质、雨与远景                     | `static/js/scene/environment.mjs`            |
 
 修改后运行 `npm run build`。正文只有一份，由构建器生成完整 HTML；阅读模式、3D 阅读面板和无 JavaScript 页面共享这份内容。保留 publication 标识，避免历史统计被拆分。当前精选入口指向 `supergpqa`，删除这篇论文时也要修改对应招牌链接。
 
@@ -53,10 +53,16 @@ Three.js r185 使用 WebGL2。CSS3DRenderer 官方支持范围是 100% 浏览器
 
 ## 霓虹街区美术更新
 
-原来的个人中文竖牌改成 `HOKKAIDO / UNIVERSITY`，两个字段均可在 `contents/scene.yml` 编辑。栏目招牌使用本地 Rajdhani 600 拉丁字符字体，统一编号、灯管文字和底部说明的层级，保留真实 HTML 与链接。非拉丁文字仍使用系统字体。
+大学竖牌已移除，包括文字、实体底板和专属样式。栏目招牌使用本地 Rajdhani 600 拉丁字符字体，统一编号、灯管文字和底部说明的层级，保留真实 HTML 与链接。非拉丁文字仍使用系统字体。
 
 `design.mjs` 同时定义 DOM 文字面的像素尺寸与 Three.js 底板的世界尺寸，避免以前面板与实体边缘不一致。实体层包含金属底板、搪瓷面、发光导轨和安装支架；字体本身用 CSS text-shadow 发光，因为 CSS3D 不参与 WebGL 泛光或阴影。
 
 青蓝、紫红、琥珀色灯光由同一组配置驱动点光源和地面径向反光。地面以噪声水洼遮罩、抗锯齿砖缝与断续涟漪控制反射，背景使用新一版城市全景；仍不使用昂贵的实时阴影或镜面反射渲染通道。Auto 降档和手动 Low 均同步减少雨滴绘制与 CPU 更新，暂停模式在远景加载完成后也会补渲染一帧。
 
 窄长手机按宽高比扩大纵向视场，保持至少约 42° 的水平视野（纵向上限 105°）；相机位置与用户俯仰边界不变。
+
+## Awards 与 Ongoing 街区补充
+
+南侧 Awards 和西侧 Ongoing 各补四栋错落塔楼、带窗空中连桥、设备平台和霓虹构件，西南转角增加 24 米高的楼体以连接两个街区。所有新建筑位于现有招牌后方；远景继续复用城市全景，不增加图片下载。
+
+远楼原先统一设置 +Z / −X 两面窗，造成南、西方向的窗户朝外。本轮改为选择朝向固定观察点的两面，侧窗按建筑深度排列，避免宽浅楼窗户越界。新增近中景的窗、设备和框架继续按材质实例化；不增加点光源、实时阴影或后处理通道。

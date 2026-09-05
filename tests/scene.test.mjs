@@ -142,6 +142,64 @@ test('quality changes reduce rain drawing and updates; static facade details rem
   }
 });
 
+test('distant windows sit within building facades that face the fixed observation point', () => {
+  const dom = new JSDOM('');
+  const originalDocument = globalThis.document;
+  globalThis.document = dom.window.document;
+  const scene = new THREE.Scene();
+  let environment;
+  try {
+    environment = createEnvironment(scene, { low: true, reducedMotion: true });
+    const bodies = scene.getObjectByName('distant-buildings');
+    const windows = scene.getObjectByName('distant-windows');
+    const matrix = new THREE.Matrix4();
+    const position = new THREE.Vector3();
+    const size = new THREE.Vector3();
+    const bounds = [];
+    for (let i = 0; i < bodies.count; i++) {
+      bodies.getMatrixAt(i, matrix);
+      bounds.push(
+        new THREE.Box3(
+          new THREE.Vector3(-0.5, -0.5, -0.5),
+          new THREE.Vector3(0.5, 0.5, 0.5)
+        ).applyMatrix4(matrix)
+      );
+    }
+    const visibleSectors = [0, 0, 0, 0];
+    for (let i = 0; i < windows.count; i++) {
+      windows.getMatrixAt(i, matrix);
+      position.setFromMatrixPosition(matrix);
+      size.setFromMatrixScale(matrix);
+      const front = size.z < size.x;
+      const surface = front ? 'z' : 'x';
+      const lateral = front ? 'x' : 'z';
+      const body = bounds.find(box => {
+        const nearFace =
+          box.min[surface] + box.max[surface] > 0
+            ? box.min[surface] - 0.02
+            : box.max[surface] + 0.02;
+        return (
+          Math.abs(position[surface] - nearFace) < 0.001 &&
+          position[lateral] - size[lateral] / 2 > box.min[lateral] &&
+          position[lateral] + size[lateral] / 2 < box.max[lateral] &&
+          position.y - size.y / 2 > box.min.y &&
+          position.y + size.y / 2 < box.max.y
+        );
+      });
+      assert.ok(body, `Window ${i} lies inside an observer-facing facade`);
+      visibleSectors[(position.x < 0 ? 1 : 0) + (position.z < 0 ? 2 : 0)]++;
+    }
+    assert.ok(
+      visibleSectors.every(count => count > 100),
+      'Lit windows cover every city quadrant'
+    );
+  } finally {
+    environment?.dispose();
+    globalThis.document = originalDocument;
+    dom.window.close();
+  }
+});
+
 test('panorama rotation crosses 360 without a discontinuity and clamps vertical movement', () => {
   assert.deepEqual(FIXED_POSITION, [0, 2.8, 0]);
   assert.ok(Object.isFrozen(FIXED_POSITION));
