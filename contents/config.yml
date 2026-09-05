@@ -1,5 +1,11 @@
 title: Kaixin Deng's Homepage
-page-top-title: This website was originally created for Master's program applications and is no longer being updated as of January 1, 2026. 
+page-top-title: Kaixin Deng
+notice: This website was originally created for Master's program applications and is no longer being updated as of January 1, 2026.
 top-section-bg-text: Kaixin Deng's Homepage!
 home-subtitle: Kaixin Deng
 copyright-text: © 2025 KAIXIN DENG
+description: Personal academic homepage for Kaixin Deng
+url: https://www.dengkaixin.com
+# Paste the public Website ID from Umami Cloud → website → Tracking code.
+# Empty means no tracking in local builds. Production deployment requires a valid ID.
+umami-website-id: ''

@@ -17,9 +17,16 @@
     "no-console": ["warn", { "allow": ["warn", "error", "log"] }]
   },
   "globals": {
-    "bootstrap": "readonly",
-    "marked": "readonly",
-    "jsyaml": "readonly",
     "MathJax": "readonly"
-  }
-} 
+  },
+  "overrides": [
+    {
+      "files": ["static/js/*.js"],
+      "parserOptions": { "ecmaVersion": 5, "sourceType": "script" }
+    },
+    {
+      "files": ["scripts/*.mjs", "tests/*.mjs"],
+      "env": { "node": true }
+    }
+  ]
+}

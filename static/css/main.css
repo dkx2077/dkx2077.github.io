@@ -1,498 +1,355 @@
-/* Main Custom Styles */
-
+/* Shared layout: static content first, no framework or font CDN required. */
 :root {
-    --h-title-color: #000000;
-    --primary-color: #0d6efd;
-    --secondary-color: #6c757d;
-    --light-bg: #f8f9fa;
-    --gray-bg: #f0f0f0;
-    --card-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    --card-shadow-hover: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-    --transition-speed: 0.3s;
-    --card-border-light: rgba(0, 0, 0, 0.08);
-    --card-bg-light: #fafbfc;
-    --card-bg-gray: rgba(255, 255, 255, 0.95);
+  color-scheme: light;
+  --ink: #222b38;
+  --blue: #0959ad;
+  --muted: #526071;
+  --line: #dbe1e8;
+  --surface: #f1f4f8;
+  --anchor-offset: 6rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  color: var(--ink);
+  background: #fff;
+  line-height: 1.75;
 }
 
-/* Navigation Header */
-.header {
-    border-bottom: solid 2px var(--primary-color);
-    background-color: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    transition: all var(--transition-speed) ease;
+* {
+  box-sizing: border-box;
 }
-
-.navbar-brand {
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    transition: color var(--transition-speed) ease;
-}
-
-.navbar-brand:hover {
-    color: var(--primary-color) !important;
-}
-
-.nav-link {
-    transition: all var(--transition-speed) ease;
-    position: relative;
-}
-
-.nav-link::after {
-    content: '';
-    position: absolute;
-    width: 0;
-    height: 2px;
-    bottom: -2px;
-    left: 50%;
-    background-color: var(--primary-color);
-    transition: all var(--transition-speed) ease;
-    transform: translateX(-50%);
-}
-
-.nav-link:hover::after,
-.nav-link.active::after {
-    width: 80%;
-}
-
-/* Footer */
-.bg-bottom {
-    background-color: var(--h-title-color);
-}
-
-/* Hero Section */
-.top-section {
-    position: relative;
-    padding: 10rem 0;
-    background-position: center;
-    background-size: cover;
-    height: 25rem;
-}
-
-.top-section h2 {
-    font-weight: 400;
-}
-
-.top-section .top-section-content {
-    position: relative;
-    z-index: 1;
-}
-
-.top-section:before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-}
-
-/* Section样式增强 */
-section {
-    padding: 3rem 0;
-    position: relative;
-    overflow: hidden;
-}
-
-/* 背景渐变定义 - 统一管理 */
-.bg-gradient-primary-to-secondary-light {
-    background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
-    position: relative;
-}
-
-.bg-gradient-primary-to-secondary-light::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image: 
-        radial-gradient(circle at 20% 80%, rgba(13, 110, 253, 0.02) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(13, 110, 253, 0.02) 0%, transparent 50%),
-        radial-gradient(circle at 40% 40%, rgba(13, 110, 253, 0.01) 0%, transparent 50%);
-    pointer-events: none;
-}
-
-.bg-gradient-primary-to-secondary-gray {
-    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-    position: relative;
-}
-
-.bg-gradient-primary-to-secondary-gray::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image: 
-        radial-gradient(circle at 60% 70%, rgba(108, 117, 125, 0.02) 0%, transparent 50%),
-        radial-gradient(circle at 30% 30%, rgba(108, 117, 125, 0.02) 0%, transparent 50%);
-    pointer-events: none;
-}
-
-/* Section间的分隔优化 */
-section + section {
-    border-top: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-/* 为section标题添加装饰性元素 */
-section header {
-    position: relative;
-}
-
-section header h2 {
-    font-family: "Kanit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    color: var(--h-title-color);
-    font-size: 2.3rem;
-    line-height: 4rem;
-    margin-bottom: 2rem;
-    position: relative;
-    padding-bottom: 0.5rem;
-    display: inline-block;
-}
-
-/* 为特定section的标题添加背景装饰 */
-.bg-gradient-primary-to-secondary-light section header h2::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: -2rem;
-    transform: translateY(-50%);
-    width: 4px;
-    height: 60%;
-    background: linear-gradient(to bottom, var(--primary-color), transparent);
-    opacity: 0.5;
-}
-
-/* Section标题图标样式 */
-section header h2 i {
-    color: var(--primary-color);
-    opacity: 0.8;
-    font-size: 0.9em;
-    margin-right: 0.3rem;
-}
-
-/* Section Body */
-section .main-body {
-    font-size: 1.1rem;
-    font-weight: 300;
-    line-height: 1.8;
-    color: #333;
-}
-
-/* 卡片样式 - 基础样式 */
-section .main-body > p,
-section .main-body > ul,
-section .main-body > ol,
-section .main-body > blockquote {
-    padding: 1.5rem;
-    border-radius: 0.5rem;
-    margin-bottom: 1.5rem;
-    transition: all var(--transition-speed) ease;
-    background-color: white;
-    border: 1px solid var(--card-border-light);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-/* 灰色背景section的卡片样式 */
-.bg-gradient-primary-to-secondary-gray .main-body > p,
-.bg-gradient-primary-to-secondary-gray .main-body > ul,
-.bg-gradient-primary-to-secondary-gray .main-body > ol,
-.bg-gradient-primary-to-secondary-gray .main-body > blockquote {
-    background-color: var(--card-bg-gray);
-    box-shadow: var(--card-shadow);
-}
-
-.bg-gradient-primary-to-secondary-gray .main-body > p:hover,
-.bg-gradient-primary-to-secondary-gray .main-body > ul:hover,
-.bg-gradient-primary-to-secondary-gray .main-body > ol:hover {
-    box-shadow: var(--card-shadow-hover);
-    transform: translateY(-2px);
-}
-
-/* 白色背景section的卡片样式 - 更突出的效果 */
-.bg-gradient-primary-to-secondary-light .main-body > p,
-.bg-gradient-primary-to-secondary-light .main-body > ul,
-.bg-gradient-primary-to-secondary-light .main-body > ol,
-.bg-gradient-primary-to-secondary-light .main-body > blockquote {
-    background: linear-gradient(to bottom, #ffffff, #fafbfc);
-    border: 1px solid var(--card-border-light);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
-}
-
-.bg-gradient-primary-to-secondary-light .main-body > p:hover,
-.bg-gradient-primary-to-secondary-light .main-body > ul:hover,
-.bg-gradient-primary-to-secondary-light .main-body > ol:hover {
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
-    transform: translateY(-2px);
-    border-color: rgba(13, 110, 253, 0.15);
-}
-
-/* 标题样式优化 */
-section .main-body h3 {
-    font-size: 1.5rem;
-    margin-top: 2rem;
-    margin-bottom: 1rem;
-    font-weight: 600;
-    color: var(--primary-color);
-    border-left: 4px solid var(--primary-color);
-    padding-left: 1rem;
-}
-
-section .main-body h4 {
-    font-size: 1.2rem;
-    margin-top: 1.5rem;
-    margin-bottom: 0.8rem;
-    font-weight: 500;
-    color: #495057;
-}
-
-section .main-body p {
-    margin-bottom: 1rem;
-}
-
-section .main-body ul, 
-section .main-body ol {
-    margin-bottom: 1rem;
-    padding-left: 2rem;
-}
-
-section .main-body li {
-    margin-bottom: 0.5rem;
-}
-
-/* Links */
-section .main-body a {
-    color: var(--primary-color);
-    text-decoration: none;
-    transition: all var(--transition-speed) ease;
-    position: relative;
-}
-
-section .main-body a:hover {
-    color: #0056b3;
-}
-
-/* 徽章样式优化 */
-section .main-body a img[alt="Google Scholar"],
-section .main-body a img[alt="GitHub"] {
-    transition: all var(--transition-speed) ease;
-    filter: brightness(1);
-}
-
-section .main-body a:hover img[alt="Google Scholar"],
-section .main-body a:hover img[alt="GitHub"] {
-    filter: brightness(1.1);
-    transform: translateY(-2px);
-}
-
-/* Code blocks */
-section .main-body code {
-    background-color: #f5f5f5;
-    padding: 0.2rem 0.4rem;
-    border-radius: 3px;
-    font-size: 0.9em;
-}
-
-section .main-body pre {
-    background-color: #f8f9fa;
-    padding: 1rem;
-    border-radius: 5px;
-    overflow-x: auto;
-    margin-bottom: 1rem;
-}
-
-section .main-body pre code {
-    background-color: transparent;
-    padding: 0;
-}
-
-/* 分隔线样式 */
-section .main-body hr {
-    margin: 2rem 0;
-    border: none;
-    height: 1px;
-    background: linear-gradient(to right, transparent, #dee2e6, transparent);
-}
-
-/* Utility Classes */
-.on-top {
-    position: relative;
-    z-index: 10000;
-}
-
-/* Responsive adjustments */
-@media (max-width: 991px) {
-    .top-section {
-        height: 20rem;
-        padding: 8rem 0;
-    }
-    
-    section header h2 {
-        font-size: 2rem;
-    }
-    
-    /* 移动端隐藏标题装饰线 */
-    .bg-gradient-primary-to-secondary-light section header h2::before {
-        display: none;
-    }
-    
-    section .main-body {
-        font-size: 1rem;
-    }
-    
-    /* 移动端卡片样式调整 */
-    section .main-body > p,
-    section .main-body > ul,
-    section .main-body > ol {
-        padding: 1rem;
-    }
-    
-    /* 移动端减少卡片阴影 */
-    .bg-gradient-primary-to-secondary-light section .main-body > p,
-    .bg-gradient-primary-to-secondary-light section .main-body > ul,
-    .bg-gradient-primary-to-secondary-light section .main-body > ol {
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-    }
-}
-
-@media (max-width: 576px) {
-    .top-section {
-        height: 18rem;
-        padding: 6rem 0;
-    }
-    
-    .top-section h2 {
-        font-size: 2rem !important;
-    }
-    
-    section header h2 {
-        font-size: 1.8rem;
-        line-height: 2.5rem;
-    }
-    
-    section {
-        padding: 2rem 0;
-    }
-    
-    /* 移动端导航栏调整 */
-    .navbar-toggler {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.875rem;
-    }
-    
-    /* 移动端内容调整 */
-    .container {
-        padding-left: 1rem;
-        padding-right: 1rem;
-    }
-}
-
-/* Smooth scrolling */
 html {
-    scroll-behavior: smooth;
+  scroll-behavior: smooth;
+  scroll-padding-top: var(--anchor-offset);
+}
+body {
+  margin: 0;
+  font-size: 1rem;
+}
+a {
+  color: var(--blue);
+  text-underline-offset: 0.2em;
+  overflow-wrap: anywhere;
+}
+a:hover {
+  text-decoration-thickness: 2px;
+}
+a:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+img,
+svg {
+  max-width: 100%;
+  height: auto;
+}
+.container {
+  width: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+.skip-link {
+  position: absolute;
+  top: -10rem;
+  left: 1rem;
+  z-index: 10;
+  padding: 0.75rem;
+  background: white;
+}
+.skip-link:focus {
+  top: 0.5rem;
 }
 
-/* Active navigation link */
-.navbar-nav .nav-link.active {
-    color: var(--primary-color) !important;
-    font-weight: 500;
+/* Short brand and a wrapping, always-visible menu work with touch, keyboard and no JS. */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: #fff;
+  border-bottom: 2px solid var(--blue);
+}
+.navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 2rem;
+  flex-wrap: wrap;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+.brand {
+  color: var(--ink);
+  font-size: 1.2rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.nav-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.nav-links a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+}
+.nav-links a:hover,
+.nav-links a[aria-current] {
+  border-bottom-color: var(--blue);
 }
 
-/* 滚动动画 */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+/* Retain the existing banner image and blue/neutral visual identity. */
+.hero {
+  background:
+    linear-gradient(#0008, #0008),
+    url('../assets/img/background1.png') center / cover;
+  color: white;
+  padding: 6rem 0;
 }
-
-section {
-    animation: fadeInUp 0.6s ease-out;
+h1 {
+  max-width: 16em;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 3.5rem;
+  line-height: 1.2;
+  margin: 0;
+  overflow-wrap: break-word;
 }
-
-/* Math display */
-.MathJax_Display {
-    overflow-x: auto;
-    overflow-y: hidden;
-    max-width: 100%;
+h2 {
+  color: #16253b;
+  font-size: 2rem;
+  line-height: 1.3;
+  margin: 0 0 1.5rem;
 }
-
-.top-bg {
-    background-position: center;
-    background-size: fill;
-    width: 100%;
-    height: 100%;
+h3 {
+  color: var(--blue);
+  font-size: 1.35rem;
+  margin: 2rem 0 1rem;
+  border-left: 4px solid var(--blue);
+  padding-left: 0.75rem;
 }
-
-.top-bg::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.4);
+h4 {
+  font-size: 1.1rem;
 }
-
-.photo {
-    position: relative;
+.site-notice {
+  padding: 1rem 0;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
 }
-
-.photo img {
-    margin-right: 10%;
-    height: 12rem;
-    margin-top: 8rem;
+.content-section {
+  padding: 3rem 0;
 }
-
-.photo .screen {
-    position: absolute;
-    background-size: cover;
-    pointer-events: auto;
+.alternate {
+  background: var(--surface);
 }
-
-.photo .button {
-    position: absolute;
-    cursor: pointer;
+.main-body {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
-
-@media screen and (max-width: 991px) {
-    .photo img {
-        height: 12rem;
-        margin-top: 3rem;
-    }
+.main-body > p,
+.publication,
+.main-body > blockquote {
+  padding: 1.5rem;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  margin: 0 0 1.25rem;
 }
-
-@media screen and (max-width: 736px) {
-    .photo img {
-        height: 7rem;
-        margin-top: 7rem;
-    }
+.publication {
+  box-shadow: 0 2px 5px #172b4d08;
 }
-
-/* 修复首页section的样式问题 */
-#page-top.bg-gradient-primary-to-secondary-light {
-    scroll-margin-top: 74px; /* 导航栏高度 */
+.publication p {
+  margin: 0 0 0.75rem;
 }
-
-/* 优化Home section中的内容样式 */
+.publication p:last-child {
+  margin-bottom: 0;
+}
+.publication a {
+  display: inline-block;
+  padding: 0.25rem 0;
+  margin: 0.2rem 0;
+}
+.badge {
+  display: inline-block;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.badge-conference {
+  background: #ad3030;
+}
+.badge-journal {
+  background: #934500;
+}
+.badge-workshop {
+  background: #79409d;
+}
+.badge-preprint {
+  background: #216a9b;
+}
+.badge-patent {
+  background: #196b3b;
+}
+.affiliation {
+  display: block;
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+.main-body > ul,
+.main-body > ol {
+  padding-left: 1.5rem;
+}
+.main-body li {
+  margin: 0.5rem 0;
+}
 #home-md > p:first-child {
-    background: none !important;
-    padding: 0 !important;
-    box-shadow: none !important;
-    margin-bottom: 1rem !important;
-    border: none !important;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+#home-md > p:first-child a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.3rem 0.8rem;
+  border: 1px solid var(--blue);
+  border-radius: 0.25rem;
+  text-decoration: none;
+  font-weight: 600;
+}
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 2rem 0;
+}
+code {
+  background: var(--surface);
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+pre {
+  overflow-x: auto;
+  padding: 1rem;
+  background: var(--surface);
+}
+pre code {
+  padding: 0;
+}
+table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+th,
+td {
+  border: 1px solid var(--line);
+  padding: 0.5rem 0.75rem;
+}
+mjx-container[display='true'] {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.site-footer {
+  background: #142031;
+  color: #e1e7ee;
+  padding: 2rem 0;
+  text-align: center;
+  font-size: 0.9rem;
+}
+.site-footer p {
+  margin: 0 0 0.5rem;
+}
+.site-footer a {
+  display: inline-block;
+  padding: 0.4rem 0;
+  color: #d2e6ff;
 }
 
-#home-md > p:first-child:hover {
-    transform: none !important;
-    box-shadow: none !important;
-    border: none !important;
+@media (max-width: 48rem) {
+  :root {
+    --anchor-offset: 9rem;
+  }
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .navigation {
+    display: block;
+  }
+  .brand {
+    display: inline-block;
+    padding: 0.25rem 0;
+  }
+  .nav-links {
+    gap: 0 1rem;
+  }
+  .hero {
+    padding: 4rem 0;
+  }
+  h1 {
+    font-size: 2.5rem;
+  }
+  h2 {
+    font-size: 1.75rem;
+  }
+  .content-section {
+    padding: 2rem 0;
+  }
+  .main-body > p,
+  .publication,
+  .main-body > blockquote {
+    padding: 1rem;
+  }
 }
 
+@media (max-width: 23rem) {
+  :root {
+    --anchor-offset: 12rem;
+  }
+  .nav-links {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  h1 {
+    font-size: 2rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+@media print {
+  .site-header,
+  .skip-link {
+    display: none;
+  }
+  .hero {
+    background: none;
+    color: #000;
+    padding: 1rem 0;
+  }
+  .content-section {
+    padding: 1rem 0;
+  }
+  .publication {
+    break-inside: avoid;
+    box-shadow: none;
+  }
+}
