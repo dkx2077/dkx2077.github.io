@@ -92,6 +92,7 @@ export function createWorld(settings, callbacks = {}) {
     minPitch: settings.pitchMin,
     maxPitch: settings.pitchMax,
     reducedMotion: () => reduced.matches,
+    enabled: () => !suspended && !disposed,
     onChange: requestFrame,
     signal: abort.signal,
   });

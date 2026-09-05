@@ -4,11 +4,14 @@ const shell = document.getElementById('scene-shell');
 const reader = document.getElementById('reader');
 const backdrop = document.getElementById('reader-backdrop');
 const closeButton = document.getElementById('close-reader');
+const readerToolbar = document.getElementById('reader-toolbar');
 const modeButton = document.getElementById('mode-toggle');
 const status = document.getElementById('experience-status');
 const toolbar = document.querySelector('.scene-toolbar');
 const districtNav = document.querySelector('.district-nav');
 const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+const touchDevice = window.matchMedia?.('(pointer: coarse)');
+const mobileReader = window.matchMedia?.('(max-width: 760px), (pointer: coarse)');
 let world = null;
 let failed = false;
 let wantsReading = false;
@@ -44,6 +47,7 @@ function closeReader({ restoreFocus = true, clearHash = true } = {}) {
   reader.removeAttribute('aria-labelledby');
   backdrop.hidden = true;
   closeButton.hidden = true;
+  readerToolbar.hidden = true;
   setOutsideInert(false);
   world?.suspend(!body.classList.contains('scene-active'));
   document.dispatchEvent(new Event('viewchange'));
@@ -69,13 +73,19 @@ function openReader(target) {
   reader.setAttribute('aria-labelledby', section.getAttribute('aria-labelledby'));
   backdrop.hidden = false;
   closeButton.hidden = false;
+  readerToolbar.hidden = false;
+  document.getElementById('reader-context').textContent = document.getElementById(
+    section.getAttribute('aria-labelledby')
+  ).textContent;
   setOutsideInert(true);
   world?.suspend(true);
   reader.scrollTop = 0;
+  // Phone readers use the document scroller, not a fixed nested overflow panel.
+  if (mobileReader?.matches) window.scrollTo({ top: 0, behavior: 'instant' });
   closeButton.focus({ preventScroll: true });
   document.dispatchEvent(new Event('viewchange'));
   if (target !== section)
-    requestAnimationFrame(() => target.scrollIntoView({ block: 'start', behavior: 'auto' }));
+    requestAnimationFrame(() => target.scrollIntoView({ block: 'start', behavior: 'instant' }));
 }
 function targetForHash(hash) {
   try {
@@ -85,18 +95,19 @@ function targetForHash(hash) {
   }
 }
 function showReading(message = '') {
+  const wasInCity = body.classList.contains('scene-active');
   closeReader({ restoreFocus: false, clearHash: false });
   body.classList.remove('scene-active');
   shell.hidden = true;
   toolbar.hidden = true;
   districtNav.hidden = true;
   world?.suspend(true);
-  modeButton.textContent = 'Enter 3D city ↗';
+  modeButton.textContent = 'Explore 3D';
   status.textContent = message;
-  window.scrollTo(0, savedScroll);
+  if (wasInCity) window.scrollTo({ top: savedScroll, behavior: 'instant' });
   document.dispatchEvent(new Event('viewchange'));
 }
-function showCity() {
+function showCity(openHash = true) {
   if (!world || failed) return;
   savedScroll = window.scrollY;
   shell.hidden = false;
@@ -104,10 +115,10 @@ function showCity() {
   districtNav.hidden = false;
   body.classList.add('scene-active');
   world.suspend(false);
-  modeButton.textContent = 'Reading mode ↗';
+  modeButton.textContent = 'Read profile';
   status.textContent = '';
   const target = targetForHash(location.hash);
-  if (target?.closest('.content-section')) openReader(target);
+  if (openHash && target?.closest('.content-section')) openReader(target);
 }
 function syncMotion(paused) {
   const button = document.getElementById('motion-toggle');
@@ -133,8 +144,8 @@ modeButton.addEventListener('click', () => {
   preferences.set('mode', wantsReading ? 'reading' : 'city');
   if (wantsReading) {
     showReading();
-    document.getElementById('main-content').focus();
-  } else if (world) showCity();
+    document.getElementById('main-content').focus({ preventScroll: true });
+  } else if (world) showCity(false);
   else start(true);
 });
 closeButton.addEventListener('click', () => closeReader());
@@ -229,8 +240,8 @@ async function start(force = false) {
     fail();
     return;
   }
-  wantsReading =
-    preferences.get('mode') === 'reading' || (!preferences.get('mode') && !!reduced?.matches);
+  const mode = preferences.get('mode');
+  wantsReading = mode === 'reading' || (!mode && (!!reduced?.matches || !!touchDevice?.matches));
   if (wantsReading && !force) {
     showReading();
     modeButton.hidden = false;
@@ -254,7 +265,7 @@ async function start(force = false) {
     syncMotion(world.paused);
     modeButton.hidden = false;
     if (wantsReading) showReading();
-    else showCity();
+    else showCity(!force);
   } catch (error) {
     console.warn('3D enhancement unavailable:', error);
     fail();

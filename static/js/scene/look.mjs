@@ -22,7 +22,7 @@ export function direction(yaw, pitch) {
 }
 export function createLookControls(
   element,
-  { minPitch, maxPitch, reducedMotion, onChange, signal }
+  { minPitch, maxPitch, reducedMotion, onChange, signal, enabled = () => true }
 ) {
   const current = { yaw: 0, pitch: 9 };
   const target = { ...current };
@@ -46,7 +46,7 @@ export function createLookControls(
   element.addEventListener(
     'pointerdown',
     event => {
-      if (event.button !== 0 || !event.isPrimary || pointer !== null) return;
+      if (!enabled() || event.button !== 0 || !event.isPrimary || pointer !== null) return;
       pointer = event.pointerId;
       start = last = { x: event.clientX, y: event.clientY };
       dragged = false;
@@ -58,6 +58,10 @@ export function createLookControls(
     'pointermove',
     event => {
       if (pointer !== event.pointerId) return;
+      if (!enabled()) {
+        end(event);
+        return;
+      }
       const distance = Math.hypot(event.clientX - start.x, event.clientY - start.y);
       if (!dragged && distance < 7) return;
       if (!dragged) {
@@ -65,10 +69,14 @@ export function createLookControls(
         element.setPointerCapture?.(pointer);
         element.classList.add('dragging');
       }
-      const sensitivity = event.pointerType === 'touch' ? 0.16 : 0.115;
+      const sensitivity =
+        event.pointerType === 'touch'
+          ? 90 / Math.max(320, Math.min(760, element.clientWidth))
+          : 0.115;
       setTarget(
         target.yaw - (event.clientX - last.x) * sensitivity,
-        target.pitch + (event.clientY - last.y) * sensitivity
+        target.pitch +
+          (event.clientY - last.y) * sensitivity * (event.pointerType === 'touch' ? 0.7 : 1)
       );
       last = { x: event.clientX, y: event.clientY };
       event.preventDefault();
@@ -82,6 +90,7 @@ export function createLookControls(
     'lostpointercapture',
     () => {
       pointer = null;
+      element.classList.remove('dragging');
     },
     { signal }
   );
@@ -98,6 +107,7 @@ export function createLookControls(
   element.addEventListener(
     'keydown',
     event => {
+      if (!enabled()) return;
       if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home'].includes(event.key)) return;
       const step = event.shiftKey ? 12 : 4;
       if (event.key === 'Home') setTarget(shortestAngle(current.yaw, 0), 9);

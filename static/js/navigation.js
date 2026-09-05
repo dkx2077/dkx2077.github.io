@@ -7,6 +7,7 @@
     sections.push(document.querySelector(links[i].getAttribute('href')));
   }
   var scheduled = false;
+  var headerHeight = 0;
 
   function update() {
     scheduled = false;
@@ -25,7 +26,12 @@
     }
     var active = 0;
     var header = document.querySelector('.site-header');
-    var offset = header ? header.getBoundingClientRect().height + 24 : 24;
+    var height = header ? header.getBoundingClientRect().height : 0;
+    if (height !== headerHeight) {
+      headerHeight = height;
+      document.documentElement.style.setProperty('--header-height', height + 'px');
+    }
+    var offset = height + 24;
     // Section tops work even when a long publication section is taller than the viewport.
     for (var index = 0; index < sections.length; index++) {
       if (sections[index] && sections[index].getBoundingClientRect().top <= offset) active = index;
@@ -45,5 +51,9 @@
   window.addEventListener('resize', schedule);
   window.addEventListener('hashchange', schedule);
   document.addEventListener('viewchange', schedule);
+  if (window.ResizeObserver) {
+    var header = document.querySelector('.site-header');
+    if (header) new ResizeObserver(schedule).observe(header);
+  }
   update();
 })();

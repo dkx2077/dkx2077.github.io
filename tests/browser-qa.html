@@ -50,6 +50,9 @@
     ><button data-width="768" data-height="1024">768 × 1024</button
     ><button data-width="844" data-height="390">844 × 390</button
     ><button data-width="1440" data-height="900">1440 × 900</button><output>390 × 844</output>
+    <button id="text-scale">200% text</button>
+    <button id="sheet-layout">Reader sheet layout (no 3D)</button>
+    <button id="reading-layout">Reading page</button>
   </header>
   <div id="viewport">
     <iframe title="Homepage viewport" src="/" width="390" height="844"></iframe>
@@ -63,5 +66,31 @@
         document.querySelector('output').textContent = frame.width + ' × ' + frame.height;
       })
     );
+    // Layout-only controls: no fake renderer and no production behavior changes.
+    document.getElementById('text-scale').addEventListener('click', event => {
+      const doubled = frame.contentDocument.documentElement.style.fontSize !== '200%';
+      frame.contentDocument.documentElement.style.fontSize = doubled ? '200%' : '';
+      event.currentTarget.textContent = doubled ? '100% text' : '200% text';
+    });
+    document.getElementById('sheet-layout').addEventListener('click', () => {
+      const d = frame.contentDocument;
+      d.body.classList.add('scene-active', 'reader-open');
+      d.querySelectorAll('.content-section').forEach(section =>
+        section.classList.toggle('is-open', section.id === 'publications')
+      );
+      d.getElementById('reader-toolbar').hidden = false;
+      d.getElementById('close-reader').hidden = false;
+      d.getElementById('reader-context').textContent = 'Publications';
+      frame.contentWindow.scrollTo({ top: 0, behavior: 'instant' });
+    });
+    document.getElementById('reading-layout').addEventListener('click', () => {
+      const d = frame.contentDocument;
+      d.body.classList.remove('scene-active', 'reader-open');
+      d.getElementById('mode-toggle').hidden = false;
+      d.getElementById('mode-toggle').textContent = 'Explore 3D';
+      d.getElementById('reader-toolbar').hidden = true;
+      d.getElementById('close-reader').hidden = true;
+      frame.contentWindow.scrollTo({ top: 0, behavior: 'instant' });
+    });
   </script>
 </html>

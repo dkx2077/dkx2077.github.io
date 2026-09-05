@@ -280,6 +280,8 @@ test('touch drag does not activate a sign; a tap and keyboard navigation still w
   const dom = new JSDOM('<div id="shell"><a href="#home">About</a></div>');
   const w = dom.window;
   const shell = w.document.getElementById('shell');
+  Object.defineProperty(shell, 'clientWidth', { value: 360 });
+  let enabled = true;
   const originalWindow = globalThis.window;
   globalThis.window = w;
   const control = createLookControls(shell, {
@@ -288,6 +290,7 @@ test('touch drag does not activate a sign; a tap and keyboard navigation still w
     reducedMotion: () => true,
     onChange: () => {},
     signal: new w.AbortController().signal,
+    enabled: () => enabled,
   });
   const send = (type, x, y) => {
     const event = new w.Event(type, { bubbles: true, cancelable: true });
@@ -311,7 +314,7 @@ test('touch drag does not activate a sign; a tap and keyboard navigation still w
   send('pointerup', -200, 1000);
   control.update(1 / 60);
   assert.equal(control.current.pitch, 48);
-  assert.equal(control.current.yaw, 48);
+  assert.equal(control.current.yaw, 75);
   click = new w.MouseEvent('click', { bubbles: true, cancelable: true, button: 0 });
   shell.querySelector('a').dispatchEvent(click);
   assert.equal(click.defaultPrevented, true);
@@ -321,6 +324,13 @@ test('touch drag does not activate a sign; a tap and keyboard navigation still w
   control.update(1 / 60);
   assert.equal(control.current.yaw, 0);
   assert.equal(control.current.pitch, 9);
+  enabled = false;
+  send('pointerdown', 100, 100);
+  send('pointermove', -200, 100);
+  send('pointerup', -200, 100);
+  shell.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+  control.update(1 / 60);
+  assert.equal(control.current.yaw, 0, 'Suspended readers cannot rotate the background');
   globalThis.window = originalWindow;
   w.close();
 });
@@ -330,14 +340,20 @@ async function interfacePage({
   importFailure = false,
   reduced = false,
   denied = false,
+  coarse = false,
+  storedMode = null,
 } = {}) {
   const dom = new JSDOM(
     template.replace('{{scene-settings}}', '{"pitchMin":-28,"pitchMax":48,"quality":"auto"}'),
     { url: 'https://preview.example/', runScripts: 'outside-only', pretendToBeVisual: true }
   );
   const w = dom.window;
-  w.scrollTo = () => {};
-  w.matchMedia = () => ({ matches: reduced });
+  const scrolls = [];
+  w.scrollTo = options => scrolls.push(options);
+  w.matchMedia = query => ({
+    matches: query.includes('reduced-motion') ? reduced : coarse,
+  });
+  if (storedMode) w.localStorage.setItem('kd.mode', storedMode);
   if (!unsupported) {
     w.WebGL2RenderingContext = function () {};
     w.PointerEvent = function () {};
@@ -362,12 +378,62 @@ async function interfacePage({
   };
   const importExpression = importFailure
     ? 'Promise.reject(new Error("unavailable"))'
-    : 'Promise.resolve({createWorld:()=>window.__mockWorld})';
+    : 'Promise.resolve({createWorld:()=>{window.__worldCreated=true;return window.__mockWorld;}})';
   w.console.warn = () => {};
   w.eval(source.replace("import('./scene/world.mjs')", importExpression));
   await new Promise(resolve => setImmediate(resolve));
-  return { dom, w, d: w.document, calls };
+  return { dom, w, d: w.document, calls, scrolls };
 }
+
+test('touch devices start with native reading and only initialize 3D on request or saved preference', async () => {
+  const { w, d } = await interfacePage({ coarse: true });
+  assert.equal(d.body.classList.contains('scene-active'), false);
+  assert.equal(w.__worldCreated, undefined, 'No 3D module is initialized by default on touch');
+  assert.equal(d.getElementById('scene-shell').hidden, true);
+  assert.equal(d.getElementById('mode-toggle').hidden, false);
+  w.history.replaceState(null, '', '#publications');
+  d.getElementById('mode-toggle').click();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(w.__worldCreated, true);
+  assert.equal(d.body.classList.contains('scene-active'), true);
+  assert.equal(
+    d.body.classList.contains('reader-open'),
+    false,
+    'Explicit 3D entry shows the city, not the old reading anchor'
+  );
+  assert.equal(w.localStorage.getItem('kd.mode'), 'city');
+  w.close();
+  const saved = await interfacePage({ coarse: true, storedMode: 'city' });
+  assert.equal(saved.d.body.classList.contains('scene-active'), true);
+  saved.w.close();
+});
+
+test('phone reading sheets reset the document scroller and returning from 3D restores reading position', async () => {
+  const { w, d, scrolls } = await interfacePage({ coarse: true });
+  w.scrollY = 720;
+  d.getElementById('mode-toggle').click();
+  await new Promise(resolve => setImmediate(resolve));
+  const link = d.querySelector('a[href="#publications"]');
+  link.focus();
+  link.click();
+  assert.equal(scrolls.at(-1).top, 0);
+  assert.equal(scrolls.at(-1).behavior, 'instant');
+  assert.equal(d.getElementById('reader-toolbar').hidden, false);
+  assert.equal(
+    d.getElementById('reader-context').textContent,
+    d.getElementById('publications-heading').textContent
+  );
+  d.getElementById('close-reader').click();
+  assert.equal(d.getElementById('reader-toolbar').hidden, true);
+  assert.equal(d.activeElement, link);
+  d.getElementById('mode-toggle').click();
+  assert.equal(d.body.classList.contains('scene-active'), false);
+  assert.equal(scrolls.at(-1).top, 720);
+  assert.equal(scrolls.at(-1).behavior, 'instant');
+  assert.equal(d.getElementById('reader').hasAttribute('aria-modal'), false);
+  assert.equal(d.getElementById('scene-shell').inert, false);
+  w.close();
+});
 
 test('scene sign opens a focused reading dialog, pauses the scene, and Escape restores focus', async () => {
   const { w, d, calls } = await interfacePage();
