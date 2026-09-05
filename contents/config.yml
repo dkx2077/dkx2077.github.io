@@ -8,4 +8,4 @@ description: Personal academic homepage for Kaixin Deng
 url: https://www.dengkaixin.com
 # Paste the public Website ID from Umami Cloud → website → Tracking code.
 # Empty means no tracking in local builds. Production deployment requires a valid ID.
-umami-website-id: ''
+umami-website-id: 5937d538-dd8f-43c0-9411-d80c9a3f2bb7
