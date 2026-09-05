@@ -435,22 +435,47 @@ export function createEnvironment(scene, { low, reducedMotion, onInvalidate = ()
   ground.position.y = -0.01;
   scene.add(ground);
 
-  // Original text-free skyline wraps the far environment; the foreground stays real geometry.
+  // A quiet, text-free city layer sits beyond the real towers. Preserve the panorama's
+  // 3:1 proportions; vertex alpha dissolves its edges without an extra render pass.
+  const skylineRepeats = 3;
+  const skylineRadius = 110;
+  const skylineGeometry = new THREE.CylinderGeometry(
+    skylineRadius,
+    skylineRadius,
+    (2 * Math.PI * skylineRadius) / (skylineRepeats * 3),
+    192,
+    12,
+    true
+  );
+  const skylineUv = skylineGeometry.attributes.uv;
+  const skylineColors = new Float32Array(skylineUv.count * 4);
+  for (let i = 0; i < skylineUv.count; i++) {
+    const u = (skylineUv.getX(i) * skylineRepeats) % 1;
+    const v = skylineUv.getY(i);
+    const seam = THREE.MathUtils.smoothstep(Math.min(u, 1 - u), 0, 0.022);
+    const lower = THREE.MathUtils.smoothstep(v, 0.03, 0.16);
+    const upper = 1 - THREE.MathUtils.smoothstep(v, 0.72, 0.98);
+    skylineColors.set([1, 1, 1, seam * lower * upper], i * 4);
+  }
+  skylineGeometry.setAttribute('color', new THREE.BufferAttribute(skylineColors, 4));
   const skylineMaterial = new THREE.MeshBasicMaterial({
-    color: 0xb6bbc8,
+    color: 0xffffff,
     side: THREE.BackSide,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.82,
+    depthWrite: false,
     fog: false,
   });
-  const skyline = new THREE.Mesh(
-    new THREE.CylinderGeometry(110, 110, 92, 64, 1, true),
-    skylineMaterial
-  );
-  skyline.position.y = 38;
+  const skyline = new THREE.Mesh(skylineGeometry, skylineMaterial);
+  skyline.name = 'city-atmosphere';
+  skyline.position.y = 30;
   skyline.rotation.y = 0.4;
+  skyline.visible = false;
   scene.add(skyline);
   let disposed = false;
   new THREE.TextureLoader().load(
-    'static/assets/img/night-district-v2.webp',
+    'static/assets/img/night-district-v3.webp',
     texture => {
       if (disposed) {
         texture.dispose();
@@ -458,9 +483,10 @@ export function createEnvironment(scene, { low, reducedMotion, onInvalidate = ()
       }
       texture.colorSpace = THREE.SRGBColorSpace;
       texture.wrapS = THREE.RepeatWrapping;
-      texture.repeat.x = 3;
+      texture.repeat.x = skylineRepeats;
       skylineMaterial.map = texture;
       skylineMaterial.needsUpdate = true;
+      skyline.visible = true;
       onInvalidate();
     },
     undefined,
