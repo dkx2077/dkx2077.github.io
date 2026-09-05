@@ -25,7 +25,7 @@ export function createEnvironment(scene, { low, reducedMotion, onInvalidate = ()
     metalness: 0.72,
   });
   const cyan = new THREE.MeshBasicMaterial({
-    color: new THREE.Color('#08dfed').multiplyScalar(1.65),
+    color: new THREE.Color('#00b7ee').multiplyScalar(1.35),
   });
   const violet = new THREE.MeshBasicMaterial({
     color: new THREE.Color('#ec18b0').multiplyScalar(2.1),
