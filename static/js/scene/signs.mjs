@@ -58,10 +58,6 @@ export function createSigns(worldScene, container) {
       const tube = new THREE.MeshBasicMaterial({ color: color.clone().multiplyScalar(2.4) });
       mount(housing, tube, 0, h / 2 + 0.055, 0.003, w + 0.12, 0.035, 0.035);
       mount(housing, tube, 0, -h / 2 - 0.055, 0.003, w + 0.12, 0.025, 0.035);
-      if (element.dataset.sign === 'university') {
-        mount(housing, tube, -w / 2 - 0.055, 0, 0.003, 0.035, h + 0.08, 0.035);
-        mount(housing, tube, w / 2 + 0.055, 0, 0.003, 0.035, h + 0.08, 0.035);
-      }
       for (const side of [-1, 1]) {
         mount(housing, metal, side * w * 0.35, 0, -0.32, 0.08, h + 0.62, 0.09);
         mount(housing, metal, side * w * 0.35, h / 2 + 0.26, -0.62, 0.08, 0.08, 0.68);

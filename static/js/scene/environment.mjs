@@ -30,6 +30,10 @@ export function createEnvironment(scene, { low, reducedMotion, onInvalidate = ()
     color: new THREE.Color('#f1b46a').multiplyScalar(2.2),
   });
   const muted = new THREE.MeshBasicMaterial({ color: 0x203b42 });
+  // Window interiors stay below the bloom threshold; only architectural rails glow strongly.
+  const coolWindow = new THREE.MeshBasicMaterial({ color: 0x4d8f9f });
+  const warmWindow = new THREE.MeshBasicMaterial({ color: 0xb78654 });
+  const violetWindow = new THREE.MeshBasicMaterial({ color: 0x8b639f });
   const addBox = (parent, position, size, material = metal) => {
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(...position);
@@ -54,20 +58,28 @@ export function createEnvironment(scene, { low, reducedMotion, onInvalidate = ()
     const depth = 4 + random() * 5;
     const x = Math.sin(angle) * radius;
     const z = -Math.cos(angle) * radius;
+    // Only the two sides facing our fixed observation point need lit windows.
+    const faceZ = z < 0 ? 1 : -1;
+    const faceX = x < 0 ? 1 : -1;
     buildings.push({ x, y: height / 2 - 0.2, z, width, height, depth });
     for (let row = 2; row < height - 1; row += 1.8) {
-      for (let column = -width / 2 + 0.7; column < width / 2; column += 1.5) {
+      for (let column = -width / 2 + 0.7; column < width / 2 - 0.3; column += 1.5) {
+        if (Math.abs(z) <= depth / 2) continue;
         if (random() > 0.52) continue;
         windows.push({
           x: x + column,
           y: row,
-          z: z + depth / 2 + 0.02,
+          z: z + faceZ * (depth / 2 + 0.02),
           color: [0x83d5e1, 0x486a91, 0xc88abd, 0xd5a66f][Math.floor(random() * 4)],
         });
+      }
+      for (let column = -depth / 2 + 0.7; column < depth / 2 - 0.3; column += 1.5) {
+        if (Math.abs(x) <= width / 2) continue;
+        if (random() > 0.52) continue;
         windows.push({
-          x: x - width / 2 - 0.02,
+          x: x + faceX * (width / 2 + 0.02),
           y: row,
-          z: z + column * 0.5,
+          z: z + column,
           side: true,
           color: random() > 0.6 ? 0x8b5c9d : 0x3d748c,
         });
@@ -75,6 +87,7 @@ export function createEnvironment(scene, { low, reducedMotion, onInvalidate = ()
     }
   }
   const bodyInstances = new THREE.InstancedMesh(geometry, dark, buildings.length);
+  bodyInstances.name = 'distant-buildings';
   const dummy = new THREE.Object3D();
   buildings.forEach((b, i) => {
     dummy.position.set(b.x, b.y, b.z);
@@ -88,6 +101,7 @@ export function createEnvironment(scene, { low, reducedMotion, onInvalidate = ()
     new THREE.MeshBasicMaterial({ color: 0xffffff }),
     windows.length
   );
+  windowInstances.name = 'distant-windows';
   windows.forEach((w, i) => {
     dummy.position.set(w.x, w.y, w.z);
     dummy.scale.set(w.side ? 0.025 : 0.38, 0.72, w.side ? 0.38 : 0.025);
@@ -118,6 +132,10 @@ export function createEnvironment(scene, { low, reducedMotion, onInvalidate = ()
     for (let x = -width / 2 + 1; x < width / 2; x += 2.4) {
       addBox(group, [x, 9, 0.07], [1.3, 1.8, 0.12], dark);
       addBox(group, [x, 8.25, 0.16], [1.3, 0.05, 0.06], accent);
+      for (let y = 12; y < height - 2; y += 2.1) {
+        addBox(group, [x, y, 0.15], [1.2, 1.25, 0.08], random() > 0.35 ? coolWindow : muted);
+        addBox(group, [x, y - 0.7, 0.2], [1.4, 0.07, 0.15], trim);
+      }
     }
     // Service conduits, ventilation ribs and rooftop aerials catch the local neon.
     for (let x = -width / 2 + 0.9; x < width / 2; x += 4.7) {
@@ -143,6 +161,120 @@ export function createEnvironment(scene, { low, reducedMotion, onInvalidate = ()
   leftWing.position.x = -13.2;
   const rightWing = facade(-0.5, 5.5, 17, 16, violet);
   rightWing.position.x = 13.5;
+
+  // Fill the open southwest sector between Awards and Work with an inward-facing corner block.
+  const corner = facade((Math.PI * 3) / 4, 13, 24, 28, violet);
+  corner.name = 'southwest-corner';
+
+  // Two deeper streets: stepped towers and glazed bridges rise above the existing shopfronts.
+  // Every new front is outside the sign ring, keeping editable lettering unobstructed.
+  function rearDistrict(name, angle, accent, windowMaterial, bridgeHeight, towers) {
+    const block = new THREE.Group();
+    block.name = name;
+    block.rotation.y = angle;
+    scene.add(block);
+    for (const [x, distance, width, height, depth] of towers) {
+      const z = -distance;
+      const front = z + depth / 2;
+      addBox(block, [x, height / 2, z], [width, height, depth], metal);
+      addBox(block, [x, height + 1.25, z - 0.6], [width * 0.64, 2.5, depth * 0.68], dark);
+      addBox(block, [x, height + 2.65, z - 0.6], [width * 0.69, 0.24, depth * 0.72], trim);
+      addBox(block, [x + width * 0.2, height + 4.4, z], [0.065, 3.6, 0.065], trim);
+      addBox(block, [x + width * 0.2, height + 6.2, z], [0.1, 0.16, 0.1], accent);
+      for (const side of [-1, 1]) {
+        addBox(
+          block,
+          [x + side * (width / 2 - 0.22), height / 2, front + 0.09],
+          [0.14, height, 0.18],
+          trim
+        );
+        addBox(
+          block,
+          [x + side * (width / 2 - 0.38), height * 0.72, front + 0.2],
+          [0.045, height * 0.38, 0.04],
+          accent
+        );
+      }
+      for (let y = 3; y < height - 1; y += 1.85) {
+        for (let column = -width / 2 + 0.9; column < width / 2 - 0.6; column += 1.25) {
+          const lit = random();
+          addBox(
+            block,
+            [x + column, y, front + 0.055],
+            [0.64, 1.05, 0.035],
+            lit > 0.48 ? windowMaterial : lit > 0.26 ? coolWindow : muted
+          );
+        }
+        const sideX = x + (x < 0 ? 1 : -1) * (width / 2 + 0.055);
+        for (let column = -depth / 2 + 0.8; column < depth / 2 - 0.5; column += 1.4) {
+          addBox(
+            block,
+            [sideX, y, z + column],
+            [0.035, 1.05, 0.6],
+            random() > 0.55 ? coolWindow : muted
+          );
+        }
+        if (Math.round(y / 1.85) % 4 === 0)
+          addBox(block, [x, y - 0.7, front + 0.12], [width + 0.2, 0.12, 0.3], trim);
+      }
+      // A vertical utility duct and staggered maintenance balconies break up the window grid.
+      addBox(
+        block,
+        [x + width / 2 + 0.22, height * 0.45, z + depth / 2 - 0.35],
+        [0.36, height * 0.9, 0.45],
+        dark
+      );
+      for (let y = 9; y < height - 3; y += 7.5) {
+        addBox(block, [x - width * 0.22, y, front + 0.45], [width * 0.45, 0.16, 0.95], trim);
+        addBox(
+          block,
+          [x - width * 0.22, y + 0.65, front + 0.85],
+          [width * 0.45, 0.055, 0.055],
+          accent
+        );
+      }
+    }
+    const bridgeZ = -30.3;
+    addBox(block, [0, bridgeHeight, bridgeZ], [25, 0.38, 2.4], trim);
+    addBox(block, [0, bridgeHeight + 2.1, bridgeZ], [25, 0.25, 2.4], dark);
+    addBox(block, [0, bridgeHeight - 0.16, bridgeZ + 1.22], [25, 0.055, 0.055], accent);
+    for (let x = -12; x <= 12; x += 1.5) {
+      addBox(block, [x, bridgeHeight + 1.05, bridgeZ + 1.14], [0.08, 1.9, 0.12], trim);
+      if (x < 12)
+        addBox(
+          block,
+          [x + 0.75, bridgeHeight + 1.05, bridgeZ + 1.07],
+          [1.32, 1.65, 0.045],
+          x % 3 === 0 ? windowMaterial : muted
+        );
+    }
+    // Ground-level service gantry and a hanging cable add depth below the high bridge.
+    for (const x of [-10.5, 10.5]) addBox(block, [x, 4.1, -24.5], [0.18, 8.2, 0.18], trim);
+    addBox(block, [0, 8.2, -24.5], [21.2, 0.18, 0.22], dark);
+    addBox(block, [0, 8.08, -24.36], [20.8, 0.035, 0.035], accent);
+    tube(
+      block,
+      [
+        [-11, 10.2, -26],
+        [0, 9.1, -25],
+        [11, 10.8, -26],
+      ],
+      dark,
+      0.03
+    );
+  }
+  rearDistrict('awards-street', Math.PI, amber, warmWindow, 15, [
+    [-12, 31, 7, 28, 6],
+    [11, 33, 8, 35, 6],
+    [-4, 45, 7, 47, 7],
+    [19, 43, 8, 38, 8],
+  ]);
+  rearDistrict('work-street', Math.PI / 2, violet, violetWindow, 17, [
+    [-11, 32, 8, 33, 7],
+    [12, 34, 7, 27, 7],
+    [3, 44, 9, 44, 8],
+    [-19, 46, 7, 39, 6],
+  ]);
   // Steel gantry, hanging cables, utility pipes, and suspended fixtures.
   addBox(scene, [-10.7, 7.5, -11], [0.15, 15, 0.15], trim);
   addBox(scene, [-10.7, 11.8, -12.8], [0.15, 0.15, 3.8], trim);

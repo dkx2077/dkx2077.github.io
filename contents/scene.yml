@@ -1,8 +1,6 @@
 # 招牌内容保持为真正的 HTML 文字；修改后运行 npm run build。
 name-line-one: KAIXIN
 name-line-two: DENG
-university-name: Hokkaido
-university-kind: University
 identity: ACADEMIC PORTFOLIO
 welcome: Exploring intelligence.
 welcome-detail: Research, experiments & things worth building.
