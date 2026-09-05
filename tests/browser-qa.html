@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Homepage responsive QA</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: #293138;
+      color: #fff;
+      font:
+        14px Arial,
+        sans-serif;
+    }
+    header {
+      padding: 12px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    button {
+      font: inherit;
+      padding: 9px 12px;
+      border: 1px solid #69777c;
+      background: #17222a;
+      color: #fff;
+      cursor: pointer;
+    }
+    iframe {
+      display: block;
+      border: 0;
+      margin: 0 auto;
+      background: #080d13;
+    }
+    #viewport {
+      overflow: auto;
+      max-width: 100%;
+      padding: 0 8px 20px;
+    }
+    output {
+      margin-left: auto;
+    }
+  </style>
+  <header>
+    <b>Responsive QA</b><button data-width="320" data-height="720">320 × 720</button
+    ><button data-width="390" data-height="844">390 × 844</button
+    ><button data-width="768" data-height="1024">768 × 1024</button
+    ><button data-width="844" data-height="390">844 × 390</button
+    ><button data-width="1440" data-height="900">1440 × 900</button><output>390 × 844</output>
+  </header>
+  <div id="viewport">
+    <iframe title="Homepage viewport" src="/" width="390" height="844"></iframe>
+  </div>
+  <script>
+    const frame = document.querySelector('iframe');
+    document.querySelectorAll('[data-width]').forEach(button =>
+      button.addEventListener('click', () => {
+        frame.width = button.dataset.width;
+        frame.height = button.dataset.height;
+        document.querySelector('output').textContent = frame.width + ' × ' + frame.height;
+      })
+    );
+  </script>
+</html>

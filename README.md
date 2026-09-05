@@ -13,7 +13,7 @@ npm run build
 npm run serve
 ```
 
-打开 `http://localhost:8000`。`dist/` 是可重新生成的部署产物，不要直接编辑。3D 模块必须通过 HTTP 访问；双击 `dist/index.html` 仍可读取静态正文。统计只在配置的正式域名运行。
+打开 `http://localhost:8000`。也可在构建后运行 `npm run dev` 使用 Vite 预览；开发地址的 `/__qa` 提供响应式视口检查，测试界面不会发布。`dist/` 是可重新生成的部署产物，不要直接编辑。3D 模块必须通过 HTTP 访问；双击 `dist/index.html` 仍可读取静态正文。统计只在配置的正式域名运行。
 
 ## 文件职责
 
@@ -35,7 +35,7 @@ npm run serve
 
 浏览器端没有 Bootstrap、Google Fonts 或 Markdown/YAML 解析器。Three.js 固定版本在站内分块打包，原创城市贴图保存在项目中。正文、论文与联系链接在禁用 JavaScript 时仍可使用。
 
-[场景编辑、交互与兼容策略](docs/SCENE.md) · [素材来源与生成提示词](docs/ASSETS.md)
+[场景编辑、交互与兼容策略](docs/SCENE.md) · [素材来源与生成提示词](docs/ASSETS.md) · [浏览器检查记录](docs/QA-2026-09-05.md)
 
 ## 接入 Umami Cloud
 

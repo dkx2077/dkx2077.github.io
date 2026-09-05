@@ -46,6 +46,6 @@ Three.js r185 使用 WebGL2。CSS3DRenderer 官方支持范围是 100% 浏览器
 
 场景不使用实时阴影或平面反射的额外相机；地面是程序化霓虹反光材质，远景是贴图，近景是实际几何体。建筑和窗户采用实例化；站内打包固定版本的 Three.js，访客不依赖第三方代码 CDN。招牌置于面向固定观察点的建筑前方，通过朝向过滤隐藏背面；这不是可漫游场景，也没有为自由移动实现通用 DOM/WebGL 遮挡系统。
 
-自动检查覆盖：连续水平转向、上下边界、触屏拖动与点击区分、键盘复位、面板焦点与退出、阅读模式、弱能力降级、所有原有 Umami 事件规则。未执行真实浏览器截图、实机帧率或实际 Umami 入库测试。
+自动检查覆盖：连续水平转向、上下边界、触屏拖动与点击区分、键盘复位、面板焦点与退出、阅读模式、弱能力降级、所有原有 Umami 事件规则。已在实际云端 Chrome 检查 WebGL 失败降级与多种阅读视口；该环境禁用 WebGL，尚未验证 3D 画面、实机帧率或实际 Umami 入库。详见 [浏览器检查记录](QA-2026-09-05.md)。
 
 实现参考：[WebGLRenderer](https://threejs.org/docs/pages/WebGLRenderer.html)、[CSS3DRenderer](https://threejs.org/docs/pages/CSS3DRenderer.html)。
