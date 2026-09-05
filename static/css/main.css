@@ -329,21 +329,7 @@ body.scene-active {
   pointer-events: none;
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at 50% 42%, transparent 38%, #03090f44 75%, #03090fa8 100%);
-}
-.scene-caption {
-  position: absolute;
-  inset: 120px 3rem auto;
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.75rem;
-  letter-spacing: 0.14em;
-  color: #95aaaf;
-  pointer-events: none;
-  font-family: ui-monospace, monospace;
-}
-.scene-caption span:last-child {
-  color: #9dae97;
+  background: radial-gradient(ellipse at 50% 42%, transparent 46%, #03090f26 79%, #03090f75 100%);
 }
 .look-hint {
   position: absolute;
@@ -738,10 +724,6 @@ a.world-sign:focus-visible {
     right: 1.5rem;
     bottom: 6.5rem;
   }
-  .scene-caption {
-    left: 1.5rem;
-    right: 1.5rem;
-  }
   .look-hint {
     bottom: 150px;
   }
@@ -785,18 +767,6 @@ a.world-sign:focus-visible {
   }
   .scene-active .site-header {
     padding-top: max(0.75rem, env(safe-area-inset-top));
-  }
-  .scene-caption {
-    top: 132px;
-    left: 1rem;
-    right: 1rem;
-    font-size: 0.75rem;
-  }
-  .scene-caption span:first-child {
-    display: none;
-  }
-  .scene-caption span:last-child {
-    margin-left: auto;
   }
   .scene-coordinate {
     left: 1rem;
@@ -864,7 +834,6 @@ a.world-sign:focus-visible {
     padding-block: 0.35rem;
     min-height: 58px;
   }
-  .scene-caption,
   .look-hint,
   .scene-coordinate {
     display: none;

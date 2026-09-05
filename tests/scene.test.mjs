@@ -5,6 +5,7 @@ import { JSDOM } from 'jsdom';
 import * as THREE from 'three';
 import { createSigns } from '../static/js/scene/signs.mjs';
 import { createEnvironment } from '../static/js/scene/environment.mjs';
+import { createLighting } from '../static/js/scene/lighting.mjs';
 import { SIGN_LAYOUT } from '../static/js/scene/design.mjs';
 import {
   FIXED_POSITION,
@@ -17,6 +18,65 @@ import {
 
 const template = await readFile(new URL('../templates/index.html', import.meta.url), 'utf8');
 const source = await readFile(new URL('../static/js/experience.mjs', import.meta.url), 'utf8');
+
+test('lighting reaches upper rear facades and Low disables the cached shadow layer', () => {
+  const scene = new THREE.Scene();
+  const wall = new THREE.InstancedMesh(
+    new THREE.BoxGeometry(),
+    new THREE.MeshStandardMaterial(),
+    1
+  );
+  const window = new THREE.InstancedMesh(new THREE.BoxGeometry(), new THREE.MeshBasicMaterial(), 1);
+  scene.add(wall, window);
+  const lighting = createLighting(scene);
+  scene.updateMatrixWorld(true);
+  const key = scene.getObjectByName('architectural-key');
+  const keyDirection = key.position.clone().sub(key.target.position).normalize();
+  assert.ok(
+    keyDirection.dot(new THREE.Vector3(0, 0, -1)) > 0.3,
+    'Awards facade receives direct light'
+  );
+  assert.ok(
+    keyDirection.dot(new THREE.Vector3(1, 0, 0)) > 0.3,
+    'Work facade receives direct light'
+  );
+  const floods = [];
+  scene.traverse(object => {
+    if (object.isSpotLight) floods.push(object);
+  });
+  for (const point of [new THREE.Vector3(4, 40, 41.5), new THREE.Vector3(-39.5, 38, -3)]) {
+    assert.ok(
+      floods.some(light => {
+        const delta = point.clone().sub(light.position);
+        const axis = light.target.position.clone().sub(light.position).normalize();
+        return (
+          delta.length() < light.distance && delta.normalize().dot(axis) > Math.cos(light.angle)
+        );
+      }),
+      'Upper-storey surface falls within a real floodlight cone'
+    );
+  }
+  assert.equal(wall.castShadow, true);
+  assert.equal(wall.receiveShadow, true);
+  assert.equal(window.castShadow, false, 'Window instances do not enter the shadow pass');
+  lighting.setQuality(false);
+  assert.equal(key.castShadow, true);
+  assert.equal(key.shadow.autoUpdate, false);
+  assert.equal(key.shadow.needsUpdate, true);
+  assert.equal(scene.getObjectByName('ground-shadow').visible, true);
+  lighting.setQuality(true);
+  assert.equal(key.castShadow, false);
+  assert.equal(scene.getObjectByName('ground-shadow').visible, false);
+  lighting.setQuality(false);
+  assert.equal(key.shadow.needsUpdate, true, 'Returning to High requests one fresh shadow capture');
+  let released = false;
+  key.shadow.map = new THREE.WebGLRenderTarget(16, 16);
+  key.shadow.map.addEventListener('dispose', () => {
+    released = true;
+  });
+  lighting.dispose();
+  assert.equal(released, true, 'Owned shadow target is released on teardown');
+});
 
 test('tall phone viewports keep the complete name within the horizontal field', () => {
   const name = new THREE.Object3D();
