@@ -6,13 +6,14 @@
 
 | 要修改的内容                                       | 源文件                                       |
 | -------------------------------------------------- | -------------------------------------------- |
-| 姓名、中文名、招牌标题、欢迎语、默认画质、俯仰范围 | `contents/scene.yml`                         |
+| 姓名、大学名、招牌标题、欢迎语、默认画质、俯仰范围 | `contents/scene.yml`                         |
 | 简介、教育、经历、Google Scholar、GitHub、邮箱     | `contents/home.md`                           |
 | 论文标题、作者、论文/项目/代码链接                 | `contents/publications.md`                   |
 | 奖项、现有工作                                     | `contents/awards.md`、`contents/service.md`  |
 | 正式域名、停更说明、统计 ID、版权说明              | `contents/config.yml`                        |
 | 招牌 HTML、精选论文入口                            | `templates/index.html` 的 `world-signs` 模板 |
-| 招牌位置、尺寸与厚度                               | `static/js/scene/signs.mjs`                  |
+| 招牌位置、尺寸、配色、灯光位置                     | `static/js/scene/design.mjs`                 |
+| 招牌实体底板、灯管与支架                           | `static/js/scene/signs.mjs`                  |
 | 建筑、灯管、材质、雨与远景                         | `static/js/scene/environment.mjs`            |
 
 修改后运行 `npm run build`。正文只有一份，由构建器生成完整 HTML；阅读模式、3D 阅读面板和无 JavaScript 页面共享这份内容。保留 publication 标识，避免历史统计被拆分。当前精选入口指向 `supergpqa`，删除这篇论文时也要修改对应招牌链接。
@@ -44,8 +45,18 @@
 
 Three.js r185 使用 WebGL2。CSS3DRenderer 官方支持范围是 100% 浏览器/显示缩放，因此高倍率桌面缩放或个别合成器上的 3D 标签对齐不保证完全一致；阅读模式提供普通 HTML 布局。不能把桌面构建或 DOM 测试等同于真实 iPhone/Android/GPU 验收。正式替换前建议在实际 Safari、Chrome、Firefox 检查 320/390/768/1440px、横竖屏与 200% 文字缩放。
 
-场景不使用实时阴影或平面反射的额外相机；地面是程序化霓虹反光材质，远景是贴图，近景是实际几何体。建筑和窗户采用实例化；站内打包固定版本的 Three.js，访客不依赖第三方代码 CDN。招牌置于面向固定观察点的建筑前方，通过朝向过滤隐藏背面；这不是可漫游场景，也没有为自由移动实现通用 DOM/WebGL 遮挡系统。
+场景不使用实时阴影或平面反射的额外相机；地面是程序化霓虹反光材质，远景是贴图，近景是实际几何体。建筑、窗户和近景的重复金属构件按材质实例化；站内打包固定版本的 Three.js，访客不依赖第三方代码 CDN。招牌置于面向固定观察点的建筑前方，通过视锥和朝向过滤隐藏屏幕外与背面的链接，并移出键盘焦点序列；这不是可漫游场景，也没有为自由移动实现通用 DOM/WebGL 遮挡系统。
 
 自动检查覆盖：连续水平转向、上下边界、触屏拖动与点击区分、键盘复位、面板焦点与退出、阅读模式、弱能力降级、所有原有 Umami 事件规则。已在实际云端 Chrome 检查 WebGL 失败降级与多种阅读视口；该环境禁用 WebGL，尚未验证 3D 画面、实机帧率或实际 Umami 入库。详见 [浏览器检查记录](QA-2026-09-05.md)。
 
 实现参考：[WebGLRenderer](https://threejs.org/docs/pages/WebGLRenderer.html)、[CSS3DRenderer](https://threejs.org/docs/pages/CSS3DRenderer.html)。
+
+## 霓虹街区美术更新
+
+原来的个人中文竖牌改成 `HOKKAIDO / UNIVERSITY`，两个字段均可在 `contents/scene.yml` 编辑。栏目招牌使用本地 Rajdhani 600 拉丁字符字体，统一编号、灯管文字和底部说明的层级，保留真实 HTML 与链接。非拉丁文字仍使用系统字体。
+
+`design.mjs` 同时定义 DOM 文字面的像素尺寸与 Three.js 底板的世界尺寸，避免以前面板与实体边缘不一致。实体层包含金属底板、搪瓷面、发光导轨和安装支架；字体本身用 CSS text-shadow 发光，因为 CSS3D 不参与 WebGL 泛光或阴影。
+
+青蓝、紫红、琥珀色灯光由同一组配置驱动点光源和地面径向反光。地面以噪声水洼遮罩、抗锯齿砖缝与断续涟漪控制反射，背景使用新一版城市全景；仍不使用昂贵的实时阴影或镜面反射渲染通道。Auto 降档和手动 Low 均同步减少雨滴绘制与 CPU 更新，暂停模式在远景加载完成后也会补渲染一帧。
+
+窄长手机按宽高比扩大纵向视场，保持至少约 42° 的水平视野（纵向上限 105°）；相机位置与用户俯仰边界不变。

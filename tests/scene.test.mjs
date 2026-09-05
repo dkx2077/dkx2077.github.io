@@ -2,16 +2,145 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import { JSDOM } from 'jsdom';
+import * as THREE from 'three';
+import { createSigns } from '../static/js/scene/signs.mjs';
+import { createEnvironment } from '../static/js/scene/environment.mjs';
+import { SIGN_LAYOUT } from '../static/js/scene/design.mjs';
 import {
   FIXED_POSITION,
   clampPitch,
   shortestAngle,
   direction,
+  viewportFov,
   createLookControls,
 } from '../static/js/scene/look.mjs';
 
 const template = await readFile(new URL('../templates/index.html', import.meta.url), 'utf8');
 const source = await readFile(new URL('../static/js/experience.mjs', import.meta.url), 'utf8');
+
+test('tall phone viewports keep the complete name within the horizontal field', () => {
+  const name = new THREE.Object3D();
+  const config = SIGN_LAYOUT.name;
+  name.position.set(...config.at);
+  name.lookAt(0, config.at[1], 0);
+  name.scale.setScalar(config.scale);
+  name.updateMatrixWorld();
+  for (const [width, height] of [
+    [320, 844],
+    [360, 915],
+    [390, 844],
+    [768, 1024],
+    [844, 390],
+    [1440, 900],
+  ]) {
+    const camera = new THREE.PerspectiveCamera(
+      viewportFov(width, height),
+      width / height,
+      0.1,
+      180
+    );
+    camera.position.set(...FIXED_POSITION);
+    const forward = direction(0, 9);
+    camera.lookAt(camera.position.clone().add(new THREE.Vector3(...forward)));
+    camera.updateMatrixWorld();
+    for (const x of [-config.width / 2, config.width / 2]) {
+      for (const y of [-config.height / 2, config.height / 2]) {
+        const corner = new THREE.Vector3(x, y, 0).applyMatrix4(name.matrixWorld).project(camera);
+        assert.ok(
+          Math.abs(corner.x) < 1,
+          `Name width remains visible at ${width}×${height}: ${corner.x}`
+        );
+      }
+    }
+  }
+});
+
+test('live sign faces fit their physical housings and offscreen links leave keyboard navigation', () => {
+  const dom = new JSDOM(template);
+  const originalDocument = globalThis.document;
+  globalThis.document = dom.window.document;
+  const scene = new THREE.Scene();
+  let signs;
+  try {
+    signs = createSigns(scene, document.getElementById('sign-layer'));
+    signs.resize(1440, 900);
+    const camera = new THREE.PerspectiveCamera(60, 1440 / 900, 0.1, 180);
+    camera.position.set(...FIXED_POSITION);
+    camera.lookAt(0, 4, -18);
+    signs.render(camera);
+    for (const [name, config] of Object.entries(SIGN_LAYOUT)) {
+      const face = document.querySelector(`#sign-layer [data-sign="${name}"]`);
+      assert.equal(face.style.getPropertyValue('--face-width'), `${config.width}px`);
+      assert.equal(face.style.getPropertyValue('--face-height'), `${config.height}px`);
+      if (name === 'name') continue;
+      const housing = scene.getObjectByName(`sign:${name}`);
+      assert.deepEqual(housing.position.toArray(), config.at);
+      const enamel = housing.children[1];
+      assert.equal(enamel.scale.x, config.width * config.scale);
+      assert.equal(enamel.scale.y, config.height * config.scale);
+      assert.ok(enamel.position.z + enamel.scale.z / 2 < 0, 'Letter plane sits ahead of enamel');
+    }
+    const about = document.querySelector('#sign-layer [data-sign="about"]');
+    const awards = document.querySelector('#sign-layer [data-sign="awards"]');
+    assert.equal(about.style.visibility, 'visible');
+    assert.equal(about.inert, false);
+    assert.equal(awards.style.visibility, 'hidden');
+    assert.equal(awards.inert, true);
+    camera.lookAt(1.4, 6.3, 19);
+    signs.render(camera);
+    assert.equal(about.inert, true);
+    assert.equal(awards.style.visibility, 'visible');
+    assert.equal(awards.inert, false);
+  } finally {
+    signs?.dispose();
+    globalThis.document = originalDocument;
+    dom.window.close();
+  }
+});
+
+test('quality changes reduce rain drawing and updates; static facade details remain batched', () => {
+  const dom = new JSDOM('');
+  const originalDocument = globalThis.document;
+  globalThis.document = dom.window.document;
+  const scene = new THREE.Scene();
+  let environment;
+  try {
+    environment = createEnvironment(scene, { low: false, reducedMotion: false });
+    const rain = scene.children.find(object => object.isLineSegments);
+    const positions = rain.geometry.attributes.position.array;
+    assert.equal(rain.geometry.drawRange.count, 1300);
+    const firstY = positions[1];
+    const lastY = positions[649 * 6 + 1];
+    environment.setQuality(true);
+    assert.equal(rain.geometry.drawRange.count, 480);
+    environment.update(1, 1 / 60, true);
+    assert.notEqual(positions[1], firstY);
+    assert.equal(positions[649 * 6 + 1], lastY, 'Inactive rain avoids CPU updates');
+    environment.setQuality(false);
+    assert.equal(rain.geometry.drawRange.count, 1300);
+    environment.update(2, 1 / 60, true);
+    assert.notEqual(positions[649 * 6 + 1], lastY);
+    environment.setMotion(false);
+    assert.equal(rain.visible, false);
+    const paused = positions.slice();
+    environment.update(3, 1 / 60, false);
+    assert.deepEqual(positions, paused);
+    let boxes = 0;
+    let draws = 0;
+    scene.traverse(object => {
+      if (object.isMesh || object.isLineSegments) draws++;
+      if (object.geometry?.type !== 'BoxGeometry') return;
+      assert.ok(object.isInstancedMesh, 'Repeated facade geometry uses material batches');
+      boxes += object.count;
+    });
+    assert.ok(boxes > 1000, 'Windows and facade details remain in the scene');
+    assert.ok(draws < 25, `Environment has ${draws} base draw calls`);
+  } finally {
+    environment?.dispose();
+    globalThis.document = originalDocument;
+    dom.window.close();
+  }
+});
 
 test('panorama rotation crosses 360 without a discontinuity and clamps vertical movement', () => {
   assert.deepEqual(FIXED_POSITION, [0, 2.8, 0]);

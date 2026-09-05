@@ -5,7 +5,8 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { createEnvironment } from './environment.mjs';
 import { createSigns } from './signs.mjs';
-import { createLookControls, direction, FIXED_POSITION, DISTRICTS } from './look.mjs';
+import { DISTRICT_LIGHTS } from './design.mjs';
+import { createLookControls, direction, viewportFov, FIXED_POSITION, DISTRICTS } from './look.mjs';
 
 export function createWorld(settings, callbacks = {}) {
   const world = document.getElementById('world');
@@ -30,8 +31,8 @@ export function createWorld(settings, callbacks = {}) {
   let frameTime = 0;
   const abort = new AbortController();
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x061019);
-  scene.fog = new THREE.FogExp2(0x0a1b26, 0.011);
+  scene.background = new THREE.Color(0x080b16);
+  scene.fog = new THREE.FogExp2(0x111326, 0.0095);
   const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 180);
   camera.position.set(...FIXED_POSITION);
   const renderer = new THREE.WebGLRenderer({
@@ -40,25 +41,24 @@ export function createWorld(settings, callbacks = {}) {
   });
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.12;
-  renderer.setClearColor(0x061019);
+  renderer.toneMappingExposure = 1.08;
+  renderer.setClearColor(0x080b16);
   renderer.domElement.setAttribute('aria-hidden', 'true');
   world.appendChild(renderer.domElement);
-  scene.add(new THREE.HemisphereLight(0x82c9d2, 0x0b181a, 1.4));
-  const sun = new THREE.DirectionalLight(0x639cb5, 1.8);
+  scene.add(new THREE.HemisphereLight(0x899cce, 0x171123, 0.8));
+  const sun = new THREE.DirectionalLight(0x86a3d2, 1.15);
   sun.position.set(-9, 20, 12);
   scene.add(sun);
-  for (const [color, intensity, x, y, z] of [
-    [0x93ffb0, 55, -3, 7, -12],
-    [0x48ffe7, 65, -10, 7, -10],
-    [0xff754c, 60, 11, 6, -12],
-    [0x70d3db, 50, 12, 7, 6],
-  ]) {
-    const light = new THREE.PointLight(color, intensity, 32, 2);
-    light.position.set(x, y, z);
+  for (const { color, power, at } of DISTRICT_LIGHTS) {
+    const light = new THREE.PointLight(color, power, 27, 2);
+    light.position.set(...at);
     scene.add(light);
   }
-  const environment = createEnvironment(scene, { low, reducedMotion: paused });
+  const environment = createEnvironment(scene, {
+    low,
+    reducedMotion: paused,
+    onInvalidate: requestFrame,
+  });
   const signs = createSigns(scene, signLayer);
   let composer = null;
 
@@ -71,7 +71,7 @@ export function createWorld(settings, callbacks = {}) {
     if (!low) {
       composer = new EffectComposer(renderer);
       composer.addPass(new RenderPass(scene, camera));
-      const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.38, 0.5, 1.1);
+      const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.48, 0.52, 1.05);
       composer.addPass(bloom);
       composer.addPass(new OutputPass());
     }
@@ -91,7 +91,7 @@ export function createWorld(settings, callbacks = {}) {
     const width = window.innerWidth;
     const height = window.innerHeight;
     // A wider vertical field on portrait screens keeps the name and nearby signs in view.
-    camera.fov = width < height ? 76 : height < 500 ? 68 : 60;
+    camera.fov = viewportFov(width, height);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, low ? 1 : 1.5));
@@ -148,6 +148,7 @@ export function createWorld(settings, callbacks = {}) {
       if (frames >= 120) {
         if (frameTime / frames > 0.038) {
           low = true;
+          environment.setQuality(true);
           configureEffects();
           resize();
           callbacks.onQuality?.('low');
@@ -213,6 +214,10 @@ export function createWorld(settings, callbacks = {}) {
     setQuality(value) {
       quality = value;
       low = value === 'low' || (value === 'auto' && lowHardware);
+      environment.setQuality(low);
+      frames = 0;
+      frameTime = 0;
+      last = 0;
       configureEffects();
       resize();
     },
@@ -234,6 +239,7 @@ export function createWorld(settings, callbacks = {}) {
         materials = new Set(),
         textures = new Set();
       scene.traverse(object => {
+        if (object.isInstancedMesh) object.dispose();
         if (object.geometry) geometries.add(object.geometry);
         for (const material of Array.isArray(object.material)
           ? object.material

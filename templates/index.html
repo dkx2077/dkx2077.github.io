@@ -143,45 +143,54 @@
         <div>{{scene-name-line-one}}<br /><span>{{scene-name-line-two}}</span></div>
         <small>{{scene-welcome}}</small>
       </div>
-      <div class="world-sign vertical-sign" data-sign="local-name">
-        <span>{{scene-name-local}}</span><small>2077</small>
+      <div
+        class="world-sign university-sign"
+        data-sign="university"
+        aria-label="{{scene-university-name}} {{scene-university-kind}}"
+      >
+        <strong>{{scene-university-name}}</strong><span>{{scene-university-kind}}</span>
       </div>
-      <a class="world-sign terminal-sign about-sign" data-sign="about" href="#home"
-        ><span class="sign-meta">01 / THE PERSON</span
-        ><strong>{{scene-about-label}} <i>↗</i></strong
-        ><span>EDUCATION · EXPERIENCE · CONTACT</span></a
-      >
-      <a class="world-sign research-sign" data-sign="research" href="#publications"
-        ><span class="sign-meta">RESEARCH ARCHIVE / {{publication-count}} ENTRIES</span
-        ><strong>RESEARCH</strong
-        ><span class="sign-bottom">{{scene-research-label}} <i>↗</i></span></a
-      >
+      <a class="world-sign neon-sign about-sign" data-sign="about" href="#home">
+        <span class="sign-meta">01 / PROFILE</span
+        ><strong class="tube-lettering">{{scene-about-label}}</strong>
+        <span class="sign-footer">EDUCATION / EXPERIENCE <i aria-hidden="true">↗</i></span>
+      </a>
+      <a class="world-sign neon-sign research-sign" data-sign="research" href="#publications">
+        <span class="sign-meta">02 / RESEARCH ARCHIVE</span
+        ><strong class="tube-lettering">{{scene-research-sign-label}}</strong>
+        <span class="sign-footer"
+          >{{publication-count}} PUBLICATIONS <i aria-hidden="true">↗</i></span
+        >
+      </a>
       <a
-        class="world-sign terminal-sign feature-sign"
+        class="world-sign neon-sign feature-sign"
         data-sign="featured"
         href="#publication-supergpqa"
-        ><span class="sign-meta">NEURIPS 2025 / SELECTED WORK</span><strong>SuperGPQA</strong
-        ><span>285 GRADUATE DISCIPLINES <i>↗</i></span></a
       >
+        <span class="sign-meta">NEURIPS 2025 / SELECTED WORK</span
+        ><strong class="tube-lettering">SuperGPQA</strong>
+        <span class="sign-footer">285 GRADUATE DISCIPLINES <i aria-hidden="true">↗</i></span>
+      </a>
       <div class="world-sign small-sign" data-sign="direction">
-        知能研究<span>INTELLIGENCE / RESEARCH</span>
+        <strong>知能研究</strong><span>INTELLIGENCE / RESEARCH</span>
       </div>
-      <a class="world-sign awards-sign" data-sign="awards" href="#awards"
-        ><span class="sign-meta">03 / MILESTONES</span><strong>{{scene-awards-label}}</strong
-        ><span>COMPETITIONS & RECOGNITION <i>↗</i></span></a
-      >
-      <a class="world-sign terminal-sign work-sign" data-sign="work" href="#service"
-        ><span class="sign-meta">04 / AT THE WORKBENCH</span
-        ><strong>{{scene-work-label}} <i>↗</i></strong
-        ><span>EXPERIMENTS · IDEAS · NEXT STEPS</span></a
-      >
-      <a class="world-sign terminal-sign contact-sign" data-sign="contact" href="#home"
-        ><span class="sign-meta">LET'S EXCHANGE IDEAS</span
-        ><strong>{{scene-contact-label}} <i>↗</i></strong
-        ><span>FIND ME ON THE OTHER SIDE</span></a
-      >
+      <a class="world-sign neon-sign awards-sign" data-sign="awards" href="#awards">
+        <span class="sign-meta">03 / MILESTONES</span
+        ><strong class="tube-lettering">{{scene-awards-label}}</strong>
+        <span class="sign-footer">COMPETITIONS / RECOGNITION <i aria-hidden="true">↗</i></span>
+      </a>
+      <a class="world-sign neon-sign work-sign" data-sign="work" href="#service">
+        <span class="sign-meta">04 / WORK IN PROGRESS</span
+        ><strong class="tube-lettering">{{scene-work-label}}</strong>
+        <span class="sign-footer">EXPERIMENTS / IDEAS <i aria-hidden="true">↗</i></span>
+      </a>
+      <a class="world-sign neon-sign contact-sign" data-sign="contact" href="#home">
+        <span class="sign-meta">05 / CONTACT</span
+        ><strong class="tube-lettering">{{scene-contact-label}}</strong>
+        <span class="sign-footer">LET'S EXCHANGE IDEAS <i aria-hidden="true">↗</i></span>
+      </a>
       <div class="world-sign small-sign district-sign" data-sign="district">
-        KAIXIN DENG<span>RESEARCH DISTRICT</span>
+        <strong>KAIXIN DENG</strong><span>RESEARCH DISTRICT</span>
       </div>
     </template>
     <script type="application/json" id="scene-settings">

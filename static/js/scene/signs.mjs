@@ -1,18 +1,7 @@
 import * as THREE from 'three';
 import { CSS3DObject, CSS3DRenderer } from 'three/addons/renderers/CSS3DRenderer.js';
+import { SIGN_LAYOUT } from './design.mjs';
 
-const PLACEMENTS = {
-  name: { at: [-1.6, 7.2, -18.5], scale: 0.012, width: 840, height: 455 },
-  'local-name': { at: [-10.8, 7.5, -12.5], scale: 0.012, width: 125, height: 340 },
-  about: { at: [-5.5, 2.8, -12], scale: 0.009, width: 580, height: 210 },
-  research: { at: [17.2, 6, -7.6], scale: 0.011, width: 790, height: 270 },
-  featured: { at: [5.8, 3.5, -15], scale: 0.01, width: 620, height: 218 },
-  direction: { at: [10.4, 8.6, -14.8], scale: 0.01, width: 300, height: 130 },
-  awards: { at: [1.4, 6.3, 19], scale: 0.014, width: 700, height: 300 },
-  work: { at: [-18.3, 5.5, 0.6], scale: 0.012, width: 680, height: 210 },
-  contact: { at: [-13.7, 2.8, 9], scale: 0.011, width: 580, height: 210 },
-  district: { at: [12.5, 9.5, 12], scale: 0.01, width: 480, height: 130 },
-};
 export function createSigns(worldScene, container) {
   const renderer = new CSS3DRenderer();
   renderer.domElement.style.pointerEvents = 'none';
@@ -20,55 +9,87 @@ export function createSigns(worldScene, container) {
   const scene = new THREE.Scene();
   const fragment = document.getElementById('world-signs').content.cloneNode(true);
   const objects = [];
-  const backing = new THREE.MeshStandardMaterial({
-    color: 0x142526,
-    metalness: 0.65,
+  const box = new THREE.BoxGeometry(1, 1, 1);
+  const metal = new THREE.MeshStandardMaterial({
+    color: 0x24313e,
+    metalness: 0.82,
+    roughness: 0.42,
+  });
+  const enamel = new THREE.MeshStandardMaterial({
+    color: 0x090f1a,
+    metalness: 0.38,
     roughness: 0.6,
   });
-  const rim = new THREE.MeshBasicMaterial({ color: 0x395b59 });
+  const mount = (parent, material, x, y, z, width, height, depth) => {
+    const mesh = new THREE.Mesh(box, material);
+    mesh.position.set(x, y, z);
+    mesh.scale.set(width, height, depth);
+    parent.add(mesh);
+    return mesh;
+  };
   for (const element of fragment.querySelectorAll('[data-sign]')) {
-    const config = PLACEMENTS[element.dataset.sign];
+    const config = SIGN_LAYOUT[element.dataset.sign];
+    element.style.setProperty('--face-width', `${config.width}px`);
+    element.style.setProperty('--face-height', `${config.height}px`);
+    const color = new THREE.Color(config.color);
+    const rgb = color.clone().convertLinearToSRGB();
+    element.style.setProperty(
+      '--neon-rgb',
+      `${Math.round(rgb.r * 255)},${Math.round(rgb.g * 255)},${Math.round(rgb.b * 255)}`
+    );
     const object = new CSS3DObject(element);
     object.position.set(...config.at);
     object.lookAt(0, config.at[1], 0);
     object.scale.setScalar(config.scale);
     scene.add(object);
+    object.updateMatrixWorld(true);
     const normal = new THREE.Vector3(0, 0, 1).applyQuaternion(object.quaternion);
-    // The physically thick metal mounting plate sits behind the editable DOM face.
+    const w = config.width * config.scale,
+      h = config.height * config.scale;
     if (element.dataset.sign !== 'name') {
-      const plate = new THREE.Mesh(
-        new THREE.BoxGeometry(
-          config.width * config.scale + 0.15,
-          config.height * config.scale + 0.15,
-          0.14
-        ),
-        backing
-      );
-      plate.position.copy(object.position).addScaledVector(normal, -0.13);
-      plate.quaternion.copy(object.quaternion);
-      worldScene.add(plate);
-      const bracket = new THREE.Mesh(
-        new THREE.BoxGeometry(0.08, config.height * config.scale + 0.8, 0.08),
-        rim
-      );
-      bracket.position.copy(plate.position).addScaledVector(normal, -0.1);
-      worldScene.add(bracket);
+      const housing = new THREE.Group();
+      housing.name = `sign:${element.dataset.sign}`;
+      housing.position.copy(object.position);
+      housing.quaternion.copy(object.quaternion);
+      worldScene.add(housing);
+      mount(housing, metal, 0, 0, -0.18, w + 0.2, h + 0.2, 0.3);
+      mount(housing, enamel, 0, 0, -0.016, w, h, 0.024);
+      // Recessed luminous rails belong to the same 3D housing as the lettering.
+      const tube = new THREE.MeshBasicMaterial({ color: color.clone().multiplyScalar(2.4) });
+      mount(housing, tube, 0, h / 2 + 0.055, 0.003, w + 0.12, 0.035, 0.035);
+      mount(housing, tube, 0, -h / 2 - 0.055, 0.003, w + 0.12, 0.025, 0.035);
+      if (element.dataset.sign === 'university') {
+        mount(housing, tube, -w / 2 - 0.055, 0, 0.003, 0.035, h + 0.08, 0.035);
+        mount(housing, tube, w / 2 + 0.055, 0, 0.003, 0.035, h + 0.08, 0.035);
+      }
+      for (const side of [-1, 1]) {
+        mount(housing, metal, side * w * 0.35, 0, -0.32, 0.08, h + 0.62, 0.09);
+        mount(housing, metal, side * w * 0.35, h / 2 + 0.26, -0.62, 0.08, 0.08, 0.68);
+      }
     }
-    objects.push({ object, normal, element });
+    // Static bounds include the entire letter face. Frustum checks hide truly offscreen links.
+    const bounds = new THREE.Box3(
+      new THREE.Vector3(-config.width / 2, -config.height / 2, -1),
+      new THREE.Vector3(config.width / 2, config.height / 2, 1)
+    ).applyMatrix4(object.matrixWorld);
+    const atmosphericOpacity = Math.max(0.78, 1 - object.position.length() * 0.0045);
+    element.style.opacity = String(atmosphericOpacity);
+    objects.push({ object, normal, element, bounds });
   }
   const toward = new THREE.Vector3();
-  const forward = new THREE.Vector3();
+  const frustum = new THREE.Frustum();
+  const projection = new THREE.Matrix4();
   return {
     resize(width, height) {
       renderer.setSize(width, height);
     },
     render(camera) {
-      camera.getWorldDirection(forward);
-      for (const { object, element, normal } of objects) {
+      camera.updateMatrixWorld();
+      projection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+      frustum.setFromProjectionMatrix(projection);
+      for (const { object, element, normal, bounds } of objects) {
         toward.subVectors(object.position, camera.position).normalize();
-        // Avoid mirrored backs and out-of-view keyboard targets. Fixed camera keeps all
-        // mounting surfaces facing inward, with architecture behind them.
-        const visible = toward.dot(forward) > 0.12 && toward.dot(normal) < -0.15;
+        const visible = frustum.intersectsBox(bounds) && toward.dot(normal) < -0.15;
         element.style.visibility = visible ? 'visible' : 'hidden';
         element.inert = !visible;
       }
