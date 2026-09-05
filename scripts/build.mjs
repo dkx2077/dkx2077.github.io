@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
 import { Marked } from 'marked';
+import { build as bundle } from 'esbuild';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const sections = ['home', 'publications', 'awards', 'service'];
@@ -105,19 +106,51 @@ export function analyticsTag(websiteId, siteUrl, assetVersion, required = false)
 
 export async function build() {
   const config = yaml.load(await readFile(resolve(root, 'contents/config.yml'), 'utf8'));
+  const sceneConfig = yaml.load(await readFile(resolve(root, 'contents/scene.yml'), 'utf8'));
   const template = await readFile(resolve(root, 'templates/index.html'), 'utf8');
   const sources = await Promise.all(
     sections.map(name => readFile(resolve(root, `contents/${name}.md`), 'utf8'))
   );
   const assets = await Promise.all(
-    ['css/main.css', 'js/navigation.js', 'js/analytics.js', 'js/math.js'].map(path =>
-      readFile(resolve(root, 'static', path))
-    )
+    [
+      'css/main.css',
+      'js/navigation.js',
+      'js/analytics.js',
+      'js/math.js',
+      'js/experience.mjs',
+      'js/scene/world.mjs',
+      'js/scene/environment.mjs',
+      'js/scene/signs.mjs',
+      'js/scene/look.mjs',
+    ].map(path => readFile(resolve(root, 'static', path)))
   );
   const version = createHash('sha256').update(Buffer.concat(assets)).digest('hex').slice(0, 12);
   const values = Object.fromEntries(
     Object.entries(config).map(([key, value]) => [key, escapeHtml(value)])
   );
+  for (const [key, value] of Object.entries(sceneConfig))
+    values[`scene-${key}`] = escapeHtml(value);
+  const pitchMin = Number(sceneConfig['pitch-min']);
+  const pitchMax = Number(sceneConfig['pitch-max']);
+  if (
+    !Number.isFinite(pitchMin) ||
+    !Number.isFinite(pitchMax) ||
+    pitchMin < -60 ||
+    pitchMax > 70 ||
+    pitchMin >= pitchMax
+  ) {
+    throw new Error('Scene pitch limits must be ordered and within -60 to 70 degrees.');
+  }
+  if (!['auto', 'low', 'high'].includes(sceneConfig.quality))
+    throw new Error('Invalid scene quality.');
+  values['scene-settings'] = JSON.stringify({
+    pitchMin,
+    pitchMax,
+    quality: sceneConfig.quality,
+  }).replaceAll('<', '\\u003c');
+  values['publication-count'] = String(
+    (sources[1].match(/<!-- publication: /g) || []).length
+  ).padStart(2, '0');
   values['asset-version'] = version;
   values.analytics = analyticsTag(
     process.env.UMAMI_WEBSITE_ID || config['umami-website-id'],
@@ -131,7 +164,13 @@ export async function build() {
     : '';
   sections.forEach((name, i) => {
     values[name] =
-      name === 'publications' ? renderPublications(sources[i]) : renderMarkdown(sources[i]);
+      name === 'publications'
+        ? renderPublications(sources[i])
+        : renderMarkdown(
+            name === 'service' && sources[i].trim() === '...'
+              ? 'No ongoing work has been listed.'
+              : sources[i]
+          );
   });
   const html = template.replace(/\{\{([a-z-]+)\}\}/g, (_, key) => {
     if (!(key in values)) throw new Error(`Missing template value: ${key}`);
@@ -141,6 +180,21 @@ export async function build() {
   await rm(resolve(root, 'dist'), { recursive: true, force: true });
   await mkdir(resolve(root, 'dist'), { recursive: true });
   await cp(resolve(root, 'static'), resolve(root, 'dist/static'), { recursive: true });
+  // Ship pinned, bundled modules locally; visitors never depend on a Three.js CDN.
+  await bundle({
+    entryPoints: [resolve(root, 'static/js/experience.mjs')],
+    outdir: resolve(root, 'dist/static/js'),
+    bundle: true,
+    splitting: true,
+    format: 'esm',
+    target: ['es2020'],
+    minify: true,
+    entryNames: 'experience',
+    chunkNames: 'chunks/[name]-[hash]',
+    legalComments: 'linked',
+  });
+  await rm(resolve(root, 'dist/static/js/scene'), { recursive: true, force: true });
+  await rm(resolve(root, 'dist/static/js/experience.mjs'), { force: true });
   await cp(resolve(root, 'CNAME'), resolve(root, 'dist/CNAME'));
   await writeFile(resolve(root, 'dist/.nojekyll'), '');
   await writeFile(resolve(root, 'dist/index.html'), html);

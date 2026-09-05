@@ -1,0 +1,17 @@
+# 招牌内容保持为真正的 HTML 文字；修改后运行 npm run build。
+name-line-one: KAIXIN
+name-line-two: DENG
+name-local: 邓楷馨
+identity: ACADEMIC PORTFOLIO
+welcome: Exploring intelligence.
+welcome-detail: Research, experiments & things worth building.
+about-label: About me
+research-label: Publications
+awards-label: Awards
+work-label: Ongoing work
+contact-label: Get in touch
+# 相机只允许旋转。俯仰角单位为度；水平无限旋转。
+pitch-min: -28
+pitch-max: 48
+# 适合手机的默认低负载档；桌面自动选择更高质量。
+quality: auto
