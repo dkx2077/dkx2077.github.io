@@ -41,7 +41,7 @@ export function createWorld(settings, callbacks = {}) {
   });
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.08;
+  renderer.toneMappingExposure = 1;
   renderer.setClearColor(0x080b16);
   renderer.domElement.setAttribute('aria-hidden', 'true');
   world.appendChild(renderer.domElement);
@@ -78,7 +78,8 @@ export function createWorld(settings, callbacks = {}) {
     if (!low) {
       composer = new EffectComposer(renderer);
       composer.addPass(new RenderPass(scene, camera));
-      const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.48, 0.52, 1.05);
+      // Lower-emission saturated tubes get a compact halo without bleaching their colored core.
+      const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.46, 0.3, 0.42);
       composer.addPass(bloom);
       composer.addPass(new OutputPass());
     }
