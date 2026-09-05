@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="{{description}}" />
+    <title>{{title}}</title>
+    <link rel="canonical" href="{{url}}/" />
+    <link rel="icon" href="static/assets/kerisu.ico" />
+    <link rel="stylesheet" href="static/css/main.css?v={{asset-version}}" />
+    <script defer src="static/js/navigation.js?v={{asset-version}}"></script>
+    {{analytics}} {{math}}
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <header class="site-header">
+      <nav class="container navigation" aria-label="Main navigation">
+        <a class="brand" href="#page-top">{{page-top-title}}</a>
+        <ul class="nav-links">
+          <li><a href="#page-top">Home</a></li>
+          <li><a href="#publications">Publications</a></li>
+          <li><a href="#awards">Awards</a></li>
+          <li><a href="#service">Ongoing work</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main id="main-content" tabindex="-1">
+      <section class="hero" id="page-top" aria-labelledby="site-heading">
+        <div class="container">
+          <h1 id="site-heading">{{top-section-bg-text}}</h1>
+        </div>
+      </section>
+      <div class="container"><p class="site-notice">{{notice}}</p></div>
+      <section class="content-section" id="home" aria-labelledby="home-heading">
+        <div class="container">
+          <h2 id="home-heading">{{home-subtitle}}</h2>
+          <div class="main-body" id="home-md">{{home}}</div>
+        </div>
+      </section>
+      <section
+        class="content-section alternate"
+        id="publications"
+        aria-labelledby="publications-heading"
+      >
+        <div class="container">
+          <h2 id="publications-heading">Publications</h2>
+          <div class="main-body" id="publications-md">{{publications}}</div>
+        </div>
+      </section>
+      <section class="content-section" id="awards" aria-labelledby="awards-heading">
+        <div class="container">
+          <h2 id="awards-heading">Awards</h2>
+          <div class="main-body" id="awards-md">{{awards}}</div>
+        </div>
+      </section>
+      <section class="content-section alternate" id="service" aria-labelledby="service-heading">
+        <div class="container">
+          <h2 id="service-heading">Ongoing work</h2>
+          <div class="main-body" id="service-md">{{service}}</div>
+        </div>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div class="container">
+        <p>{{copyright-text}}</p>
+        <a
+          href="https://github.com/dkx2077/dkx2077.github.io"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Source on GitHub</a
+        >
+        <span aria-hidden="true"> · </span>
+        <a
+          href="https://github.com/dkx2077/dkx2077.github.io/blob/master/LICENSE"
+          target="_blank"
+          rel="noopener noreferrer"
+          >License</a
+        >
+      </div>
+    </footer>
+  </body>
+</html>
