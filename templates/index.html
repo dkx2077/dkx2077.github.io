@@ -46,9 +46,7 @@
           <li><a href="#service" data-district="work">Ongoing work</a></li>
         </ul>
       </nav>
-      <button id="mode-toggle" class="text-button" type="button" hidden>
-        Reading mode <span aria-hidden="true">↗</span>
-      </button>
+      <button id="mode-toggle" class="text-button" type="button" hidden>Explore 3D</button>
     </header>
     <aside class="scene-toolbar" aria-label="Scene controls" hidden>
       <button id="reset-view" type="button" title="Reset view (Home)" aria-label="Reset view">
@@ -76,15 +74,18 @@
     <main id="main-content" tabindex="-1">
       <div id="reader-backdrop" hidden></div>
       <div id="reader" class="reader">
-        <button
-          id="close-reader"
-          class="close-reader"
-          type="button"
-          aria-label="Close and return to the city"
-          hidden
-        >
-          Close <span aria-hidden="true">×</span>
-        </button>
+        <div id="reader-toolbar" class="reader-toolbar" hidden>
+          <span id="reader-context"></span>
+          <button
+            id="close-reader"
+            class="close-reader"
+            type="button"
+            aria-label="Close and return to the city"
+            hidden
+          >
+            Back to city <span aria-hidden="true">×</span>
+          </button>
+        </div>
         <section class="hero" id="page-top" aria-labelledby="site-heading">
           <p class="eyebrow">{{scene-identity}}</p>
           <h1 id="site-heading">{{home-subtitle}}</h1>

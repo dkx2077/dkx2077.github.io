@@ -1,8 +1,8 @@
-[Google Scholar](https://scholar.google.com/citations?user=WsJD-ukAAAAJ) · [GitHub](https://github.com/dkx2077)
+[Google Scholar](https://scholar.google.com/citations?user=WsJD-ukAAAAJ) [GitHub](https://github.com/dkx2077)
 
 ---
 
-### 🎓 Education
+### Education
 
 **Research Student**
 Faculty of Information Science and Technology, **HOKKAIDO UNIVERSITY**
@@ -14,7 +14,7 @@ _(Sep 2020 – Jun 2024)_
 
 ---
 
-### 💼 Internship
+### Internship
 
 **Assistant Engineer**
 Jiangxi Qiushi Academy for Advanced Studies (Zhejiang University Nanchang Research Institute), Nanchang, China
@@ -26,8 +26,9 @@ _(Mar 2024 – Jun 2024)_
 
 ---
 
-### 📫 Contact
+### Contact
 
-✉️ [dengkaixin2077@gmail.com](mailto:dengkaixin2077@gmail.com)
+[dengkaixin2077@gmail.com](mailto:dengkaixin2077@gmail.com)
+
 I'm always eager to learn and humbled by new challenges—whether in cutting‑edge research or hands‑on engineering.
 Please feel free to reach out if you'd like to discuss ideas, explore collaborations, or have any questions!

@@ -47,6 +47,27 @@ test('static HTML contains all content, stable paper identities and usable links
   const doc = window.document;
   assert.match(doc.querySelector('#home-md').textContent, /HOKKAIDO UNIVERSITY/);
   assert.equal(doc.querySelectorAll('.publication').length, 11);
+  assert.equal(
+    doc.querySelectorAll('.publication > h3').length,
+    11,
+    'Each paper has a semantic title'
+  );
+  assert.match(
+    doc.querySelector('#publication-supergpqa h3').textContent,
+    /^SuperGPQA: Scaling LLM Evaluation/
+  );
+  assert.equal(
+    doc.querySelector('#publication-iwn h3').textContent,
+    'IWN: Image Watermarking Based on Idempotency'
+  );
+  for (const article of doc.querySelectorAll('.publication')) {
+    assert.ok(article.lastElementChild.querySelector('a[data-track-event="publication_click"]'));
+    assert.doesNotMatch(
+      article.lastElementChild.textContent,
+      /↗|\|/,
+      'Links have no emoji arrows or separator text'
+    );
+  }
   assert.equal(doc.querySelectorAll('a[data-track-event="publication_click"]').length, 20);
   assert.equal(doc.querySelectorAll('a[data-track-event="profile_click"]').length, 3);
   assert.equal(doc.querySelectorAll('a[data-track-event="contact_click"]').length, 1);
