@@ -1,5 +1,13 @@
 /** Camera position never changes. Angles are degrees, positive pitch looks upward. */
 export const FIXED_POSITION = Object.freeze([0, 2.8, 0]);
+
+// Keep a useful horizontal field on tall phones without changing the fixed camera position.
+export function viewportFov(width, height) {
+  if (width >= height) return height < 500 ? 68 : 60;
+  const portrait =
+    (2 * Math.atan(Math.tan((21 * Math.PI) / 180) / (width / height)) * 180) / Math.PI;
+  return Math.min(105, Math.max(76, portrait));
+}
 export const DISTRICTS = Object.freeze({ home: 0, research: 66, awards: 176, work: 268 });
 export function clampPitch(value, min = -28, max = 48) {
   return Math.max(min, Math.min(max, value));

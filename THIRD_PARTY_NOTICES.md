@@ -25,3 +25,11 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
+
+## Rajdhani SemiBold
+
+Copyright (c) 2014, Indian Type Foundry (info@indiantypefoundry.com).
+Source: https://github.com/google/fonts/tree/main/ofl/rajdhani
+
+Distributed as a Latin and punctuation WOFF subset under the SIL Open Font License 1.1.
+The complete license is included in [OFL-Rajdhani.txt](static/assets/fonts/OFL-Rajdhani.txt).

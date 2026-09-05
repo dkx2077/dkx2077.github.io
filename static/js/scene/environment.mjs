@@ -1,7 +1,8 @@
 import * as THREE from 'three';
+import { DISTRICT_LIGHTS } from './design.mjs';
 
 /** Instanced architecture, no shadow maps, and a single lightweight ground shader. */
-export function createEnvironment(scene, { low, reducedMotion }) {
+export function createEnvironment(scene, { low, reducedMotion, onInvalidate = () => {} }) {
   let seed = 2077;
   const random = () => {
     seed = (seed * 16807) % 2147483647;
@@ -9,16 +10,24 @@ export function createEnvironment(scene, { low, reducedMotion }) {
   };
   const geometry = new THREE.BoxGeometry(1, 1, 1);
   const metal = new THREE.MeshStandardMaterial({
-    color: 0x15262d,
-    roughness: 0.7,
-    metalness: 0.55,
+    color: 0x26313d,
+    roughness: 0.48,
+    metalness: 0.68,
   });
-  const dark = new THREE.MeshStandardMaterial({ color: 0x111d24, roughness: 0.85, metalness: 0.3 });
-  const trim = new THREE.MeshStandardMaterial({ color: 0x3e565b, roughness: 0.5, metalness: 0.75 });
-  const cyan = new THREE.MeshBasicMaterial({ color: new THREE.Color('#71f5e4').multiplyScalar(2) });
-  const lime = new THREE.MeshBasicMaterial({ color: new THREE.Color('#d4ff75').multiplyScalar(2) });
-  const orange = new THREE.MeshBasicMaterial({
-    color: new THREE.Color('#ff7247').multiplyScalar(2),
+  const dark = new THREE.MeshStandardMaterial({
+    color: 0x101724,
+    roughness: 0.76,
+    metalness: 0.35,
+  });
+  const trim = new THREE.MeshStandardMaterial({ color: 0x485363, roughness: 0.34, metalness: 0.8 });
+  const cyan = new THREE.MeshBasicMaterial({
+    color: new THREE.Color('#54dfed').multiplyScalar(2.4),
+  });
+  const violet = new THREE.MeshBasicMaterial({
+    color: new THREE.Color('#d575dd').multiplyScalar(2.4),
+  });
+  const amber = new THREE.MeshBasicMaterial({
+    color: new THREE.Color('#f1b46a').multiplyScalar(2.2),
   });
   const muted = new THREE.MeshBasicMaterial({ color: 0x203b42 });
   const addBox = (parent, position, size, material = metal) => {
@@ -53,14 +62,14 @@ export function createEnvironment(scene, { low, reducedMotion }) {
           x: x + column,
           y: row,
           z: z + depth / 2 + 0.02,
-          color: random() > 0.8 ? 0xb9ae68 : 0x4baba5,
+          color: [0x83d5e1, 0x486a91, 0xc88abd, 0xd5a66f][Math.floor(random() * 4)],
         });
         windows.push({
           x: x - width / 2 - 0.02,
           y: row,
           z: z + column * 0.5,
           side: true,
-          color: 0x387e82,
+          color: random() > 0.6 ? 0x8b5c9d : 0x3d748c,
         });
       }
     }
@@ -110,16 +119,29 @@ export function createEnvironment(scene, { low, reducedMotion }) {
       addBox(group, [x, 9, 0.07], [1.3, 1.8, 0.12], dark);
       addBox(group, [x, 8.25, 0.16], [1.3, 0.05, 0.06], accent);
     }
+    // Service conduits, ventilation ribs and rooftop aerials catch the local neon.
+    for (let x = -width / 2 + 0.9; x < width / 2; x += 4.7) {
+      addBox(group, [x, height * 0.52, 0.25], [0.09, height * 0.88, 0.1], trim);
+      addBox(group, [x + 0.16, height * 0.52, 0.23], [0.05, height * 0.88, 0.08], trim);
+      addBox(group, [x + 0.75, height - 1.25, 0.32], [1.05, 1.15, 0.65], dark);
+      for (let j = 0; j < 5; j++)
+        addBox(group, [x + 0.75, height - 1.65 + j * 0.2, 0.68], [0.85, 0.045, 0.05], trim);
+      addBox(group, [x, height + 1.25, -1.2], [0.045, 2.5, 0.045], trim);
+      addBox(group, [x, height + 0.95, -1.2], [0.9, 0.035, 0.035], trim);
+      addBox(group, [x, height + 2.48, -1.2], [0.065, 0.08, 0.065], accent);
+    }
+    // Recessed vertical lighting gives the blank metal facades a readable silhouette.
+    addBox(group, [-width / 2 + 0.1, height * 0.62, 0.19], [0.045, height * 0.55, 0.055], accent);
     return group;
   }
-  facade(0, 17, 13, 20, lime);
+  facade(0, 17, 13, 20, cyan);
   facade(-1.15, 15, 16, 21, cyan);
-  facade(Math.PI, 17, 12, 21, lime);
-  facade(1.5, 15, 15, 21, orange);
+  facade(Math.PI, 17, 12, 21, amber);
+  facade(1.5, 15, 15, 21, violet);
   // Near side wings frame the entry view without blocking the open sky.
   const leftWing = facade(0.4, 5.8, 19, 16, cyan);
   leftWing.position.x = -13.2;
-  const rightWing = facade(-0.5, 5.5, 17, 16, orange);
+  const rightWing = facade(-0.5, 5.5, 17, 16, violet);
   rightWing.position.x = 13.5;
   // Steel gantry, hanging cables, utility pipes, and suspended fixtures.
   addBox(scene, [-10.7, 7.5, -11], [0.15, 15, 0.15], trim);
@@ -170,7 +192,7 @@ export function createEnvironment(scene, { low, reducedMotion }) {
   );
   for (let i = 0; i < 8; i++) {
     const x = -8 + i * 2.2;
-    addBox(scene, [x, 0.025, -8.1], [0.7, 0.025, 0.1], i % 2 ? muted : lime);
+    addBox(scene, [x, 0.025, -8.1], [0.7, 0.025, 0.1], i % 2 ? muted : amber);
   }
   // Directional light bars continue around the entire square.
   for (let i = 0; i < 4; i++) {
@@ -179,7 +201,7 @@ export function createEnvironment(scene, { low, reducedMotion }) {
     group.rotation.y = angle;
     scene.add(group);
     addBox(group, [-8, 0.02, -11], [0.045, 0.035, 9], cyan);
-    addBox(group, [8, 0.02, -11], [0.045, 0.035, 9], i === 0 ? lime : orange);
+    addBox(group, [8, 0.02, -11], [0.045, 0.035, 9], i % 2 ? amber : violet);
     for (let j = -1; j <= 1; j += 2) {
       addBox(group, [j * 8.8, 0.7, -8], [0.22, 1.4, 0.22], trim);
       addBox(group, [j * 8.8, 1.15, -8], [0.235, 0.09, 0.235], cyan);
@@ -196,26 +218,67 @@ export function createEnvironment(scene, { low, reducedMotion }) {
     blade.rotation.z = (Math.PI * i) / 4;
   }
 
-  // Procedural wet paving with elongated neon reflections. No extra render target.
+  // All static facade boxes share one draw call per material, including small ribs.
+  scene.updateMatrixWorld(true);
+  const batches = new Map();
+  scene.traverse(object => {
+    if (!object.isMesh || object.isInstancedMesh || object.geometry !== geometry) return;
+    if (!batches.has(object.material)) batches.set(object.material, []);
+    batches.get(object.material).push(object);
+  });
+  for (const [material, meshes] of batches) {
+    const instances = new THREE.InstancedMesh(geometry, material, meshes.length);
+    meshes.forEach((mesh, i) => {
+      instances.setMatrixAt(i, mesh.matrixWorld);
+      mesh.removeFromParent();
+    });
+    instances.computeBoundingSphere();
+    scene.add(instances);
+  }
+
+  // Wet paving reflects each light sector toward the fixed observation point.
+  // These are rough, puddle-masked light streaks, without an extra scene render.
   const groundMaterial = new THREE.ShaderMaterial({
-    uniforms: { time: { value: 0 } },
+    uniforms: {
+      time: { value: 0 },
+      lightPositions: { value: DISTRICT_LIGHTS.map(light => new THREE.Vector3(...light.at)) },
+      lightColors: { value: DISTRICT_LIGHTS.map(light => new THREE.Color(light.color)) },
+    },
     vertexShader: `varying vec3 vPosition; void main(){vPosition=(modelMatrix*vec4(position,1.)).xyz;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
     fragmentShader: `
       varying vec3 vPosition; uniform float time;
+      uniform vec3 lightPositions[${DISTRICT_LIGHTS.length}];
+      uniform vec3 lightColors[${DISTRICT_LIGHTS.length}];
       float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+      float noise(vec2 p){
+        vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
+        return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+1.),f.x),f.y);
+      }
       void main(){
         vec2 p=vPosition.xz;
-        float n=hash(floor(p*45.));
-        float ripple=sin(p.y*48.+sin(p.x*31.)*.8+time*.55)*.5+.5;
-        vec3 base=vec3(.014,.027,.035)+n*.008;
-        float grout=step(.972,fract(p.x*.7))+step(.978,fract(p.y*.55));
-        base*=1.-min(grout,.7);
-        float streak=pow(ripple,6.)*.6+.2;
-        float cyan=exp(-pow((p.x+7.)/2.8,2.))*exp(-abs(p.y+7.)*.085);
-        float lime=exp(-pow((p.x+1.)/3.5,2.))*exp(-abs(p.y+10.)*.09);
-        float red=exp(-pow((p.x-8.)/2.2,2.))*exp(-abs(p.y+6.)*.1);
-        base+=streak*(vec3(.04,.42,.37)*cyan+vec3(.25,.33,.08)*lime+vec3(.45,.09,.035)*red);
-        float dist=length(p); base=mix(base,vec3(.024,.044,.057),smoothstep(20.,65.,dist));
+        float puddle=smoothstep(.3,.72,noise(p*.36)+noise(p*.91)*.2);
+        float ripple=sin(p.y*15.+noise(p*1.7)*3.+time*.65)*.5+.5;
+        float grain=noise(p*16.)*.006;
+        vec3 base=vec3(.012,.016,.028)+grain;
+        vec2 tile=abs(fract(p*vec2(.7,.55))-.5);
+        vec2 aa=max(fwidth(p*vec2(.7,.55)),vec2(.002));
+        vec2 edge=smoothstep(vec2(.477)-aa,vec2(.477)+aa,tile);
+        base*=1.-max(edge.x,edge.y)*.48;
+        float dist=length(p);
+        float grazing=.2+.8*pow(1.-2.8/sqrt(dist*dist+7.84),2.);
+        for(int i=0;i<${DISTRICT_LIGHTS.length};i++){
+          vec2 light=lightPositions[i].xz;
+          float reach=length(light);vec2 axis=light/reach;
+          float along=dot(p,axis);
+          float across=dot(p,vec2(-axis.y,axis.x));
+          float width=.7+max(along,0.)*.085;
+          float streak=exp(-pow(across/width,2.))
+            *smoothstep(0.,3.,along)*(1.-smoothstep(reach*.75,reach+3.,along));
+          float broken=.24+.76*pow(ripple,3.);
+          base+=lightColors[i]*streak*broken*(.09+puddle*.65)*grazing;
+          base+=lightColors[i]*exp(-length(p-light)*.46)*.055;
+        }
+        base=mix(base,vec3(.022,.023,.041),smoothstep(20.,68.,dist));
         gl_FragColor=vec4(base,1.);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
@@ -228,7 +291,7 @@ export function createEnvironment(scene, { low, reducedMotion }) {
 
   // Original text-free skyline wraps the far environment; the foreground stays real geometry.
   const skylineMaterial = new THREE.MeshBasicMaterial({
-    color: 0x819ca9,
+    color: 0xb6bbc8,
     side: THREE.BackSide,
     fog: false,
   });
@@ -241,7 +304,7 @@ export function createEnvironment(scene, { low, reducedMotion }) {
   scene.add(skyline);
   let disposed = false;
   new THREE.TextureLoader().load(
-    'static/assets/img/night-district.webp',
+    'static/assets/img/night-district-v2.webp',
     texture => {
       if (disposed) {
         texture.dispose();
@@ -252,6 +315,7 @@ export function createEnvironment(scene, { low, reducedMotion }) {
       texture.repeat.x = 3;
       skylineMaterial.map = texture;
       skylineMaterial.needsUpdate = true;
+      onInvalidate();
     },
     undefined,
     () => {
@@ -259,28 +323,34 @@ export function createEnvironment(scene, { low, reducedMotion }) {
     }
   );
 
-  const rainCount = low ? 240 : 650;
-  const rainPositions = new Float32Array(rainCount * 6);
+  const maxRainCount = 650;
+  let rainCount = low ? 240 : maxRainCount;
+  const rainPositions = new Float32Array(maxRainCount * 6);
   const rainGeometry = new THREE.BufferGeometry();
-  for (let i = 0; i < rainCount; i++) {
+  for (let i = 0; i < maxRainCount; i++) {
     const x = (random() - 0.5) * 45,
       y = random() * 24,
       z = (random() - 0.5) * 45;
     rainPositions.set([x, y, z, x - 0.025, y - 0.45, z], i * 6);
   }
   rainGeometry.setAttribute('position', new THREE.BufferAttribute(rainPositions, 3));
+  rainGeometry.setDrawRange(0, rainCount * 2);
   const rain = new THREE.LineSegments(
     rainGeometry,
     new THREE.LineBasicMaterial({
-      color: 0x73aaaf,
+      color: 0x9aa8c8,
       transparent: true,
-      opacity: 0.2,
+      opacity: 0.15,
       depthWrite: false,
     })
   );
   rain.visible = !reducedMotion;
   scene.add(rain);
   return {
+    setQuality(isLow) {
+      rainCount = isLow ? 240 : maxRainCount;
+      rainGeometry.setDrawRange(0, rainCount * 2);
+    },
     setMotion(enabled) {
       rain.visible = enabled;
     },

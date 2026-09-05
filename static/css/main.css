@@ -525,224 +525,223 @@ body.scene-active {
   font-size: 1.3rem;
   line-height: 1;
 }
-/* These are live DOM elements transformed into the same 3D coordinate space as the city. */
+/* One locally served industrial typeface, with selectable/editable DOM lettering. */
+@font-face {
+  font-family: 'Rajdhani';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../assets/fonts/rajdhani-semibold.woff') format('woff');
+}
 .world-sign {
+  --neon-rgb: 95, 227, 238;
+  --neon: rgb(var(--neon-rgb));
   display: block;
   margin: 0;
-  width: max-content;
+  position: relative;
+  width: var(--face-width);
+  height: var(--face-height);
   backface-visibility: hidden;
-  color: var(--ink);
+  color: #dbe7eb;
   text-decoration: none;
-  line-height: 1.25;
-  -webkit-user-select: none;
+  line-height: 1.15;
   user-select: none;
+  -webkit-user-select: none;
   pointer-events: none;
-  font-family: Arial, sans-serif;
+  font-family: 'Rajdhani', 'Arial Narrow', Arial, sans-serif;
+  font-weight: 600;
 }
 a.world-sign {
   pointer-events: auto;
   touch-action: none;
-  transition: filter 0.2s;
   cursor: pointer;
+  transition: filter 0.2s;
 }
-a.world-sign:hover,
+a.world-sign:hover {
+  filter: brightness(1.13);
+  color: #eefbff;
+}
 a.world-sign:focus-visible {
-  filter: brightness(1.22);
-  color: inherit;
-  outline: 3px solid var(--acid);
+  outline: 3px solid var(--neon);
   outline-offset: 10px;
 }
 .world-sign i {
   font-style: normal;
 }
 .name-sign {
-  width: 840px;
-  padding: 24px 38px;
+  padding: 20px 38px;
   text-align: left;
 }
 .name-sign p {
-  margin: 0 0 25px;
-  font:
-    18px ui-monospace,
-    monospace;
-  letter-spacing: 0.3em;
-  color: #d4dcc9;
+  margin: 0 0 20px;
+  font-size: 23px;
+  letter-spacing: 0.23em;
+  color: #a1bfc1;
 }
 .name-sign > div {
-  font-size: 170px;
-  font-weight: 900;
-  letter-spacing: -0.065em;
-  line-height: 0.91;
-  color: #edffe0;
+  font-size: 185px;
+  font-weight: 600;
+  letter-spacing: 0.015em;
+  line-height: 0.82;
+  color: #dceef0;
   text-shadow:
-    0 0 3px #efffc9,
-    0 0 22px #d5ff6285,
-    0 0 55px #a9df6b35;
+    0 0 2px #f2ffff,
+    0 0 15px #b6e5e54d,
+    0 0 40px #69adca28;
 }
 .name-sign > div > span {
-  color: #d5ff62;
+  color: #b9edba;
   text-shadow:
-    0 0 8px #d4ff6380,
-    0 0 42px #b8ff6055;
+    0 0 3px #ddffdc,
+    0 0 16px #8aff8f75,
+    0 0 48px #75ff9b32;
 }
 .name-sign small {
   display: block;
-  margin-top: 32px;
-  font-size: 23px;
-  color: #b7c9b7;
-  letter-spacing: 0.02em;
+  margin-top: 33px;
+  font-size: 26px;
+  color: #9eb6bc;
+  letter-spacing: 0.075em;
 }
-.vertical-sign {
-  background: #10211df7;
-  border: 3px solid #87ffd9;
-  padding: 25px 17px 16px;
+/* The WebGL mounting plate is the body. The DOM adds only an inset enamel face. */
+.neon-sign {
+  padding: 22px 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background:
+    linear-gradient(105deg, rgba(var(--neon-rgb), 0.025), transparent 44%, #06090d24),
+    repeating-linear-gradient(0deg, transparent 0 3px, #cbe8ff03 3px 4px);
+  border: 1px solid rgba(var(--neon-rgb), 0.28);
   box-shadow:
-    0 0 22px #43ffa132,
-    inset 0 0 22px #3affad20;
-  text-align: center;
+    inset 0 0 24px #02040a80,
+    inset 0 0 0 7px #02040b33;
 }
-.vertical-sign > span {
-  writing-mode: vertical-rl;
-  font-size: 80px;
-  letter-spacing: 0.2em;
-  font-weight: 700;
-  color: #9dffe7;
-  text-shadow: 0 0 14px #52fdcf;
+.neon-sign::before,
+.neon-sign::after {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: #819ba0;
+  border-radius: 50%;
+  top: 9px;
+  box-shadow: 0 1px 1px #000;
 }
-.vertical-sign small {
-  display: block;
-  font: 20px monospace;
-  letter-spacing: 0.2em;
-  margin-top: 20px;
-  color: var(--cyan);
+.neon-sign::before {
+  left: 9px;
 }
-.terminal-sign {
-  padding: 25px 30px;
-  width: 580px;
-  background: #0c1d20f7;
-  border: 2px solid #629288;
-  border-left: 6px solid #b9ff9a;
-  box-shadow: 0 0 30px #65ffa01c;
+.neon-sign::after {
+  right: 9px;
 }
 .sign-meta {
   display: block;
-  font:
-    17px ui-monospace,
-    monospace;
-  letter-spacing: 0.11em;
-  color: #a8c1b4;
+  color: #9aadb5;
+  font-size: 18px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
-.terminal-sign strong {
-  font-size: 52px;
-  letter-spacing: -0.035em;
+.tube-lettering {
   display: block;
-  margin: 20px 0 18px;
-  font-weight: 500;
-  color: #dfffcf;
+  margin: 0;
+  font-size: 74px;
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--neon);
+  -webkit-text-stroke: 0.45px rgba(var(--neon-rgb), 0.8);
+  text-shadow:
+    0 0 2px #d9f8ffb3,
+    0 0 8px rgba(var(--neon-rgb), 0.52),
+    0 0 23px rgba(var(--neon-rgb), 0.23),
+    0 2px 1px #02070e;
 }
-.terminal-sign strong i {
-  float: right;
-}
-.terminal-sign > span:last-child {
-  display: block;
-  font:
-    15px ui-monospace,
-    monospace;
-  letter-spacing: 0.09em;
-  color: #9eb9b0;
-}
-.research-sign {
-  width: 790px;
-  background: #0c1b21e8;
-  border-top: 4px solid #86eff0;
-  border-bottom: 4px solid #86eff0;
-  padding: 24px 32px;
-  box-shadow: 0 0 26px #4ceaff26;
-}
-.research-sign strong {
-  display: block;
-  font-size: 94px;
-  font-weight: 700;
-  letter-spacing: -0.055em;
-  margin: 14px 0;
-  color: #b2ffff;
-  text-shadow: 0 0 15px #30dce58f;
-}
-.research-sign .sign-bottom {
+.sign-footer {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  font-size: 25px;
-  letter-spacing: 0.04em;
-  color: #c8f2eb;
+  color: #97abb2;
+  font-size: 18px;
+  line-height: 1;
+  letter-spacing: 0.13em;
 }
-.feature-sign {
-  width: 620px;
-  border-left-color: var(--cyan);
-  background: #0b181ff5;
+.sign-footer i {
+  color: var(--neon);
+  font-size: 29px;
+  line-height: 0.7;
 }
-.feature-sign strong {
-  color: #b5fff2;
-  font-size: 59px;
+.research-sign .tube-lettering {
+  font-size: 94px;
+  letter-spacing: 0.09em;
 }
-.feature-sign > span:last-child i {
-  float: right;
+.awards-sign .tube-lettering {
+  font-size: 100px;
+  letter-spacing: 0.12em;
+}
+.work-sign .tube-lettering,
+.contact-sign .tube-lettering {
+  font-size: 68px;
+  letter-spacing: 0.055em;
+}
+.feature-sign .tube-lettering {
+  font-size: 73px;
+  letter-spacing: 0.045em;
+}
+.university-sign {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 30px 12px 24px;
+  border: 1px solid rgba(var(--neon-rgb), 0.4);
+  background: linear-gradient(90deg, #050c1499, rgba(var(--neon-rgb), 0.055), #06091399);
+  text-transform: uppercase;
+  box-shadow: inset 0 0 25px #00000099;
+}
+.university-sign strong {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-size: 76px;
+  letter-spacing: 0.13em;
+  font-weight: 600;
+  line-height: 1.15;
+  color: #a2e9f2;
+  text-shadow:
+    0 0 3px #bdefff,
+    0 0 14px #3ddbe65e,
+    0 0 36px #37ddeb35;
+}
+.university-sign > span {
+  color: #a9c9d5;
   font-size: 27px;
+  letter-spacing: 0.065em;
 }
 .small-sign {
-  padding: 16px 25px;
-  color: #ffb392;
-  background: #231a18f0;
-  border: 2px solid #fc8654;
-  font-size: 48px;
-  letter-spacing: 0.12em;
-  text-shadow: 0 0 20px #ff6a45a0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 15px 20px;
+  background: #070c1388;
+  color: var(--neon);
+  border: 1px solid rgba(var(--neon-rgb), 0.3);
+}
+.small-sign strong {
+  font-size: 43px;
+  font-weight: 600;
+  letter-spacing: 0.11em;
+  text-shadow: 0 0 10px rgba(var(--neon-rgb), 0.35);
 }
 .small-sign > span {
   display: block;
-  font:
-    14px ui-monospace,
-    monospace;
+  color: #9baeb6;
+  font-size: 17px;
   letter-spacing: 0.12em;
   margin-top: 12px;
 }
-.awards-sign {
-  width: 700px;
-  text-align: center;
-  background: #222416ec;
-  border: 4px double #d8e687;
-  padding: 40px;
-  box-shadow: 0 0 30px #bdf47724;
-}
-.awards-sign strong {
-  display: block;
-  font-size: 122px;
-  text-transform: uppercase;
-  color: var(--acid);
-  letter-spacing: -0.06em;
-  text-shadow: 0 0 25px #bcff6980;
-  margin: 20px 0;
-}
-.awards-sign > span:last-child {
-  font:
-    19px ui-monospace,
-    monospace;
-  color: #d8e9b4;
-}
-.work-sign {
-  width: 680px;
-  border-color: #ff9872;
-}
-.work-sign strong {
-  color: #ffc8ab;
-}
-.contact-sign {
-  border-color: #7be8d9;
-}
-.district-sign {
-  color: #b5eddd;
-  border-color: #648f80;
-  background: #162222;
-  text-shadow: none;
+.district-sign strong {
+  font-size: 46px;
 }
 @media (min-width: 1800px) {
   .site-header {
