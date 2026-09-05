@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { DISTRICT_LIGHTS, FACADE_LIGHTS } from './design.mjs';
 
+export const RAIN_COUNTS = { high: 1800, low: 560 };
+
 /** Instanced architecture and a single lightweight wet-ground shader. */
 export function createEnvironment(scene, { low, reducedMotion, onInvalidate = () => {} }) {
   let seed = 2077;
@@ -495,32 +497,59 @@ export function createEnvironment(scene, { low, reducedMotion, onInvalidate = ()
     }
   );
 
-  const maxRainCount = 650;
-  let rainCount = low ? 240 : maxRainCount;
+  const maxRainCount = RAIN_COUNTS.high;
+  let rainCount = low ? RAIN_COUNTS.low : maxRainCount;
   const rainPositions = new Float32Array(maxRainCount * 6);
+  const rainColors = new Float32Array(maxRainCount * 6);
+  const rainLengths = new Float32Array(maxRainCount);
+  const rainSpeeds = new Float32Array(maxRainCount);
+  const rainLights = DISTRICT_LIGHTS.map(light => ({
+    position: new THREE.Vector2(light.at[0], light.at[2]),
+    color: new THREE.Color(light.color),
+  }));
   const rainGeometry = new THREE.BufferGeometry();
   for (let i = 0; i < maxRainCount; i++) {
     const x = (random() - 0.5) * 45,
       y = random() * 24,
       z = (random() - 0.5) * 45;
-    rainPositions.set([x, y, z, x - 0.025, y - 0.45, z], i * 6);
+    const length = 0.65 + random() * 0.65;
+    rainLengths[i] = length;
+    rainSpeeds[i] = 13 + random() * 6;
+    rainPositions.set([x, y, z, x - 0.055, y - length, z + 0.015], i * 6);
+    const tint = new THREE.Color(0x537493);
+    const drop = new THREE.Vector2(x, z);
+    for (const light of rainLights) {
+      const strength = Math.exp(-drop.distanceTo(light.position) * 0.23) * 0.48;
+      tint.add(light.color.clone().multiplyScalar(strength));
+    }
+    // Thin bright heads and fading tails pick up cyan/magenta, not a white fog curtain.
+    tint.toArray(rainColors, i * 6);
+    tint.multiplyScalar(0.12).toArray(rainColors, i * 6 + 3);
   }
-  rainGeometry.setAttribute('position', new THREE.BufferAttribute(rainPositions, 3));
+  rainGeometry.setAttribute(
+    'position',
+    new THREE.BufferAttribute(rainPositions, 3).setUsage(THREE.DynamicDrawUsage)
+  );
+  rainGeometry.setAttribute('color', new THREE.BufferAttribute(rainColors, 3));
   rainGeometry.setDrawRange(0, rainCount * 2);
   const rain = new THREE.LineSegments(
     rainGeometry,
     new THREE.LineBasicMaterial({
-      color: 0x628aaf,
+      color: 0xffffff,
+      vertexColors: true,
       transparent: true,
-      opacity: 0.12,
+      opacity: 0.38,
       depthWrite: false,
     })
   );
+  rain.name = 'neon-rain';
+  // Fixed bounds cover every animated position, including a complete trailing streak.
+  rainGeometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 12, 0), 36);
   rain.visible = !reducedMotion;
   scene.add(rain);
   return {
     setQuality(isLow) {
-      rainCount = isLow ? 240 : maxRainCount;
+      rainCount = isLow ? RAIN_COUNTS.low : maxRainCount;
       rainGeometry.setDrawRange(0, rainCount * 2);
     },
     setMotion(enabled) {
@@ -531,14 +560,17 @@ export function createEnvironment(scene, { low, reducedMotion, onInvalidate = ()
       groundMaterial.uniforms.time.value = time;
       for (let i = 0; i < rainCount; i++) {
         const k = i * 6;
-        rainPositions[k + 1] -= dt * 10;
-        rainPositions[k + 4] -= dt * 10;
+        rainPositions[k + 1] -= dt * rainSpeeds[i];
+        rainPositions[k + 4] -= dt * rainSpeeds[i];
         if (rainPositions[k + 1] < 0) {
           rainPositions[k + 1] = 24;
-          rainPositions[k + 4] = 23.55;
+          rainPositions[k + 4] = 24 - rainLengths[i];
         }
       }
-      rainGeometry.attributes.position.needsUpdate = true;
+      const positionAttribute = rainGeometry.attributes.position;
+      positionAttribute.clearUpdateRanges();
+      positionAttribute.addUpdateRange(0, rainCount * 6);
+      positionAttribute.needsUpdate = true;
     },
     dispose() {
       disposed = true;

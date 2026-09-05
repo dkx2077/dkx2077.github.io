@@ -180,9 +180,19 @@
         ><strong class="tube-lettering">{{scene-contact-label}}</strong>
         <span class="sign-footer">LET'S EXCHANGE IDEAS <i aria-hidden="true">↗</i></span>
       </a>
-      <div class="world-sign small-sign district-sign" data-sign="district">
-        <strong>KAIXIN DENG</strong><span>RESEARCH DISTRICT</span>
-      </div>
+      <a
+        class="world-sign small-sign scholar-sign"
+        data-sign="scholar"
+        href="{{scene-scholar-url}}"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Google Scholar profile (opens in a new tab)"
+        data-track-event="profile_click"
+        data-platform="google_scholar"
+      >
+        <strong>{{scene-scholar-label}}</strong>
+        <span>{{scene-scholar-detail}} <i aria-hidden="true">↗</i></span>
+      </a>
     </template>
     <script type="application/json" id="scene-settings">
       {{scene-settings}}

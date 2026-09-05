@@ -4,6 +4,8 @@
 
 Source: https://github.com/mrdoob/three.js
 
+Includes the native Reflector addon for shared planar puddle reflections, alongside the existing renderers and post-processing addons. The localized water shader is project code.
+
 The MIT License
 
 Copyright © 2010-2026 three.js authors
