@@ -1,99 +1,135 @@
-# Kaixin Deng 的个人主页
+# Kaixin Deng 的个人主页：一路骑自行车的鹈鹕
 
-GitHub Pages 托管的 Three.js 赛博朋克学术主页：固定机位、连续水平环视、有限俯仰、可编辑 HTML 霓虹招牌。内容使用 Markdown 维护，构建时生成完整 HTML，兼顾 3D 场景与直接阅读。
+![主页预览：海滨公路上骑自行车的鹈鹕们](assets/og.jpg)
+
+线上地址：<https://www.dengkaixin.com>
+
+这个主页是对“鹈鹕测试”的一份超长答卷。2024 年 10 月起，Simon Willison 让每个新发布的大模型都“Generate an SVG of a pelican riding a bicycle”，这句提示词后来成了很多人测新模型的第一件事（[他的合集](https://simonwillison.net/tags/pelican-riding-a-bicycle/)）。模型对这道题只答一次，这个页面答了二十来次，而且大部分是故意答错的。
+
+页面上半屏是一条首尾相接的海滨公路，下半部分是正常可读的个人信息、论文、奖项和联系方式。
+
+## 路上都有谁
+
+共 21 份“答卷”，每一份都不一样，都有自己的动作和裁定结果：
+
+| 编号 | 名字 | 画的是什么 |
+| --- | --- | --- |
+| 01 | 对照组 | 一只鹈鹕骑自行车。唯一按题目作答的 |
+| 02 | 倒反天罡 | 自行车骑鹈鹕 |
+| 03 | 递归 | 鹈鹕骑自行车，自行车上又是鹈鹕骑自行车，共三层 |
+| 04 | 摸鱼双人车 | 前面蹬车，后面举着鱼竿钓前面那只 |
+| 05 | 旧版模型 | 大小轮，礼帽，单片眼镜 |
+| 06 | 参数减半 | 独轮车上抛接三条鱼 |
+| 07 | 场地方 | 鱼在鹈鹕喉囊里骑车 |
+| 08 | 融合怪 | 鹈鹕本身就是自行车，车座上坐着鱼 |
+| 09 | 鹈鹕牌车轮 | 两个车轮是卷起来的鹈鹕 |
+| 10 | 过拟合 | 动感单车，踏频很高，行驶 0 公里 |
+| 11 | 深度思考中 | 站在车旁数 token，数到 128,000 也没骑上去 |
+| 12 | 2024 年基线 | 一个椭圆、一个三角、两个圆 |
+| 13 | 文献综述 | 货运车，货箱里是论文（卡片可跳到论文列表） |
+| 14 | 通讯作者 | 折叠车邮差（卡片可跳到联系方式） |
+| 15 | 领奖台常客 | 计时赛车加奖牌（卡片可跳到奖项） |
+| 16 | 脚踏飞行 | 给自行车装了翅膀，拖着横幅在天上飞 |
+| 17 | 送子鹈鹕 | 叼着一辆新生的小自行车 |
+| 18 | 鹈鹕大集团 | 木栈道上的五人车队，其中一只倒着坐 |
+| 19 | 分布外样本 | 海面上的水上自行车 |
+| 20 | 微调进行中 | 带辅助轮的雏鸟 |
+| 21 | 鹈鹕过街 | 英国真有一种信号灯人行横道叫 pelican crossing |
+
+## 可以怎么玩
+
+- **拖动**（或触控板横向滑动、方向键）左右看，世界是循环的，往哪边走都走不到头。
+- **点一位骑手**：镜头跟上去，弹出评测卡片。再点一次或点卡片上的按钮，触发它的专属动作。
+- **点空白处**扔一条鱼，离得最近的鹈鹕会接住。
+- **`$ Generate an SVG of a pelican riding a bicycle` → 运行**：按随机种子再生成一只新的上路（最多保留 10 只）。
+- **评测**：给画面里每个对象套上检测框，逐个标出通过或不通过。
+- **车铃**：所有看得见的车一起按铃。
+- **时间与风**：时间默认跟随访客的本地时钟（清晨、白天、黄昏、夜晚四套配色，夜里会亮车灯和路灯，页面下半部分同步切换深色）；风力可以调成顺风、逆风，甚至把所有人吹着倒退。
+- **鹈鹕过街**：按下信号灯杆上的按钮，骑手们在停车线后排队，一家鹈鹕走过斑马线。
+- **复制 SVG**：把当前这只鹈鹕导出成独立的 SVG 代码。
+- 右上角切换中文和英文。声音默认关闭。
+
+键盘：`Tab` 在骑手之间移动，`Enter` 选中，`Esc` 关闭，`B` 按铃，`E` 评测，`G` 生成。
+
+调试用的网址参数：`?hour=19.5` 固定时间，`?lang=zh` 或 `?lang=en` 固定语言。
 
 ## 本地运行
 
-需要 Node.js 22+ 和 npm；预览命令另外使用 Python 3。
+没有构建步骤，也没有任何依赖。ES 模块需要通过 HTTP 访问，所以起一个静态服务器即可：
 
 ```bash
-npm ci
-npm test
-npm run build
-npm run serve
+npm run serve        # 等价于 python3 -m http.server 8000
+npm test             # Node 22 自带的测试运行器，不需要 npm install
 ```
 
-打开 `http://localhost:8000`。也可在构建后运行 `npm run dev` 使用 Vite 预览；开发地址的 `/__qa` 提供响应式视口检查，测试界面不会发布。`dist/` 是可重新生成的部署产物，不要直接编辑。3D 模块必须通过 HTTP 访问；双击 `dist/index.html` 仍可读取静态正文。统计只在配置的正式域名运行。
+然后打开 <http://localhost:8000>。`tools/sheet.html` 是画样本时用的总览表（例如 `http://localhost:8000/tools/sheet.html?only=control,merge&z=1&boxes=1`），不会被发布。
 
-## 文件职责
+## 目录
 
-| 文件                          | 职责                                             |
-| ----------------------------- | ------------------------------------------------ |
-| `contents/config.yml`         | 标题、停更说明、正式网址、Umami Website ID       |
-| `contents/scene.yml`          | 招牌文字、默认画质、俯仰范围                     |
-| `contents/*.md`               | 个人介绍、论文、奖项和现有工作内容               |
-| `templates/index.html`        | 页面结构、标题层级、导航和元数据                 |
-| `scripts/build.mjs`           | 渲染 Markdown，生成稳定的事件标记和部署产物      |
-| `static/css/main.css`         | 桌面、手机、打印和减少动态效果的样式             |
-| `static/js/experience.mjs`    | 3D 入口、阅读面板、偏好和失败降级                |
-| `static/js/scene/*.mjs`       | Three.js 世界、建筑、招牌和固定相机控制          |
-| `static/js/navigation.js`     | 阅读/场景栏目高亮；不依赖统计服务                |
-| `static/js/analytics.js`      | Umami 加载及三种点击事件                         |
-| `static/js/math.js`           | 仅在内容包含公式时加载 MathJax                   |
-| `tests/homepage.test.mjs`     | 静态页面、事件分类、拒绝追踪和失败降级的回归测试 |
-| `.github/workflows/pages.yml` | PR 检查；master 构建并部署 `dist/`               |
+| 路径 | 内容 |
+| --- | --- |
+| `index.html` | 页面结构和全部个人内容（简介、教育、论文、奖项、联系方式） |
+| `assets/css/main.css` | 全部样式，含夜间配色和手机布局 |
+| `assets/js/main.js` | 入口：把场景、控制栏、卡片、表格和语言切换连起来 |
+| `assets/js/i18n.js` | 中英文界面文案 |
+| `assets/js/scene/svg.js` | SVG 小工具、两段骨骼 IK、带描边的肢体 |
+| `assets/js/scene/parts.js` | 两套骨架：鹈鹕和菱形车架自行车，以及帽子、鱼 |
+| `assets/js/scene/vehicles.js` | 特殊车辆：双人车、大小轮、独轮车、货运车、动感单车、水上自行车、鹈鹕车轮 |
+| `assets/js/scene/specimens.js` | 所有答卷的文案、位置和动画，以及随机生成器 |
+| `assets/js/scene/scenery.js` | 布景和按时间插值的配色 |
+| `assets/js/scene/world.js` | 循环世界：相机、视差、点选、扔鱼、评测框、停车排队 |
+| `assets/js/scene/crossing.js` | 鹈鹕过街的信号灯和行人 |
+| `assets/js/scene/audio.js` | 用 Web Audio 合成的几个音效 |
+| `tests/site.test.mjs` | 数据完整性、双语文案、配色、页面引用的回归测试 |
+| `.github/workflows/pages.yml` | PR 跑测试；合并到 `master` 后发布 |
 
-浏览器端没有 Bootstrap、Google Fonts 或 Markdown/YAML 解析器。Three.js 固定版本在站内分块打包，原创城市贴图保存在项目中。正文、论文与联系链接在禁用 JavaScript 时仍可使用。
+## 修改内容
 
-[场景编辑、交互与兼容策略](docs/SCENE.md) · [素材来源与生成提示词](docs/ASSETS.md) · [浏览器检查记录](docs/QA-2026-09-05.md)
+- **个人信息、论文、奖项**：直接改 `index.html` 里对应的 `<section>`。这些事实性内容只有一份，中英文界面下显示相同的文字。新增论文时复制一个 `<li class="pub">`，并同步修改 `tests/site.test.mjs` 里的论文数量。
+- **界面文案和玩笑话**：`assets/js/i18n.js`，`en` 和 `zh` 的键必须一一对应（测试会检查）。
+- **首屏那句介绍**：`i18n.js` 里的 `lede`，以及 `index.html` 里同一句的英文原文（给不执行脚本的访客和搜索引擎看）。
 
-## 接入 Umami Cloud
+### 新增一份答卷
 
-1. 在自己的 Umami Cloud 账户创建网站，域名填写 `www.dengkaixin.com`。
-2. 打开该网站的 **Tracking code**，复制 `data-website-id` 中的 UUID。这是公开网站标识，不是 API Key、密码或登录令牌。
-3. 在 `contents/config.yml` 的 `umami-website-id` 中填入该值。也可设置 GitHub 仓库 Actions variable `UMAMI_WEBSITE_ID`，它优先于文件配置。
-4. 合并修改后，Actions 只部署生成的 `dist/`，不会上传开发依赖、测试或源配置。
-5. 在正式主页进行一次访问和一次目标链接点击，在 Umami 的实时页及 Events 中核对。
+在 `assets/js/scene/specimens.js` 的 `SPECIMENS` 数组里加一项。最小的例子：
 
-缺少 ID 时，本地和 PR 构建不加载统计。正式部署会明确失败并保留上一版线上页面，避免误认为迁移已启用。UUID 格式检查不能证明该 ID 属于正确账户，仍需后台核验。更换正式域名时同时修改 `CNAME`、`config.yml` 的 `url` 和 Umami 网站配置。
-
-官方脚本：`https://cloud.umami.is/script.js`。不代理、不绕过广告拦截器，不自建事件队列或模拟“发送成功”。脚本加载之前或被拦截时的点击不会补报；浏览器追踪本身也不是完整的服务器访问日志。
-
-参考：[安装追踪代码](https://docs.umami.is/docs/collect-data)、[追踪配置](https://docs.umami.is/docs/tracker-configuration)、[事件接口](https://docs.umami.is/docs/tracker-functions)。
-
-## 唯一启用的指标与事件
-
-基础浏览、访客、来源、设备和国家/地区由 Umami 自身处理。页面浏览由官方脚本自动记录，本站不手动重复发送。不采集 URL 查询参数或栏目 hash；当前“来源”指引荐来源，不包含 UTM 营销归因。
-
-| 自定义事件          | 参数                                    | 何时触发                                           |
-| ------------------- | --------------------------------------- | -------------------------------------------------- |
-| `publication_click` | `publication_id`, `link_type`           | 点击某篇论文的出版页、预印本、项目、代码或专利链接 |
-| `profile_click`     | `platform`: `google_scholar` / `github` | 点击 Kaixin 的 Google Scholar 或 GitHub 个人主页   |
-| `contact_click`     | 无                                      | 点击邮箱链接；不表示已发送邮件                     |
-
-`link_type` 枚举：`paper`、`preprint`、`project`、`code`、`patent`。不发送邮箱地址、完整点击 URL、论文全文或访客标识作为自定义参数。页脚仓库、License、导航、滚动、停留、错误、性能和键盘操作都不产生自定义事件。没有会话回放、热图或身份识别调用。
-
-支持触摸点击、键盘激活、普通点击及鼠标中键；不拦截链接默认行为，不等待统计才跳转。每次实际点击记一次，不把“点击一次”和“去重访客”混为一谈。
-
-### 论文维护
-
-每篇论文之前保留一个独立且稳定的标识：
-
-```markdown
-<!-- publication: supergpqa -->
-
-**论文标题**
-
-[Paper ↗](https://neurips.cc/virtual/2025/poster/121825) |
-[Code ↗](https://github.com/SuperGPQA/SuperGPQA)
+```js
+{
+  id: 'tall', y: 820, x: 3600, v: 70, w: 250, h: 275,   // y 是车轮落地的那条线，v 是速度（负数朝左）
+  name: L('The tall one', '高个子'),
+  prompt: L('a pelican riding a bicycle, taller', '一只鹈鹕骑自行车（高一点）'),
+  note: L('One sentence for the card.', '卡片上的一句话。'),
+  checks: ['y', 'y', 'y'],                                 // 鹈鹕 / 自行车 / 在骑：y n h(一半) q(存疑)
+  verdict: { pass: true, text: L('Pass.', '通过。') },
+  trick: L('Ring the bell', '按铃'),
+  boxes: [['pelican', -84, -268, 196, 250], ['bicycle', -124, -152, 250, 152]],
+  build({ g }) {
+    const r = rider(g, { bike: { color: '#7a5af5', frame: 70 }, bird: { hat: 'crown' } });
+    return { update: (f) => r.update(f), beak: r.beak, gulp: r.gulp };
+  },
+}
 ```
 
-重排论文或修改标题时不要更改标识，否则报表会分成两个条目。不要复用相同标识。代码链接通过 `github.com`、预印本通过 `arxiv.org`、项目通过 `*.github.io`、专利通过 `xueshu.baidu.com` 分类，其余默认为 `paper`。新增其他平台时修改 `classifyLink` 并补充对应测试。
+约定：日本和英国一样靠左行驶，所以朝右走的排在公路靠海的一半（`y` 小于 872），朝左走的排在靠近镜头的一半；每位骑手的 `y` 不能重复，这样超车时看起来是前后错开而不是撞在一起。这些约定都有测试。
 
-Markdown 支持原有可信 HTML 标签，例如会议徽章；源文件应仅由仓库维护者编辑，不应用作接收不可信访客输入的系统。公式仍支持 `$...$` 和 `$$...$$`，仅有公式的构建才引用 MathJax，正文不依赖公式脚本完成加载。
+## 发布
 
-## 隐私与排除自己的访问
+仓库的 Pages 来源是 GitHub Actions。推送到 `master` 后，工作流先跑 `node --test`，再把 `index.html`、`assets/` 和 `CNAME` 三样发布出去。自定义域名写在 `CNAME` 里。
 
-开启浏览器 DNT 时，在加载 Umami 前退出。支持 Umami 的 `umami.disabled` 本地排除标记，设置方法见 [官方说明](https://docs.umami.is/docs/exclude-my-own-visits)。预览域名和 localhost 默认不统计。
+## 访问统计
 
-本站移除了自定义 IP 地理查询、设备详情采集、离线事件队列、缓存清空逻辑和 GA4。不会为了版本更新清除访客其他浏览器数据。
+沿用原来的 Umami Cloud 网站 ID，只在 `www.dengkaixin.com` 上统计，尊重浏览器的 Do Not Track。论文链接、个人主页链接和邮箱链接保留了原先的三个自定义事件（`publication_click`、`profile_click`、`contact_click`）。不想要统计的话，删掉 `index.html` 头部那一行 `<script ... umami ...>` 即可。
 
-## 验证范围
+## 无障碍和性能
 
-`npm test` 不访问真实 Umami，不污染生产统计；覆盖完整 HTML、所有 11 篇论文和 24 个已标记链接、唯一 ID、锚点、事件参数、中键/嵌套点击、DNT、本地排除、存储权限异常、统计失败、长栏目高亮，以及 3D 视角边界、触屏拖动、阅读面板和降级逻辑。
+- 正文是普通 HTML，不依赖脚本；没有脚本时首屏只剩天空和名字，其余内容照常可读。
+- 每位骑手都能用键盘聚焦和选中；附录里的结果表是同一份数据的文字版。
+- 系统开启“减少动态效果”时，场景默认暂停，可以手动播放。
+- 页面滚出视野或标签页切到后台时，动画循环会停下。屏幕外的骑手不参与计算。
+- 所有图形都是代码生成的 SVG，页面本身不加载任何位图。HTML、CSS 和脚本未压缩合计约 190 KB，另有一个 90 KB 的字体文件。
 
-布局包含窄屏断点、可换行长链接、44px 导航点击高度和减少动态效果支持。自动 DOM 测试不等于真实手机/桌面视觉验收；发布前仍可在 Safari、Chrome、Firefox 中检查 320px、390px、768px、1440px 和 200% 文字缩放。Umami 实际入库需要配置真实 Website ID 后核验。
+## 致谢与许可
 
-## License
-
-[MIT](LICENSE)
+- “鹈鹕骑自行车”测试来自 [Simon Willison](https://simonwillison.net/2024/Oct/25/pelicans-on-a-bicycle/)。
+- 字体 Archivo 采用 SIL Open Font License 1.1，见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+- 代码以 [MIT](LICENSE) 许可发布。

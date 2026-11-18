@@ -1,0 +1,31 @@
+<!doctype html><meta charset="utf-8"><title>contact sheet</title>
+<link rel="stylesheet" href="../assets/css/main.css">
+<style>body{margin:0;background:#bfe6f2}svg{display:block}</style>
+<svg id="s" class="world-svg"></svg>
+<script type="module">
+import { G, R, T, tr } from '../assets/js/scene/svg.js';
+import { SPECIMENS, remix } from '../assets/js/scene/specimens.js';
+const q = new URLSearchParams(location.search);
+const t0 = +(q.get('t') || 1.3), only = q.get('only');
+const list = [...SPECIMENS, remix(11, 21), remix(29, 22), remix(47, 23), remix(5, 24)].filter(d => !only || only.split(',').includes(d.id));
+const cols = +(q.get('cols') || 5), cw = 520, ch = 470;
+const s = document.getElementById('s');
+const rows = Math.ceil(list.length / cols);
+s.setAttribute('viewBox', `0 0 ${cols * cw} ${rows * ch}`); s.setAttribute('width', cols * cw * (+(q.get('z')||0.5))); 
+const world = { state: { lang: q.get('lang') || 'en' }, puff() {}, toView: () => [0, 0] };
+list.forEach((d, n) => {
+  const x = (n % cols) * cw + cw / 2 + (d.box ? -(d.box[0] + d.box[2] / 2) * 0.8 : 0), y = Math.floor(n / cols) * ch + ch - 40;
+  R(s, (n % cols) * cw, Math.floor(n / cols) * ch + ch - 40, cw, 40, { fill: '#3d4466' });
+  const k = Math.min(1, 420 / d.w, 400 / d.h);
+  const root = G(s, { transform: tr(x, y - (d.lane === 'high' ? 160 : 0)) });
+  const inner = G(root, { transform: `scale(${k})` });
+  const inst = { face: 1, k, kick: 1, kickT: 0, sx: 0, y: 0 };
+  const api = d.build({ g: inner, inst, world });
+  const f = { t: t0, dt: 0.016, s: t0 * 90, v: 90, wind: 1 };
+  if (q.get('trick')) { api.trick?.(); for (let i = 0; i < 30; i++) api.update({ ...f, t: t0 + i * 0.016 }); }
+  api.update(f); api.update({ ...f, t: t0 + 0.016, s: f.s + 1.5 });
+  if (q.get('boxes')) (d.boxes || []).forEach(b => R(inner, b[1], b[2], b[3], b[4], { fill: 'none', stroke: b[0] === 'pelican' ? '#2f62e0' : '#e2562a', 'stroke-width': 2, 'stroke-dasharray': '8 5' }));
+  if (q.get('boxes') && api.beak) { const b = api.beak(); R(inner, b[0]-4, b[1]-4, 8, 8, { fill: 'lime' }); }
+  T(s, (n % cols) * cw + 12, Math.floor(n / cols) * ch + 26, d.id, { 'font-size': 20, 'font-family': 'sans-serif', fill: '#16204a' });
+});
+</script>

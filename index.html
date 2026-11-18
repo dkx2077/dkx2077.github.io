@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en" data-phase="day">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kaixin Deng</title>
+    <meta name="description" content="Kaixin Deng's homepage: papers on LLM evaluation and computer vision, introduced by a road full of pelicans riding bicycles." />
+    <meta name="theme-color" content="#8fd6f0" />
+    <link rel="canonical" href="https://www.dengkaixin.com/" />
+    <meta property="og:title" content="Kaixin Deng" />
+    <meta property="og:description" content="Papers on LLM evaluation and computer vision, introduced by a road full of pelicans riding bicycles." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.dengkaixin.com/" />
+    <meta property="og:image" content="https://www.dengkaixin.com/assets/og.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="assets/fonts/archivo-latin-variable.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <script type="module" src="assets/js/main.js"></script>
+    <script defer src="https://cloud.umami.is/script.js" data-website-id="5937d538-dd8f-43c0-9411-d80c9a3f2bb7" data-domains="www.dengkaixin.com" data-do-not-track="true"></script>
+  </head>
+  <body>
+    <a class="skip" href="#about" data-i18n="skip">Skip to the research</a>
+
+    <main>
+      <section class="scene" id="top" aria-labelledby="name">
+        <header class="topbar">
+          <p class="lede" data-i18n="lede">Kaixin Deng writes papers on LLM evaluation and computer vision. This page is one long answer to the pelican test.</p>
+          <nav class="nav" aria-label="Sections" data-i18n-aria="navLabel">
+            <a href="#about" data-i18n="navAbout">About</a>
+            <a href="#publications" data-i18n="navPubs">Publications</a>
+            <a href="#awards" data-i18n="navAwards">Awards</a>
+            <a href="#contact" data-i18n="navContact">Contact</a>
+            <button class="lang" id="lang" type="button" lang="zh" aria-label="切换到中文">中文</button>
+          </nav>
+        </header>
+
+        <svg class="sky-svg" aria-hidden="true" focusable="false"></svg>
+        <h1 class="monument" id="name"><span>Kaixin</span> <span>Deng</span></h1>
+        <svg class="world-svg" role="group" tabindex="0" aria-label="A seaside road full of pelicans and bicycles. Drag or use the arrow keys to look around." data-i18n-aria="sceneLabel"></svg>
+
+        <p class="hint" id="hint" data-i18n="hint">Drag to look around. Tap a rider to inspect it. Tap the sky to throw a fish.</p>
+
+        <div class="hud" id="hud">
+          <button class="prompt" id="generate" type="button" aria-describedby="generate-help">
+            <span class="prompt-caret" aria-hidden="true">$</span>
+            <span class="prompt-text">Generate an SVG of a pelican riding a bicycle</span>
+            <span class="prompt-run" data-i18n="run">Run</span>
+          </button>
+          <span class="sr" id="generate-help" data-i18n="runHelp">Adds one more freshly generated pelican to the road.</span>
+
+          <div class="tools" role="toolbar" aria-label="Scene controls" data-i18n-aria="toolsLabel">
+            <button class="tool" id="t-bell" type="button" aria-label="Ring every bell" data-i18n-aria="tBell" data-i18n-title="tBell" title="Ring every bell">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 17h14l-2-3V10a5 5 0 0 0-10 0v4zM10 20a2 2 0 0 0 4 0M12 3v2" /></svg>
+            </button>
+            <button class="tool tool-wide" id="t-eval" type="button" aria-pressed="false" data-i18n-title="tEvalTitle" title="Mark every rider against the prompt">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4M8.5 12.5l2.5 2.5 4.5-5.5" /></svg>
+              <span data-i18n="tEval">Evaluate</span>
+            </button>
+            <button class="tool" id="t-cond" type="button" aria-expanded="false" aria-controls="conditions" aria-label="Time and wind" data-i18n-aria="tCond" data-i18n-title="tCond" title="Time and wind">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2" /></svg>
+            </button>
+            <button class="tool" id="t-sound" type="button" aria-pressed="false" aria-label="Sound" data-i18n-aria="tSound" data-i18n-title="tSound" title="Sound">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h4l5 4V6L8 10z" /><path class="waves" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11" /><path class="mute" d="M16 9l5 6M21 9l-5 6" /></svg>
+            </button>
+            <button class="tool" id="t-pause" type="button" aria-pressed="false" aria-label="Pause the scene" data-i18n-aria="tPause" data-i18n-title="tPause" title="Pause the scene">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-pause" d="M8 5v14M16 5v14" /><path class="i-play" d="M8 5l11 7-11 7z" /></svg>
+            </button>
+          </div>
+        </div>
+
+        <form class="conditions" id="conditions" hidden>
+          <label for="c-time"><span data-i18n="cTime">Time of day</span> <output id="c-time-out">12:00</output></label>
+          <input id="c-time" type="range" min="0" max="24" step="0.25" value="12" />
+          <button class="mini" id="c-now" type="button" data-i18n="cNow">Follow my clock</button>
+          <label for="c-wind"><span data-i18n="cWind">Wind</span> <output id="c-wind-out">calm</output></label>
+          <input id="c-wind" type="range" min="-1.5" max="3" step="0.1" value="1" />
+        </form>
+
+        <aside class="card" id="card" hidden aria-labelledby="card-name">
+          <div class="card-head">
+            <p class="card-no" id="card-no">No. 1</p>
+            <button class="card-close" id="card-close" type="button" aria-label="Close" data-i18n-aria="close">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+            </button>
+          </div>
+          <h2 class="card-name" id="card-name"></h2>
+          <p class="card-prompt"><code id="card-prompt"></code></p>
+          <p class="card-note" id="card-note"></p>
+          <ul class="checks" id="card-checks"></ul>
+          <p class="card-verdict" id="card-verdict"></p>
+          <div class="card-actions">
+            <button class="act act-main" id="card-trick" type="button"></button>
+            <a class="act" id="card-link" href="#about" hidden></a>
+            <button class="act" id="card-copy" type="button" data-i18n="copySvg">Copy SVG</button>
+          </div>
+        </aside>
+
+        <div class="toast" id="toast" role="status" aria-live="polite"></div>
+        <noscript><p class="noscript">The pelicans need JavaScript to ride. Everything else on this page works without it.</p></noscript>
+      </section>
+
+      <section class="block" id="about" aria-labelledby="h-about">
+        <h2 id="h-about" data-i18n="hAbout">About</h2>
+        <div class="block-body">
+          <p class="lead" data-i18n="aboutLead">I'm Kaixin Deng. My papers cover large language model evaluation, multimodal understanding and computer vision.</p>
+          <p class="links-row">
+            <a href="https://scholar.google.com/citations?user=WsJD-ukAAAAJ" data-umami-event="profile_click" data-umami-event-platform="google_scholar">Google Scholar</a>
+            <a href="https://github.com/dkx2077" data-umami-event="profile_click" data-umami-event-platform="github">GitHub</a>
+            <a href="mailto:dengkaixin2077@gmail.com" data-umami-event="contact_click">dengkaixin2077@gmail.com</a>
+          </p>
+
+          <h3 data-i18n="hEdu">Education</h3>
+          <ul class="cv">
+            <li>
+              <p class="cv-when">Apr 2025 – Mar 2026</p>
+              <p class="cv-what"><strong>Research Student</strong>, Faculty of Information Science and Technology, Hokkaido University</p>
+            </li>
+            <li>
+              <p class="cv-when">Sep 2020 – Jun 2024</p>
+              <p class="cv-what"><strong>Undergraduate Student</strong>, College of Computer Science and Cyber Security, Chengdu University of Technology</p>
+            </li>
+          </ul>
+
+          <h3 data-i18n="hIntern">Internships</h3>
+          <ul class="cv">
+            <li>
+              <p class="cv-when">Jul 2024 – Aug 2024</p>
+              <p class="cv-what"><strong>Assistant Engineer</strong>, Jiangxi Qiushi Academy for Advanced Studies (Zhejiang University Nanchang Research Institute), Nanchang, China</p>
+            </li>
+            <li>
+              <p class="cv-when">Mar 2024 – Jun 2024</p>
+              <p class="cv-what"><strong>Python Intern</strong>, Wuhan University (Intelligent Linked Open Data), Wuhan, China</p>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="block" id="publications" aria-labelledby="h-pubs">
+        <h2 id="h-pubs" data-i18n="hPubs">Publications</h2>
+        <div class="block-body">
+          <p class="aside"><span data-i18n="pubsNote">The complete list is on</span> <a href="https://scholar.google.com/citations?user=WsJD-ukAAAAJ" data-umami-event="profile_click" data-umami-event-platform="google_scholar">Google Scholar</a>.</p>
+          <ol class="pubs">
+            <li class="pub">
+              <p class="venue">NeurIPS</p>
+              <h3>SuperGPQA: Scaling LLM Evaluation across 285 Graduate Disciplines</h3>
+              <p class="authors">Du, X., Yao, Y., Ma, K., Wang, B., Zheng, T., … <strong>Deng, K.</strong>, … &amp; MAP Team (2025). <span class="aff">ByteDance DOUBAO LLM Team</span></p>
+              <p class="pub-links">
+                <a href="https://neurips.cc/virtual/2025/poster/121825" data-umami-event="publication_click" data-umami-event-publication_id="supergpqa" data-umami-event-link_type="paper">Paper</a>
+                <a href="https://arxiv.org/abs/2502.14739" data-umami-event="publication_click" data-umami-event-publication_id="supergpqa" data-umami-event-link_type="preprint">arXiv:2502.14739</a>
+                <a href="https://supergpqa.github.io" data-umami-event="publication_click" data-umami-event-publication_id="supergpqa" data-umami-event-link_type="project">Homepage</a>
+                <a href="https://github.com/SuperGPQA/SuperGPQA" data-umami-event="publication_click" data-umami-event-publication_id="supergpqa" data-umami-event-link_type="code">Code</a>
+              </p>
+            </li>
+            <li class="pub">
+              <p class="venue">ACL</p>
+              <h3>Can MLLMs Understand the Deep Implication Behind Chinese Images?</h3>
+              <p class="authors">Zhang, C., Feng, X., Bai, Y., Du, X., Hou, J., <strong>Deng, K.</strong>, … &amp; Ni, S. (2025). <span class="aff">Chinese Academy of Sciences</span></p>
+              <p class="pub-links">
+                <a href="https://aclanthology.org/2025.acl-long.700/" data-umami-event="publication_click" data-umami-event-publication_id="cii-bench" data-umami-event-link_type="paper">Paper</a>
+                <a href="https://arxiv.org/abs/2410.13854" data-umami-event="publication_click" data-umami-event-publication_id="cii-bench" data-umami-event-link_type="preprint">arXiv:2410.13854</a>
+                <a href="https://cii-bench.github.io/" data-umami-event="publication_click" data-umami-event-publication_id="cii-bench" data-umami-event-link_type="project">Homepage</a>
+                <a href="https://github.com/MING-ZCH/CII-Bench" data-umami-event="publication_click" data-umami-event-publication_id="cii-bench" data-umami-event-link_type="code">Code</a>
+              </p>
+            </li>
+            <li class="pub">
+              <p class="venue">Systems</p>
+              <h3>Multi-Stage Simulation of Residents’ Disaster Risk Perception and Decision-Making Behavior: An Exploratory Study on Large Language Model-Driven Social–Cognitive Agent Framework</h3>
+              <p class="authors">Zhao, X., Wang, H., Dai, C., Tang, J., <strong>Deng, K.</strong>, … &amp; Morikawa, S. (2025). <span class="aff">The University of Tokyo</span></p>
+              <p class="pub-links">
+                <a href="https://www.mdpi.com/2079-8954/13/4/240" data-umami-event="publication_click" data-umami-event-publication_id="llm-disaster-simulation" data-umami-event-link_type="paper">Paper</a>
+              </p>
+            </li>
+            <li class="pub">
+              <p class="venue">PLOS One</p>
+              <h3>OS-DETR: End-to-end brain tumor detection framework based on orthogonal channel shuffle networks</h3>
+              <p class="authors"><strong>Deng, K.</strong>, Wen, Q., Yang, F., Ouyang, H., Shi, Z., … &amp; Wu, Z. (2025). <span class="aff">Chengdu University of Technology</span></p>
+              <p class="pub-links">
+                <a href="https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0320757" data-umami-event="publication_click" data-umami-event-publication_id="os-detr" data-umami-event-link_type="paper">Paper</a>
+              </p>
+            </li>
+            <li class="pub">
+              <p class="venue">IEEE Access</p>
+              <h3>An Innovative Personalized Recommendation Approach Based on Deep Learning and User Review Content</h3>
+              <p class="authors">Wu, Z., Wen, Q., Yang, F., &amp; <strong>Deng, K.</strong> (2024). <span class="aff">Chengdu University of Technology</span></p>
+              <p class="pub-links">
+                <a href="https://ieeexplore.ieee.org/abstract/document/10643549" data-umami-event="publication_click" data-umami-event-publication_id="personalized-recommendation" data-umami-event-link_type="paper">Paper</a>
+              </p>
+            </li>
+            <li class="pub">
+              <p class="venue">ICCV Workshop</p>
+              <h3>VQualA 2025 Challenge on Image Super-Resolution Generated Content Quality Assessment: Methods and Results</h3>
+              <p class="authors"><span class="aff">Challenge technical report</span></p>
+              <p class="pub-links">
+                <a href="https://openaccess.thecvf.com/content/ICCV2025W/VQualA/papers/Li_VQualA_2025_Challenge_on_Image_Super-Resolution_Generated_Content_Quality_Assessment_ICCVW_2025_paper.pdf" data-umami-event="publication_click" data-umami-event-publication_id="vquala-super-resolution-2025" data-umami-event-link_type="paper">Paper</a>
+                <a href="https://arxiv.org/abs/2509.06413" data-umami-event="publication_click" data-umami-event-publication_id="vquala-super-resolution-2025" data-umami-event-link_type="preprint">arXiv:2509.06413</a>
+              </p>
+            </li>
+            <li class="pub">
+              <p class="venue">ICCV Workshop</p>
+              <h3>VQualA 2025 Challenge on Face Image Quality Assessment: Methods and Results</h3>
+              <p class="authors"><span class="aff">Challenge technical report</span></p>
+              <p class="pub-links">
+                <a href="https://openaccess.thecvf.com/content/ICCV2025W/VQualA/papers/Ma_VQualA_2025_Challenge_on_Face_Image_Quality_Assessment_Methods_and_ICCVW_2025_paper.pdf" data-umami-event="publication_click" data-umami-event-publication_id="vquala-face-quality-2025" data-umami-event-link_type="paper">Paper</a>
+                <a href="https://arxiv.org/abs/2508.18445" data-umami-event="publication_click" data-umami-event-publication_id="vquala-face-quality-2025" data-umami-event-link_type="preprint">arXiv:2508.18445</a>
+              </p>
+            </li>
+            <li class="pub">
+              <p class="venue">ICCV Workshop</p>
+              <h3>VQualA 2025 Document Image Quality Assessment Challenge</h3>
+              <p class="authors"><span class="aff">Challenge technical report</span></p>
+              <p class="pub-links">
+                <a href="https://openaccess.thecvf.com/content/ICCV2025W/VQualA/papers/Huang_VQualA_2025_Document_Image_Quality_Assessment_Challenge_ICCVW_2025_paper.pdf" data-umami-event="publication_click" data-umami-event-publication_id="vquala-document-quality-2025" data-umami-event-link_type="paper">Paper</a>
+              </p>
+            </li>
+            <li class="pub">
+              <p class="venue">CVPR Workshop</p>
+              <h3>NTIRE 2025 Challenge on Day and Night Raindrop Removal for Dual-Focused Images: Methods and Results</h3>
+              <p class="authors"><span class="aff">Challenge technical report</span></p>
+              <p class="pub-links">
+                <a href="https://openaccess.thecvf.com/content/CVPR2025W/NTIRE/papers/Li_NTIRE_2025_Challenge_on_Day_and_Night_Raindrop_Removal_for_CVPRW_2025_paper.pdf" data-umami-event="publication_click" data-umami-event-publication_id="ntire-raindrop-2025" data-umami-event-link_type="paper">Paper</a>
+                <a href="https://arxiv.org/abs/2504.12711" data-umami-event="publication_click" data-umami-event-publication_id="ntire-raindrop-2025" data-umami-event-link_type="preprint">arXiv:2504.12711</a>
+              </p>
+            </li>
+            <li class="pub">
+              <p class="venue">arXiv</p>
+              <h3>IWN: Image Watermarking Based on Idempotency</h3>
+              <p class="authors"><strong>Deng, K.</strong> (2024).</p>
+              <p class="pub-links">
+                <a href="https://arxiv.org/abs/2409.19506" data-umami-event="publication_click" data-umami-event-publication_id="iwn" data-umami-event-link_type="preprint">arXiv:2409.19506</a>
+              </p>
+            </li>
+            <li class="pub">
+              <p class="venue" data-i18n="patent">Patent</p>
+              <h3 lang="zh">基于深度学习及用户评论内容的个性化推荐方法</h3>
+              <p class="authors"><span lang="zh">温泉, 邬兆望, 黄于鉴, 王志民, 冯何阳, <strong>邓楷馨</strong>, …</span> (2024). <span class="aff">Chengdu University of Technology</span></p>
+              <p class="pub-links">
+                <a href="https://xueshu.baidu.com/usercenter/paper/show?paperid=130s0080qs640mx0nm7t0x40k3662202&amp;site=xueshu_se" data-umami-event="publication_click" data-umami-event-publication_id="recommendation-patent" data-umami-event-link_type="patent">Chinese invention patent</a>
+              </p>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="block" id="awards" aria-labelledby="h-awards">
+        <h2 id="h-awards" data-i18n="hAwards">Awards</h2>
+        <div class="block-body">
+          <ul class="awards">
+            <li><span class="place">Second Prize</span> 2024 ASC Student Supercomputer Challenge</li>
+            <li><span class="place">Second Prize</span> 2024 Tencent AI Arena Global Open Competition</li>
+            <li><span class="place">First Prize</span> 2024 SF‑X Tanke Cup Smart Supply Chain University Elite Challenge</li>
+            <li><span class="place">First Prize</span> 2023 5th Global AI Algorithm Elite Competition National Finals</li>
+            <li><span class="place">Silver Award</span> 2023 “Kaiyi Automobile Cup” Southern Sichuan University Student New Energy Vehicle Design Competition</li>
+            <li><span class="place">First Prize</span> 2022 “Game World Cup” China Collegiate Computer Game Competition &amp; 16th China Computer Game Championship</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="block" id="contact" aria-labelledby="h-contact">
+        <h2 id="h-contact" data-i18n="hContact">Contact</h2>
+        <div class="block-body">
+          <p class="mail"><a href="mailto:dengkaixin2077@gmail.com" data-umami-event="contact_click">dengkaixin2077@gmail.com</a></p>
+          <p data-i18n="contactText">I'm always eager to learn and humbled by new challenges, whether in cutting-edge research or hands-on engineering. Please feel free to reach out if you'd like to discuss ideas, explore collaborations, or have any questions.</p>
+        </div>
+      </section>
+
+      <section class="block" id="appendix" aria-labelledby="h-appendix">
+        <h2 id="h-appendix" data-i18n="hAppendix">Appendix: the pelicans</h2>
+        <div class="block-body">
+          <p data-i18n-html="appendixP1">In October 2024 Simon Willison began asking every new language model to <q>Generate an SVG of a pelican riding a bicycle</q>. It was meant half as a joke, and it became the first thing many people try on a new model. <a href="https://simonwillison.net/tags/pelican-riding-a-bicycle/">His running collection</a> is the reference.</p>
+          <p data-i18n="appendixP2">Models answer that prompt once. This page answers it about twenty times and gets most of them wrong on purpose. Each entry below is graded on the three things the prompt asks for.</p>
+          <div class="table-wrap">
+            <table class="results" id="results">
+              <caption data-i18n="tableCaption">Table 1. Every submission currently on the road, marked against the prompt.</caption>
+              <thead>
+                <tr>
+                  <th scope="col" data-i18n="thNo">No.</th>
+                  <th scope="col" data-i18n="thSub">Submission</th>
+                  <th scope="col" data-i18n="thPel">Pelican</th>
+                  <th scope="col" data-i18n="thBike">Bicycle</th>
+                  <th scope="col" data-i18n="thRide">Riding</th>
+                  <th scope="col" data-i18n="thRuling">Ruling</th>
+                  <th scope="col"><span class="sr" data-i18n="thShow">Show</span></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <p class="aside" data-i18n="credits">Every pelican is SVG drawn in code, with no images and no libraries.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <p>© 2026 Kaixin Deng</p>
+      <p><a href="https://github.com/dkx2077/dkx2077.github.io" data-i18n="source">Source on GitHub</a></p>
+    </footer>
+  </body>
+</html>
