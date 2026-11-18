@@ -108,7 +108,7 @@ export const SPECIMENS = [
 
   /* ------------------------------------------------------------------ 2 */
   {
-    id: 'inversion', y: 934, x: 1040, v: -84, w: 250, h: 250, size: 1.12,
+    id: 'inversion', y: 934, x: 1040, v: -84, w: 250, h: 250, size: 1.12, shadow: [-4, 70],
     name: L('The inversion', '倒反天罡'),
     prompt: L('a bicycle riding a pelican', '一辆自行车骑鹈鹕'),
     note: L('All the right nouns, in the wrong order. The bicycle looks comfortable up there.', '名词全对，顺序全错。自行车在上面坐得还挺稳。'),
@@ -156,7 +156,7 @@ export const SPECIMENS = [
 
   /* ------------------------------------------------------------------ 3 */
   {
-    id: 'recursion', y: 812, x: 1640, v: 58, w: 270, h: 380, box: [-145, -380, 270, 380],
+    id: 'recursion', y: 812, x: 6150, v: 58, w: 270, h: 380, box: [-145, -380, 270, 380], shadow: [0, 118],
     name: L('Recursion', '递归'),
     prompt: L('a pelican riding a bicycle riding a pelican riding a bicycle', '一只鹈鹕骑着一辆骑着鹈鹕的自行车，那只鹈鹕也骑着自行车'),
     note: L('Nobody set a depth limit. It stops at three only because the top pelican is afraid of heights.', '没有人设置递归深度。之所以停在第三层，纯粹是因为最上面那只恐高。'),
@@ -245,7 +245,7 @@ export const SPECIMENS = [
 
   /* ------------------------------------------------------------------ 5 */
   {
-    id: 'legacy', y: 798, x: 2900, v: 70, w: 230, h: 300,
+    id: 'legacy', y: 798, x: 2900, v: 70, w: 230, h: 300, shadow: [-12, 94],
     name: L('The legacy model', '旧版模型'),
     prompt: L('a pelican riding a bicycle, 1885 edition', '一只鹈鹕骑自行车（1885 年版）'),
     note: L('An older architecture: one very large wheel, no brakes, strong opinions about hats.', '上个时代的架构：一个巨大的轮子，没有刹车，对帽子有很强的执念。'),
@@ -271,7 +271,7 @@ export const SPECIMENS = [
 
   /* ------------------------------------------------------------------ 6 */
   {
-    id: 'unicycle', y: 948, x: 3500, v: -36, w: 220, h: 330, bell: [0, -200],
+    id: 'unicycle', y: 948, x: 3500, v: -36, w: 220, h: 330, bell: [0, -200], shadow: [0, 48],
     name: L('Half the parameters', '参数减半'),
     prompt: L('a pelican riding half a bicycle', '一只鹈鹕骑半辆自行车'),
     note: L('Quantised down to a single wheel. Accuracy fell. Showmanship went up.', '被量化到只剩一个轮子。准确率下降了，节目效果上去了。'),
@@ -310,7 +310,7 @@ export const SPECIMENS = [
 
   /* ------------------------------------------------------------------ 7 */
   {
-    id: 'carrier', y: 866, x: 4100, v: 42, w: 250, h: 230, size: 1.18,
+    id: 'carrier', y: 866, x: 4100, v: 42, w: 250, h: 230, size: 1.18, shadow: [-6, 66],
     name: L('The venue', '场地方'),
     prompt: L('a pelican, a bicycle, riding', '鹈鹕、自行车、骑'),
     note: L('A fish is riding a bicycle inside the pouch. The pelican is only hosting.', '一条鱼正在喉囊里骑车。鹈鹕只是提供场地。'),
@@ -347,7 +347,7 @@ export const SPECIMENS = [
 
   /* ------------------------------------------------------------------ 8 */
   {
-    id: 'merge', y: 916, x: 4700, v: -118, w: 230, h: 230, bell: [60, -130],
+    id: 'merge', y: 916, x: 4700, v: -118, w: 230, h: 230, bell: [60, -130], shadow: [2, 90],
     name: L('The merge', '融合怪'),
     prompt: L('a pelican that is a bicycle', '一只本身就是自行车的鹈鹕'),
     note: L('Pelican and bicycle were merged into one object to save tokens. A fish has taken the saddle.', '为了省 token，鹈鹕和自行车被合并成了同一个物体。车座已经被一条鱼占了。'),
@@ -433,7 +433,7 @@ export const SPECIMENS = [
 
   /* ----------------------------------------------------------------- 10 */
   {
-    id: 'overfit', y: 774, x: 2520, v: 0, still: true, w: 200, h: 280, bell: [20, -150],
+    id: 'overfit', y: 774, x: 2520, v: 0, still: true, w: 200, h: 280, bell: [20, -150], shadow: [0, 78],
     name: L('The overfit', '过拟合'),
     prompt: L('a pelican riding a bicycle (benchmark-optimised)', '一只鹈鹕骑自行车（针对榜单优化版）'),
     note: L('Trained on this exact prompt. Record cadence. Has never left this spot.', '只针对这一道题训练过。踏频创了纪录，但从未离开过原地。'),
@@ -573,7 +573,7 @@ export const SPECIMENS = [
 
   /* ----------------------------------------------------------------- 13 */
   {
-    id: 'papers', y: 848, x: 5900, v: 78, w: 300, h: 285, link: 'publications',
+    id: 'papers', y: 848, x: 5900, v: 78, w: 300, h: 285, link: 'publications', shadow: [-2, 152],
     name: L('The literature review', '文献综述'),
     prompt: L('a pelican riding a bicycle, with citations', '一只鹈鹕骑自行车（附参考文献）'),
     note: L('The front box holds Kaixin’s papers. The button below opens the list, so you do not have to chase the bike.', '前面的货箱里装着楷馨的论文。点下面的按钮就能看列表，不用追着车跑。'),
@@ -601,7 +601,7 @@ export const SPECIMENS = [
 
   /* ----------------------------------------------------------------- 14 */
   {
-    id: 'courier', y: 888, x: 6300, v: -134, w: 220, h: 270, link: 'contact',
+    id: 'courier', y: 888, x: 6300, v: -134, w: 220, h: 270, link: 'contact', shadow: [0, 82],
     name: L('The corresponding author', '通讯作者'),
     prompt: L('a pelican riding a bicycle, delivering a letter', '一只鹈鹕骑自行车送信'),
     note: L('Folding bike, messenger bag, one letter in the bill. Email is usually faster than waiting for it to come round again.', '折叠车，邮差包，嘴里叼着一封信。比起等它再绕回来，发邮件通常更快。'),
@@ -670,7 +670,7 @@ export const SPECIMENS = [
 
   /* ----------------------------------------------------------------- 16 */
   {
-    id: 'flight', lane: 'sky', x: 700, v: 64, w: 640, h: 300, box: [-470, -280, 640, 300], link: 'about', bell: [40, -150],
+    id: 'flight', lane: 'sky', x: 700, v: 110, w: 640, h: 300, box: [-470, -280, 640, 300], link: 'about', bell: [40, -150],
     name: L('Pedal-powered flight', '脚踏飞行'),
     prompt: L('a pelican riding a bicycle, airborne', '一只鹈鹕骑自行车（空中版）'),
     note: L('It can already fly. It bolted wings onto a bicycle and pedals instead.', '它本来就会飞，却选择给自行车装上翅膀，然后用脚蹬。'),
@@ -724,7 +724,7 @@ export const SPECIMENS = [
 
   /* ----------------------------------------------------------------- 17 */
   {
-    id: 'delivery', lane: 'high', x: 2600, v: -46, w: 300, h: 250, box: [-150, -150, 300, 250], noBell: true,
+    id: 'delivery', lane: 'high', x: 2600, v: -80, w: 300, h: 250, box: [-150, -150, 300, 250], noBell: true,
     name: L('Special delivery', '送子鹈鹕'),
     prompt: L('a pelican carrying a bicycle', '一只鹈鹕叼着一辆自行车'),
     note: L('A newborn bicycle, delivered the traditional way. Carrying is not riding.', '一辆新生的自行车，按传统方式投递。但叼着不算骑。'),
@@ -765,7 +765,7 @@ export const SPECIMENS = [
 
   /* ----------------------------------------------------------------- 18 */
   {
-    id: 'peloton', lane: 'far', x: 5900, v: 150, w: 900, h: 280, box: [-440, -280, 900, 280], bell: [300, -160],
+    id: 'peloton', lane: 'far', x: 5500, v: 230, w: 900, h: 280, box: [-440, -280, 900, 280], bell: [300, -160], shadow: [0, 470],
     name: L('The peloton', '鹈鹕大集团'),
     prompt: L('a pelican riding a bicycle, ×5, temperature 0', '一只鹈鹕骑自行车 ×5（温度 0）'),
     note: L('Five samples at temperature zero. Nearly identical, apart from the one facing backwards.', '温度设为 0，采样五次。结果几乎一模一样，除了倒着坐的那一只。'),
@@ -796,7 +796,7 @@ export const SPECIMENS = [
 
   /* ----------------------------------------------------------------- 19 */
   {
-    id: 'ood', lane: 'sea', x: 150, v: 34, w: 250, h: 240, bell: [20, -120],
+    id: 'ood', lane: 'sea', x: 150, v: 90, size: 1.15, w: 250, h: 240, bell: [20, -120],
     name: L('Out of distribution', '分布外样本'),
     prompt: L('a pelican riding a bicycle, but the road is the sea', '一只鹈鹕骑自行车，但路是海'),
     note: L('Nobody said the road had to be solid.', '题目并没有说路必须是固体。'),
@@ -879,7 +879,8 @@ export function remix(seed, n) {
   const hex4 = (seed >>> 0).toString(16).padStart(8, '0').slice(0, 4);
   return {
     id: 'sample-' + n, y: Math.round(y), v: speed, w: 250, h: kind === 'legacy' ? 300 : 275, generated: true,
-    size: 0.86 + rnd() * 0.3,
+    size: 0.9 + rnd() * 0.22,
+    shadow: kind === 'uni' ? [0, 48] : kind === 'mini' ? [0, 82] : kind === 'legacy' ? [-12, 94] : null,
     name: L(`Sample ${n}`, `样本 ${n}`),
     prompt: L(`a pelican riding a bicycle (seed ${hex4})`, `一只鹈鹕骑自行车（种子 ${hex4}）`),
     note: REMARKS[Math.floor(rnd() * REMARKS.length)],

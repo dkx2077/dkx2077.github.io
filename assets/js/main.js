@@ -1,4 +1,4 @@
-import { createWorld, W } from './scene/world.js';
+import { createWorld, W, depth } from './scene/world.js';
 import { SPECIMENS, remix } from './scene/specimens.js';
 import { setupCrossing } from './scene/crossing.js';
 import { mod } from './scene/svg.js';
@@ -188,7 +188,7 @@ $('card-copy').addEventListener('click', () => {
   if (!current) return;
   const d = current.def, b = d.box || [-d.w / 2, -d.h, d.w, d.h], m = 18;
   const clone = current.inner.cloneNode(true);
-  clone.querySelectorAll('.hit').forEach((n) => n.remove());
+  clone.querySelectorAll('.hit, .shadow').forEach((n) => n.remove());
   const esc = (t) => t.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]);
   const svg =
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${b[0] - m} ${b[1] - m} ${b[2] + m * 2} ${b[3] + m * 2}" width="${(b[2] + m * 2) * 2}" height="${(b[3] + m * 2) * 2}">` +
@@ -206,7 +206,7 @@ function generate() {
   const n = ++highest;
   const def = remix((Math.random() * 2 ** 32) >>> 0, n);
   def.no = n;
-  const x = world.cam.x + (def.v > 0 ? -1 : 1) * (world.view.vw / 2 + 170);
+  const x = world.cam.x + ((def.v > 0 ? -1 : 1) * (world.view.vw / 2 + 170)) / depth(def.y);
   const inst = world.add(def, { x: mod(x, W) });
   generated.push(inst);
   if (generated.length > 10) world.remove(generated.shift());

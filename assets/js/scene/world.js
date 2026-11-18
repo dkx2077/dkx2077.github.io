@@ -1,19 +1,20 @@
 // The looping world: camera, lanes, specimens, thrown fish, evaluation overlays.
-import { el, G, R, P, C, T, set, show, f1, clamp, lerp, mod, wrapSigned, INK } from './svg.js';
+import { el, G, R, P, C, E, T, set, show, f1, clamp, lerp, mod, wrapSigned, INK } from './svg.js';
 import { fish } from './parts.js';
-import { buildScenery, W, HORIZON } from './scenery.js';
+import { buildScenery, W, HORIZON, depth } from './scenery.js';
 
-export { W, HORIZON };
+export { W, HORIZON, depth };
 
-// Named lanes away from the road. Road riders carry their own baseline `y` instead.
+// Everything on the ground is sized and scrolled by depth(y): see scenery.js.
+// Named lanes away from the road; road riders carry their own baseline `y` instead.
+// The two flying lanes have no ground row, so they are given a scale and scroll as if that far away.
 export const LANES = {
-  sky: { y: 330, k: 0.62, par: 0.7, period: 5200, air: true },
-  high: { y: 250, k: 0.52, par: 0.55, period: 4400, air: true },
-  sea: { y: 572, k: 0.6, par: 0.5, period: 3600 },
-  far: { y: 702, k: 0.56, par: 1, period: W },
+  sky: { y: 330, k: 0.62, air: true },
+  high: { y: 250, k: 0.52, air: true },
+  sea: { y: 598 },
+  far: { y: 702 },
 };
 export const ROAD_TOP = 792, ROAD_BOTTOM = 950;
-export const roadScale = (y) => 0.88 + ((y - ROAD_TOP) / (ROAD_BOTTOM - ROAD_TOP)) * 0.26;
 
 export function createWorld(scene, hooks = {}) {
   const svg = scene.querySelector('.world-svg');
@@ -27,7 +28,7 @@ export function createWorld(scene, hooks = {}) {
     el('stop', { offset: 1, 'stop-color': '#ffe9a6', 'stop-opacity': 0 }, lg);
   }
   const L = {
-    far: G(svg), sea: G(svg), seaLane: G(svg), land: G(svg), farLane: G(svg), road: G(svg),
+    far: G(svg), sea: G(svg), seaLane: G(svg), land: G(svg), farLane: G(svg), mid: G(svg), road: G(svg),
     fore: G(svg), skyLane: G(svg), fx: G(svg),
   };
   R(svg, -6000, -6000, 20000, 12000, { class: 'veil' });
@@ -65,9 +66,10 @@ export function createWorld(scene, hooks = {}) {
     LANES.high.y = bandTop + (bandBot - bandTop) * 0.42;
     LANES.high.k = k * 0.86;
     for (const i of instances) {
-      if (!i.lane.air) continue;
+      if (!i.air) continue;
       i.y = i.lane.y + (i.def.dy || 0);
-      i.k = i.lane.k * (i.def.size || 1);
+      i.par = i.lane.k;
+      i.k = i.par * (i.def.size || 1);
       i.inner.setAttribute('transform', `scale(${f1(i.k * i.face * 100) / 100} ${f1(i.k * 100) / 100})`);
     }
   }
@@ -83,7 +85,7 @@ export function createWorld(scene, hooks = {}) {
       // keep the inspected rider centred in whatever part of the scene the card leaves free
       const i = cam.follow, fr = freeRect();
       const want = centre(i)[1] - (fr.t + fr.b) / 2 / s + view.vh;
-      yb = i.lane.air || cam.zt > 1.02 ? want : Math.max(yb, want);
+      yb = i.air || cam.zt > 1.02 ? want : Math.max(yb, want);
     }
     cam.yb = dt ? lerp(cam.yb, yb, 1 - Math.exp(-dt * 5)) : yb;
     view.top = cam.yb - view.vh;
@@ -125,20 +127,26 @@ export function createWorld(scene, hooks = {}) {
   function add(def, over = {}) {
     const lane = def.lane ? LANES[def.lane] : null;
     const y = lane ? lane.y + (def.dy || 0) : def.y;
-    const k = (lane ? lane.k : roadScale(y)) * (def.size || 1);
+    const par = lane?.air ? lane.k : depth(y);
+    const k = par * (def.size || 1);
     const face = (over.v ?? def.v ?? 0) < 0 || def.face === -1 ? -1 : 1;
     const root = G(null, { class: 'spec', 'data-spec': def.id, tabindex: 0, role: 'button', display: 'none' });
     const inner = G(root, { transform: `scale(${f1(k * face * 100) / 100} ${f1(k * 100) / 100})` });
     const i = {
-      def, lane: lane || { y, k, par: 1, period: W }, y, k, face, root, inner,
+      def, lane, air: !!lane?.air, y, par, k, face, root, inner,
       x: over.x ?? def.x ?? 0, v0: over.v ?? def.v ?? 0, v: 0, s: 0, phase: (instances.length * 1.7) % 7,
       vis: false, sx: 0, gulp: 0, kick: 1, kickT: 0, road: !lane, anno: null,
     };
     i.v = i.v0;
     const group = def.lane === 'sky' || def.lane === 'high' ? L.skyLane : def.lane === 'sea' ? L.seaLane : def.lane === 'far' ? L.farLane : L.road;
+    const b = def.box || [-def.w / 2, -def.h, def.w, def.h];
+    if (!i.air && def.lane !== 'sea' && def.shadow !== false) {
+      // a contact shadow pins the rider to the road
+      const sh = def.shadow || [b[0] + b[2] / 2, def.w * 0.46];
+      E(inner, sh[0], 3, sh[1], 9, { class: 'shadow', fill: '#16204a', opacity: 0.2 });
+    }
     i.api = def.build({ g: inner, inst: i, world: api }) || {};
     // generous transparent hit area
-    const b = def.box || [-def.w / 2, -def.h, def.w, def.h];
     R(inner, b[0], b[1], b[2], b[3], { class: 'hit', fill: 'transparent', rx: 12 });
     if (group === L.road) {
       const after = [...L.road.children].find((n) => +n.dataset.y > y);
@@ -164,7 +172,7 @@ export function createWorld(scene, hooks = {}) {
   }
 
   // distance from a rider's front wheel to its place in the queue at the crossing
-  const gapTo = (i, d, slot) => wrapSigned(crossing.x - d * (118 + slot * 150) - i.x, W) * d - (i.def.w * i.k) / 2;
+  const gapTo = (i, d, slot) => wrapSigned(crossing.x - d * (118 + slot * 170) - i.x, W) * d - (i.def.w * (i.def.size || 1)) / 2;
   function marshal() {
     // when the light changes, hand out queue places nearest-first so nobody has to overtake
     crossing.q = { 1: 0, '-1': 0 };
@@ -181,7 +189,7 @@ export function createWorld(scene, hooks = {}) {
   }
 
   function step(i, dt) {
-    const lane = i.lane, k = i.k;
+    const k = i.k, size = i.def.size || 1;
     if (!state.paused) {
       let target = i.v0 * state.wind * i.kick;
       if (i.kickT > 0 && (i.kickT -= dt) <= 0) i.kick = 1;
@@ -200,10 +208,10 @@ export function createWorld(scene, hooks = {}) {
       }
       i.v += (target - i.v) * (1 - Math.exp(-dt * 2.6));
       if (target === 0 && Math.abs(i.v) < 0.6) i.v = 0;
-      i.x = mod(i.x + i.v * dt, lane.period);
-      i.s += (i.v * dt * i.face) / k;
+      i.x = mod(i.x + i.v * dt, W);
+      i.s += (i.v * dt * i.face) / size;
     }
-    const sx = view.vw / 2 + wrapSigned(i.x - cam.x * lane.par, lane.period);
+    const sx = view.vw / 2 + wrapSigned(i.x - cam.x, W) * i.par;
     const half = (i.def.w * k) / 2 + 90;
     const vis = sx > -half && sx < view.vw + half;
     if (vis !== i.vis) {
@@ -213,6 +221,12 @@ export function createWorld(scene, hooks = {}) {
     }
     if (!vis) return;
     i.sx = sx;
+    // anything standing in front of the inspected rider turns to glass instead of hiding it
+    const ghost = !!selected && selected !== i && selected.vis && !i.air && !selected.air && i.y > selected.y && overlaps(i, selected);
+    if (ghost !== !!i.ghost) {
+      i.ghost = ghost;
+      i.root.classList.toggle('is-ghost', ghost);
+    }
     const yy = i.y + (i.bobY || 0);
     set(i.root, 'transform', `translate(${f1(sx)} ${f1(yy)})`);
     if (i.anno) set(i.anno, 'transform', `translate(${f1(sx)} ${f1(yy)})`);
@@ -221,10 +235,22 @@ export function createWorld(scene, hooks = {}) {
         i.gulp = Math.max(0, i.gulp - dt * 1.25);
         i.api.gulp?.(Math.sin(Math.min(1, i.gulp) * Math.PI));
       }
-      i.api.update?.({ t: state.t + i.phase, dt, s: i.s, v: (i.v * i.face) / k, wind: state.wind, waiting: i.waiting });
+      i.api.update?.({ t: state.t + i.phase, dt, s: i.s, v: (i.v * i.face) / size, wind: state.wind, waiting: i.waiting });
       i.drawn = true;
     }
   }
+
+  // a specimen's box in view units
+  const boxOf = (i) => {
+    const b = i.def.box || [-i.def.w / 2, -i.def.h, i.def.w, i.def.h];
+    return [i.sx + (i.face < 0 ? -(b[0] + b[2]) : b[0]) * i.k, i.y + b[1] * i.k, b[2] * i.k, b[3] * i.k];
+  };
+  const overlaps = (a, b) => {
+    const A = boxOf(a), B = boxOf(b);
+    const ox = Math.min(A[0] + A[2], B[0] + B[2]) - Math.max(A[0], B[0]);
+    const oy = Math.min(A[1] + A[3], B[1] + B[3]) - Math.max(A[1], B[1]);
+    return ox > B[2] * 0.1 && oy > B[3] * 0.1;
+  };
 
   // local (specimen) coordinates → viewBox units
   const toView = (i, p) => [i.sx + p[0] * i.k * i.face, i.y + (i.bobY || 0) + p[1] * i.k];
@@ -349,23 +375,11 @@ export function createWorld(scene, hooks = {}) {
 
   /* ----------------------------------------------------------- selection */
 
-  // put a road rider back into depth order
-  function settle(i) {
-    if (!i.raised || !i.root.isConnected) return;
-    i.raised = false;
-    const after = [...L.road.children].find((n) => n !== i.root && +n.dataset.y > i.y);
-    L.road.insertBefore(i.root, after || null);
-  }
   function select(i, o = {}) {
     if (selected && selected !== i) selected.root.classList.remove('is-selected');
-    if (selected && selected !== i) settle(selected);
     selected = i;
     i.root.classList.add('is-selected');
-    if (i.road && o.raise !== false) {
-      // the inspected rider is drawn in front of the traffic
-      i.raised = true;
-      L.road.appendChild(i.root);
-    }
+    scenery.clearBeach(i.def.lane === 'sea');
     cam.follow = i;
     cam.vx = 0;
     cam.zt = fitZoom(i);
@@ -375,7 +389,7 @@ export function createWorld(scene, hooks = {}) {
   function deselect() {
     if (!selected) return;
     selected.root.classList.remove('is-selected');
-    settle(selected);
+    scenery.clearBeach(false);
     selected = null;
     cam.follow = null;
     cam.zt = 1;
@@ -454,7 +468,7 @@ export function createWorld(scene, hooks = {}) {
     const hit = e.target.closest?.('.spec');
     if (!hit || !hit.matches(':focus-visible')) return;
     const i = instances.find((n) => n.root === hit);
-    if (i && i !== selected) select(i, { trick: false, raise: false }); // moving a focused node would drop focus
+    if (i && i !== selected) select(i, { trick: false });
   });
 
   /* ---------------------------------------------------------------- loop */
@@ -469,8 +483,7 @@ export function createWorld(scene, hooks = {}) {
       const i = cam.follow;
       const fr = freeRect();
       const aim = ((fr.l + fr.r) / 2 - view.w / 2) / view.s - centre(i)[0];
-      const d = wrapSigned(i.x - cam.x * i.lane.par, i.lane.period) - aim;
-      cam.x += (d / i.lane.par) * (1 - Math.exp(-dt * 4.5));
+      cam.x += (wrapSigned(i.x - cam.x, W) - aim / i.par) * (1 - Math.exp(-dt * 4.5));
     } else if (cam.vx) {
       cam.x += cam.vx * dt;
       cam.vx *= Math.exp(-dt * 3.2);

@@ -182,11 +182,22 @@ a:hover {
 .moon { opacity: calc(0.25 + var(--lights) * 0.75); }
 .veil { fill: #101a4d; opacity: var(--veil); pointer-events: none; }
 .lights { opacity: var(--lights); pointer-events: none; }
-.beam { opacity: calc(var(--lights) * 0.7); }
+.beam { opacity: calc(var(--lights) * 0.5); }
 
 .spec {
   cursor: pointer;
   outline: none;
+  transition: opacity 0.25s;
+}
+.spec.is-ghost {
+  opacity: 0.16;
+  pointer-events: none;
+}
+.beach {
+  transition: opacity 0.25s;
+}
+.beach.is-ghost {
+  opacity: 0.16;
 }
 .spec .hit {
   stroke: transparent;
@@ -218,7 +229,7 @@ a:hover {
   stroke-linejoin: round;
 }
 .sign-text {
-  font: 800 19px var(--sans);
+  font: 800 36px var(--sans);
   font-stretch: 86%;
   fill: #16204a;
   letter-spacing: 0.04em;
@@ -691,6 +702,9 @@ html:not(.js) .table-wrap {
   font-stretch: 116%;
   letter-spacing: -0.02em;
   text-wrap: balance;
+}
+.block[hidden] {
+  display: none;
 }
 .block-body {
   min-width: 0;
