@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFile, access } from 'node:fs/promises';
 import { SPECIMENS, remix } from '../assets/js/scene/specimens.js';
 import { paletteAt, W } from '../assets/js/scene/scenery.js';
-import { ROAD_TOP, ROAD_BOTTOM, LANES } from '../assets/js/scene/world.js';
+import { ROAD_TOP, ROAD_BOTTOM, LANES, depth, HORIZON } from '../assets/js/scene/world.js';
 import { STR } from '../assets/js/i18n.js';
 
 const root = new URL('../', import.meta.url);
@@ -39,6 +39,19 @@ test('specimens live either in a named lane or on the road', () => {
   // nobody shares a baseline, so overtaking reads as depth rather than a collision
   const ys = SPECIMENS.filter((d) => !d.lane).map((d) => d.y);
   assert.equal(new Set(ys).size, ys.length);
+});
+
+test('one vanishing line: size and scroll speed follow the ground row', () => {
+  assert.equal(depth(HORIZON), 0);
+  assert.equal(depth(890), 1);
+  for (let y = HORIZON + 10; y < 1100; y += 10) assert.ok(depth(y + 10) > depth(y), 'nearer is always larger');
+  assert.ok(depth(ROAD_TOP) < 0.8 && depth(ROAD_BOTTOM) > 1.1, 'the far lane is clearly smaller than the near one');
+  // ground lanes sit below the horizon and need no scale of their own; only the flying lanes carry one
+  for (const [name, lane] of Object.entries(LANES)) {
+    if (lane.air) assert.ok(lane.k > 0 && lane.k < 1, `${name} needs a scale`);
+    else assert.ok(lane.y > HORIZON && lane.k === undefined, `${name} takes its scale from depth(y)`);
+  }
+  for (const d of SPECIMENS) if (d.size) assert.ok(d.size > 0.5 && d.size < 1.6, `${d.id}.size`);
 });
 
 test('keep-left traffic: riders heading right use the far half of the road', () => {
@@ -90,6 +103,8 @@ test('the page references files that exist and keeps its landmarks', async () =>
   for (const f of local) await access(new URL(f, root));
   for (const id of ['top', 'about', 'publications', 'awards', 'contact', 'appendix', 'generate', 'card', 'results']) assert.ok(html.includes(`id="${id}"`), `#${id}`);
   assert.equal((html.match(/<h1[\s>]/g) || []).length, 1);
+  assert.match(html, /<section[^>]*id="appendix"[^>]*\shidden>/, 'the appendix is kept in the markup but hidden');
+  assert.ok(!/href="#appendix"/.test(html), 'nothing links to the hidden appendix');
   assert.equal((html.match(/class="pub"/g) || []).length, 11, 'eleven publications');
   assert.equal((await readFile(new URL('CNAME', root), 'utf8')).trim(), 'www.dengkaixin.com');
 });

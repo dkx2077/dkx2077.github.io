@@ -1,19 +1,18 @@
 // The pelican crossing: press the button, the riders stop, a family of pelicans walks across.
-import { G, P, C, R, T, shape, stroke, set, show, f1, clamp, lerp, wrapSigned, INK } from './svg.js';
+import { G, P, C, R, T, E as Ell, shape, stroke, set, show, f1, clamp, lerp, wrapSigned, INK } from './svg.js';
 import { pelican } from './parts.js';
-import { CROSSING_X, W } from './scenery.js';
-import { roadScale } from './world.js';
+import { CROSSING_X, W, depth } from './scenery.js';
 import { walker, L } from './specimens.js';
 
 const GLYPH = 'M-9 8q-3 -10 5 -12q0 -8 6 -9q5 0 5 4l12 4l-12 3q-1 5 -5 6q-5 8 -16 4Z';
 
 export function setupCrossing(world, hooks = {}) {
-  const X = CROSSING_X, S = [X + 46, 1050], E = [X - 44, 708], DUR = 6.4, LAG = 0.6;
+  const X = CROSSING_X, S = [X + 20, 1006], E = [X - 20, 714], DUR = 6.4, LAG = 0.6;
   let phase = 'idle', timer = 0, clock = 0;
   let lamps = null;
 
   const def = {
-    id: 'crossing', y: 746, x: X + 150, v: 0, still: true, w: 120, h: 260, noBell: true, box: [-54, -262, 108, 262],
+    id: 'crossing', y: 746, x: X + 165, v: 0, still: true, size: 1.5, w: 120, h: 260, noBell: true, box: [-54, -262, 108, 262], shadow: [0, 20],
     name: L('The pelican crossing', '鹈鹕过街'),
     prompt: L('a pelican crossing', '鹈鹕过街'),
     note: L('In Britain a signal-controlled pedestrian crossing really is called a pelican crossing. Press the button and every rider has to stop for pedestrians. The pedestrians are pelicans.', '在英国，带信号灯的人行横道真的就叫 pelican crossing（鹈鹕过街）。按下按钮，所有骑手都得停车让行人。行人也是鹈鹕。'),
@@ -53,10 +52,10 @@ export function setupCrossing(world, hooks = {}) {
   const family = [0, 1, 2, 3].map((n) => {
     const p = pelican(n ? { pal: 'chick', legs: [36, 40], neckW: 16 } : { legs: [36, 40], hat: 'beret', hatColor: '#2f62e0' });
     const root = G(walkG, { display: 'none' }), inner = G(root);
+    Ell(inner, -10, 3, 62, 9, { fill: '#16204a', opacity: 0.2 });
     inner.append(p.far, p.mid, p.near);
     return { p, root, inner, size: n ? 0.5 : 0.95, pose: walker(p, { stride: n ? 20 : 24, lift: 12, lean: 0.5, hipY: -60, neckAng: 1.2, neckLen: n ? 44 : 60, head: -0.12 }) };
   });
-  const len = Math.hypot(E[0] - S[0], E[1] - S[1]);
 
   function press() {
     if (phase !== 'idle') return hooks.onState?.('busy');
@@ -92,12 +91,12 @@ export function setupCrossing(world, hooks = {}) {
       show(m.root, vis);
       if (!vis) return;
       const x = lerp(S[0], E[0], u), y = lerp(S[1], E[1], u);
-      const k = roadScale(clamp(y, 740, 1000)) * m.size;
-      const sx = view.vw / 2 + wrapSigned(x - cam.x, W);
+      const p = depth(y), k = p * m.size;
+      const sx = view.vw / 2 + wrapSigned(x - cam.x, W) * p;
       set(m.root, 'transform', `translate(${f1(sx)} ${f1(y)})`);
       set(m.inner, 'transform', `scale(${f1(-k * 100) / 100} ${f1(k * 100) / 100})`);
       set(m.root, 'opacity', f1(clamp((1.06 - u) * 18, 0, 1)));
-      m.pose({ t: st.t + n, dt, s: (u * len) / k, v: 60 });
+      m.pose({ t: st.t + n, dt, s: (u * 1100) / m.size, v: 60 });
     });
   });
 
