@@ -1,4 +1,4 @@
-name: Build and deploy homepage
+name: Test and deploy homepage
 
 on:
   push:
@@ -22,19 +22,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: npm
-      - run: npm ci
-      - run: npm test
-      - name: Build complete static site
-        run: npm run build
-        env:
-          UMAMI_WEBSITE_ID: ${{ vars.UMAMI_WEBSITE_ID }}
-          # PRs can be checked without a Cloud account. Do not publish a silent analytics outage.
-          REQUIRE_ANALYTICS: ${{ github.event_name != 'pull_request' }}
+      # No dependencies to install: the site is plain HTML, CSS and ES modules.
+      - run: node --test
+      - name: Collect the files that are published
+        run: |
+          mkdir _site
+          cp -r index.html assets CNAME _site/
       - uses: actions/upload-pages-artifact@v3
         if: github.event_name != 'pull_request'
         with:
-          path: dist
+          path: _site
 
   deploy:
     if: github.event_name != 'pull_request'
