@@ -132,5 +132,4 @@ npm test             # Node 22 自带的测试运行器，不需要 npm install
 
 - “鹈鹕骑自行车”测试来自 [Simon Willison](https://simonwillison.net/2024/Oct/25/pelicans-on-a-bicycle/)。
 - 字体 Archivo 采用 SIL Open Font License 1.1，见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
-- 插画和代码由 Claude Fable 5.2 按 Kaixin Deng 的需求绘制，2026 年 11 月。
 - 代码以 [MIT](LICENSE) 许可发布。
