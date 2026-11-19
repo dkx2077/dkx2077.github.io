@@ -43,6 +43,12 @@ export function paletteAt(hour) {
   return out;
 }
 
+// The moon is in the sky from 19:00 until 05:30.
+export const moonUp = (hour) => {
+  const night = mod(hour - 19, 24) / 10.5;
+  return night >= 0 && night <= 1;
+};
+
 const wavy = (x0, x1, y, amp, len) => {
   let d = `M${x0} ${y}`;
   for (let x = x0; x < x1; x += len) d += `q${len / 4} ${-amp} ${len / 2} 0t${len / 2} 0`;
@@ -108,7 +114,7 @@ const FURNITURE = {
     T(g, 0, -262, 'CROSSING', { class: 'sign-text', 'text-anchor': 'middle' });
   },
   grass(g) {
-    stroke(g, 'M0 0q-5 -20 -16 -27M5 0q0 -24 4 -35M10 0q8 -18 20 -22', 'var(--verge)', 5);
+    stroke(G(g, { class: 'tuft' }), 'M0 0q-5 -20 -16 -27M5 0q0 -24 4 -35M10 0q8 -18 20 -22', 'var(--verge)', 5);
   },
 };
 
@@ -148,8 +154,10 @@ export function buildScenery(L, skySvg) {
   C(sun, 0, 0, 150, { fill: 'url(#sunGlow)' });
   C(sun, 0, 0, 54, { class: 'c-sun' });
   const moon = G(skySvg, { class: 'moon' });
-  C(moon, 0, 0, 120, { fill: 'url(#sunGlow)', opacity: 0.5 });
-  P(moon, 'M10 -44A46 46 0 1 0 44 22A38 38 0 1 1 10 -44Z', { fill: '#f6f1d5' });
+  const face = G(moon, { class: 'moon-face' }); // the part that answers a hover: see the Starry Night door in main.js
+  C(face, 0, 0, 120, { class: 'moon-glow', fill: 'url(#sunGlow)', opacity: 0.5 });
+  P(face, 'M10 -44A46 46 0 1 0 44 22A38 38 0 1 1 10 -44Z', { fill: '#f6f1d5' });
+  const moonPos = { x: 0, y: 0, r: 48, up: false };
   const cloudShape = (g, s) => {
     P(g, `M${-60 * s} 0a${26 * s} ${26 * s} 0 0 1 ${34 * s} ${-28 * s}a${34 * s} ${34 * s} 0 0 1 ${62 * s} ${-8 * s}a${26 * s} ${26 * s} 0 0 1 ${44 * s} ${36 * s}Z`, { class: 'c-cloud' });
   };
@@ -222,7 +230,7 @@ export function buildScenery(L, skySvg) {
       stroke(t, `M${f1(x0)} ${f1(y0)}Q${f1((x0 + x1) / 2)} ${f1(y0 + sag * 2)} ${f1(x1)} ${f1(y0)}`, INK, 1.4);
       for (let n = 1; n < 18; n++) {
         const u = n / 18, x = lerp(x0, x1, u), y = y0 + sag * 2 * 2 * u * (1 - u);
-        shape(t, `M${f1(x - 8)} ${f1(y)}h16l-8 18Z`, ['#ef4b3b', '#ffcf3a', '#2f62e0', '#fffdf7', '#19b28f'][n % 5], { 'stroke-width': 1.8 });
+        shape(t, `M${f1(x - 8)} ${f1(y)}h16l-8 18Z`, ['#ef4b3b', '#ffcf3a', '#2f62e0', '#fffdf7', '#19b28f'][n % 5], { class: n % 2 ? 'pennant' : 'pennant alt', 'stroke-width': 1.8 });
       }
     });
   });
@@ -323,12 +331,30 @@ export function buildScenery(L, skySvg) {
 
   const slide = (node, x, y = 0) => set(node, 'transform', `translate(${f1(x)} ${f1(y)})`);
 
+  // What the wind moves. Both are running totals, stepped by dt: a position worked out as time x speed
+  // would leap across the sky the moment the speed changed.
+  let cloudX = 0, shiver = 0;
+  // Bunting and grass lean through two CSS variables (see .pennant and .tuft); whole degrees, written only on change.
+  const stage = L.land.ownerSVGElement, leans = {};
+  const lean = (name, deg) => {
+    const v = Math.round(deg);
+    if (leans[name] !== v) stage?.style.setProperty(name, (leans[name] = v));
+  };
+
   function update(t, cam, view, dt, wind) {
     const half = view.vw / 2;
     for (const b of bands) slide(b.wrap, half - mod(cam.x * b.par, b.period));
     for (const e of edges) slide(e.node, -mod(cam.x * e.par - half, e.len), e.node === foam ? Math.sin(t * 0.9) * 2.5 : 0);
     slide(far.wrap, half - mod(cam.x * 0.03, far.period));
-    slide(clouds.wrap, half - mod(cam.x * 0.02 + t * 6 * (wind || 1), clouds.period));
+    // clouds go where the wind goes; in still air they keep the slow leftward drift of high weather
+    const gust = Math.min(Math.abs(wind), 2.5);
+    cloudX += (wind * 30 - 6 * Math.max(0, 1 - gust * 4)) * dt;
+    slide(clouds.wrap, half - mod(cam.x * 0.02 - cloudX, clouds.period));
+    // cloth and grass lean with it and shiver in it; in still air they hang straight and nothing is written
+    shiver += (5 + gust * 3) * dt;
+    const tilt = clamp(wind * 24, -60, 60);
+    lean('--lean-a', tilt + Math.sin(shiver) * gust * 5);
+    lean('--lean-b', tilt * 0.9 + Math.sin(shiver * 0.86 + 1.7) * gust * 6);
     for (const w of waves) slide(w.node, -mod(cam.x * w.par + t * w.drift - half, w.len), Math.sin(t * 1.1 + w.len) * w.amp * 0.4);
     for (const g of glints) slide(g.node, -mod(cam.x * g.par - t * g.len * 0.04 - half, g.len));
     // zebra bars and stop lines, each corner projected at its own depth
@@ -346,8 +372,13 @@ export function buildScenery(L, skySvg) {
     const day = (hour - 5.5) / 13.5, night = mod(hour - 19, 24) / 10.5;
     set(sun, 'transform', `translate(${f1(view.vw * (0.1 + 0.8 * day))} ${f1(HORIZON + 70 - Math.sin(Math.PI * clamp(day, -0.1, 1.1)) * skyH * 0.82)})`);
     set(sun, 'display', day > -0.08 && day < 1.08 ? 'inline' : 'none');
-    set(moon, 'transform', `translate(${f1(view.vw * (0.14 + 0.72 * night))} ${f1(HORIZON + 60 - Math.sin(Math.PI * clamp(night, 0, 1)) * skyH * 0.8)})`);
-    set(moon, 'display', night >= 0 && night <= 1 ? 'inline' : 'none');
+    moonPos.x = view.vw * (0.14 + 0.72 * night);
+    // the moon is a door now (see main.js), so its arc tops out below the text at the top of the page
+    const rise = Math.max(140, Math.min(skyH * 0.8, skyH + 60 - ((view.roof || 0) + 52) / (view.s || 1)));
+    moonPos.y = HORIZON + 60 - Math.sin(Math.PI * clamp(night, 0, 1)) * rise;
+    moonPos.up = moonUp(hour);
+    set(moon, 'transform', `translate(${f1(moonPos.x)} ${f1(moonPos.y)})`);
+    set(moon, 'display', moonPos.up ? 'inline' : 'none');
   }
 
   setTime(12);
@@ -355,5 +386,5 @@ export function buildScenery(L, skySvg) {
   beach.forEach((b) => b.wrap.setAttribute('class', 'beach'));
   const clearBeach = (on) => beach.forEach((b) => b.wrap.classList.toggle('is-ghost', on));
 
-  return { update, setTime, clearBeach, get hour() { return hour; }, get palette() { return pal; } };
+  return { update, setTime, clearBeach, moonAt: () => moonPos, get hour() { return hour; }, get palette() { return pal; } };
 }

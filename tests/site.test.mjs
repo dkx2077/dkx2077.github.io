@@ -3,8 +3,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile, access } from 'node:fs/promises';
 import { SPECIMENS, remix } from '../assets/js/scene/specimens.js';
-import { paletteAt, W } from '../assets/js/scene/scenery.js';
-import { ROAD_TOP, ROAD_BOTTOM, LANES, depth, HORIZON } from '../assets/js/scene/world.js';
+import { paletteAt, moonUp, W } from '../assets/js/scene/scenery.js';
+import { ROAD_TOP, ROAD_BOTTOM, LANES, depth, HORIZON, WIND_MAX, cruise, sailOf } from '../assets/js/scene/world.js';
 import { STR } from '../assets/js/i18n.js';
 
 const root = new URL('../', import.meta.url);
@@ -108,3 +108,65 @@ test('the page references files that exist and keeps its landmarks', async () =>
   assert.equal((html.match(/class="pub"/g) || []).length, 11, 'eleven publications');
   assert.equal((await readFile(new URL('CNAME', root), 'utf8')).trim(), 'www.dengkaixin.com');
 });
+
+test('the moon is a door to the painted version, and only at night', async () => {
+  for (const h of [19, 21.5, 0, 3, 5.5]) assert.ok(moonUp(h), `the moon should be up at ${h}`);
+  for (const h of [5.6, 8, 12, 16, 18.9]) assert.ok(!moonUp(h), `the moon should be down at ${h}`);
+  // whenever the moon is drawn the sky behind it is a night sky
+  for (let h = 0; h < 24; h += 0.25) if (moonUp(h)) assert.equal(paletteAt(h).phase, 'night', `at ${h} the moon is up over a day sky`);
+
+  assert.match(html, /<button[^>]*id="moon"[^>]*hidden/, 'the moon button starts hidden, so it is not offered without JavaScript');
+  assert.match(html, /id="starry-ui"[^>]*hidden/);
+  assert.match(html, /id="starry-exit"/);
+  for (const k of ['moonLabel', 'starryNote', 'starryExit', 'starryLabel']) assert.ok(STR.en[k] && STR.zh[k], `${k} in both languages`);
+
+  // the painter is fetched on demand: it must load on its own, and main.js must not import it up front
+  const { enterStarry } = await import('../assets/js/starry/starry.js');
+  assert.equal(typeof enterStarry, 'function');
+  const main = await readFile(new URL('assets/js/main.js', root), 'utf8');
+  assert.match(main, /await import\('\.\/starry\/starry\.js'\)/);
+  assert.doesNotMatch(main, /from '\.\/starry\//);
+});
+
+test('nothing on the page or in the readme credits the drawing to a model', async () => {
+  const readme = await readFile(new URL('README.md', root), 'utf8');
+  for (const [name, text] of [['index.html', html], ['README.md', readme]]) assert.doesNotMatch(text, /(drawn|绘制|generated|生成)[^\n]{0,40}Claude|Claude[^\n]{0,40}(绘制|drew)/i, name);
+});
+
+test('the wind has a direction: it helps the riders it follows and hinders the ones it meets', () => {
+  const moving = SPECIMENS.filter((d) => d.v && !d.still), road = moving.filter((d) => !d.lane);
+  // how fast a rider gets on in its own direction when the wind is at its back (+) or in its face (-)
+  const headway = (d, w) => cruise(d.v, Math.sign(d.v) * w, sailOf(d)) * Math.sign(d.v);
+
+  for (const d of moving) {
+    assert.equal(cruise(d.v, 0, sailOf(d)), d.v, `${d.id}: still air changes nobody`);
+    for (const w of [0.3, 1, WIND_MAX]) {
+      assert.ok(headway(d, w) > Math.abs(d.v), `${d.id} should gain from a tailwind of ${w}`);
+      assert.ok(headway(d, -w) < Math.abs(d.v), `${d.id} should lose to a headwind of ${w}`);
+    }
+  }
+  // the same wind, seen from the two lanes, and the whole thing mirrored
+  assert.ok(cruise(90, 1) > 90 && cruise(-90, 1) > -90);
+  assert.equal(cruise(90, 1.3, 1.2), -cruise(-90, -1.3, 1.2));
+  // a breeze turns nobody round; a gale blows the slow ones backwards while the fast ones still make headway
+  for (const d of road) assert.ok(headway(d, -0.5) > 0, `${d.id} is turned round by a mere breeze`);
+  const gale = road.map((d) => headway(d, -WIND_MAX));
+  assert.ok(gale.some((v) => v < 0) && gale.some((v) => v > 0));
+  // small riders and anything airborne catch more of it
+  assert.ok(sailOf({ size: 0.64 }) > sailOf({}) && sailOf({}) > sailOf({ size: 1.2 }));
+  assert.ok(sailOf({ lane: 'sky' }) > 1);
+  assert.equal(sailOf({ sail: 0.5, size: 0.64 }), 0.5);
+
+  // the slider is centred on still air and spans one gale each way
+  assert.match(html, new RegExp(`id="c-wind"[^>]*min="-${WIND_MAX}"[^>]*max="${WIND_MAX}"[^>]*value="0"`));
+  for (const l of ['en', 'zh']) assert.notEqual(STR[l].windTo('x', true), STR[l].windTo('x', false));
+});
+
+test('nothing that moves is computed as time multiplied by a changing speed', async () => {
+  // Such a position leaps when the speed changes. Motion that follows the wind is accumulated frame by frame instead.
+  for (const f of ['scene/scenery.js', 'scene/specimens.js', 'scene/world.js']) {
+    const src = await readFile(new URL('assets/js/' + f, root), 'utf8');
+    assert.doesNotMatch(src, /\bt \* [\d.]+ \* \(?(f\.)?wind/, f);
+  }
+});
+

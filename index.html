@@ -41,6 +41,8 @@
         <h1 class="monument" id="name"><span>Kaixin</span> <span>Deng</span></h1>
         <svg class="world-svg" role="group" tabindex="0" aria-label="A seaside road full of pelicans and bicycles. Drag or use the arrow keys to look around." data-i18n-aria="sceneLabel"></svg>
 
+        <button class="moon-btn" id="moon" type="button" hidden aria-label="The moon. Opens a Starry Night version of this scene." data-i18n-aria="moonLabel"></button>
+
         <p class="hint" id="hint" data-i18n="hint">Drag to look around. Tap a rider to inspect it. Tap the sky to throw a fish.</p>
 
         <div class="hud" id="hud">
@@ -76,7 +78,7 @@
           <input id="c-time" type="range" min="0" max="24" step="0.25" value="12" />
           <button class="mini" id="c-now" type="button" data-i18n="cNow">Follow my clock</button>
           <label for="c-wind"><span data-i18n="cWind">Wind</span> <output id="c-wind-out">calm</output></label>
-          <input id="c-wind" type="range" min="-1.5" max="3" step="0.1" value="1" />
+          <input id="c-wind" type="range" min="-2.5" max="2.5" step="0.1" value="0" />
         </form>
 
         <aside class="card" id="card" hidden aria-labelledby="card-name">
@@ -97,6 +99,11 @@
             <button class="act" id="card-copy" type="button" data-i18n="copySvg">Copy SVG</button>
           </div>
         </aside>
+
+        <div class="starry-ui" id="starry-ui" hidden>
+          <p class="starry-note" data-i18n="starryNote">Tap the sky to add a star. Tap the moon to go back.</p>
+          <button class="act starry-exit" id="starry-exit" type="button" data-i18n="starryExit">Back to the road</button>
+        </div>
 
         <div class="toast" id="toast" role="status" aria-live="polite"></div>
         <noscript><p class="noscript">The pelicans need JavaScript to ride. Everything else on this page works without it.</p></noscript>

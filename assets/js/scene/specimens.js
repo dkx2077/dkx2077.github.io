@@ -18,6 +18,10 @@ const pulse = () => {
   };
 };
 
+// How a body answers the wind, as a change of pitch: it ducks into a headwind and sits up to catch a tailwind.
+// `wind` is from the rider's own point of view, positive at its back (see world.js).
+const duck = (wind = 0) => clamp(wind, -2.5, 1) * 0.045;
+
 // A pelican on a vehicle, pedalling. Most entries start here.
 export function rider(g, o = {}) {
   const v = o.vehicle || bike(o.bike);
@@ -38,6 +42,7 @@ export function rider(g, o = {}) {
         hip, footN: mx(ped.near), footF: mx(ped.far),
         handN: hands, handF: hands && [hands[0] + 3, hands[1] - 2],
         ...base,
+        lean: base.lean + duck(f.wind),
         neckAng: base.neckAng + Math.sin(ca * 2 + 1) * 0.03,
         sag: (base.sag ?? 16) + Math.sin(f.t * 4) * 1.4,
         ...extra,
@@ -57,7 +62,7 @@ export function walker(p, o = {}) {
   const stride = o.stride ?? 26, lift = o.lift ?? 18, hipY = o.hipY ?? -60, x0 = o.x ?? -34;
   return (f, extra) => {
     const ph = f.s / (stride * 0.8);
-    const lean = (o.lean ?? 0.45) + Math.sin(ph * 2) * 0.03;
+    const lean = (o.lean ?? 0.45) + Math.sin(ph * 2) * 0.03 + duck(f.wind);
     const hip = [x0, hipY - Math.abs(Math.sin(ph)) * (o.bounce ?? 4)];
     const cx = hip[0] + 15 + 20 * Math.cos(lean);
     const foot = (a) => [cx + stride * Math.cos(a), -Math.max(0, -Math.sin(a)) * lift, Math.sin(a) < 0 ? 22 : 0];
@@ -806,7 +811,7 @@ export const SPECIMENS = [
     boxes: [['pelican', -84, -236, 196, 220], ['bicycle', -100, -110, 220, 120]],
     build({ g, inst, world }) {
       const bobG = G(g);
-      const r = rider(bobG, { vehicle: waterBike(), bird: { legs: [36, 40], hat: 'cap', hatColor: '#2f62e0' }, gear: 2, cadence: (f) => f.t * 4 * (f.wind || 1) });
+      const r = rider(bobG, { vehicle: waterBike(), bird: { legs: [36, 40], hat: 'cap', hatColor: '#2f62e0' }, gear: 2, cadence: (f) => f.s * 0.051 }); // pedals follow the distance covered, so they slow, stop and reverse with the boat
       r.v.pts.r = 24;
       stroke(bobG, 'M-110 4q10 -6 20 0t20 0M90 4q10 -6 20 0t20 0', '#fff', 3, { opacity: 0.8 });
       const sp = pulse();
