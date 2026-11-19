@@ -87,8 +87,10 @@ $('c-now').addEventListener('click', () => {
   setHour(clockHour());
 });
 
+// the wind has a strength and a direction; which riders it helps depends on which way they are going
 function windWord(v) {
-  return v < -0.15 ? S.windBack : v < 0.75 ? S.windHead : v <= 1.25 ? S.windCalm : v < 2.2 ? S.windTail : S.windStorm;
+  const a = Math.abs(v);
+  return a < 0.15 ? S.windCalm : S.windTo(a < 0.9 ? S.windBreeze : a < 1.7 ? S.windStrong : S.windGale, v > 0);
 }
 $('c-wind').addEventListener('input', (e) => {
   world.setWind(+e.target.value);
@@ -208,7 +210,9 @@ function generate() {
   const n = ++highest;
   const def = remix((Math.random() * 2 ** 32) >>> 0, n);
   def.no = n;
-  const x = world.cam.x + ((def.v > 0 ? -1 : 1) * (world.view.vw / 2 + 170)) / depth(def.y);
+  // enter from the side it will actually travel from, which in a strong headwind is not the side it faces
+  const from = world.heading(def) || Math.sign(def.v) || 1;
+  const x = world.cam.x + (-from * (world.view.vw / 2 + 170)) / depth(def.y);
   const inst = world.add(def, { x: mod(x, W) });
   generated.push(inst);
   if (generated.length > 10) world.remove(generated.shift());

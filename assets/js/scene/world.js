@@ -14,6 +14,15 @@ export const LANES = {
   sea: { y: 598 },
   far: { y: 702 },
 };
+// The wind is a velocity along the road, not a throttle on everyone at once: positive blows to the right,
+// negative to the left, zero is still air. Riders heading with it gain what riders heading into it lose.
+export const WIND_MAX = 2.5; // a gale
+export const WIND_PUSH = 36; // road units a second that one unit of wind adds to a rider of ordinary size
+// How much of the wind a rider catches: small ones are carried further, and anything in the air further still.
+export const sailOf = (def) => def.sail ?? (LANES[def.lane]?.air ? 1.5 : 1 / (def.size || 1));
+// The speed a rider settles at: its own effort, plus what the wind adds or takes away.
+export const cruise = (v0, wind, sail = 1, kick = 1) => v0 * kick + wind * WIND_PUSH * sail;
+
 export const ROAD_TOP = 792, ROAD_BOTTOM = 950;
 
 export function createWorld(scene, hooks = {}) {
@@ -38,11 +47,11 @@ export function createWorld(scene, hooks = {}) {
   const scenery = buildScenery(L, skySvg);
   const view = { w: 1, h: 1, base: 1, s: 1, vw: 1000, vh: 1000, top: 0, hud: 90, roof: 0, free: null };
   const cam = { x: 0, z: 1, zt: 1, yb: 1100, vx: 0, follow: null };
-  const state = { t: 0, wind: 1, windT: 1, paused: false, evalOn: false, lang: 'en', fed: 0 };
+  const state = { t: 0, wind: 0, windT: 0, paused: false, evalOn: false, lang: 'en', fed: 0 };
   const instances = [];
   const fx = [];
   const tickers = [];
-  const crossing = { x: 1000, red: false, was: false, q: { 1: 0, '-1': 0 } };
+  const crossing = { x: 1000, red: false, was: false, stale: false, q: { 1: 0, '-1': 0 } };
   let selected = null, running = false, last = 0, onScreen = true, suspended = false;
 
   /* ---------------------------------------------------------------- view */
@@ -135,9 +144,9 @@ export function createWorld(scene, hooks = {}) {
     const i = {
       def, lane, air: !!lane?.air, y, par, k, face, root, inner,
       x: over.x ?? def.x ?? 0, v0: over.v ?? def.v ?? 0, v: 0, s: 0, phase: (instances.length * 1.7) % 7,
-      vis: false, sx: 0, gulp: 0, kick: 1, kickT: 0, road: !lane, anno: null,
+      vis: false, sx: 0, gulp: 0, kick: 1, kickT: 0, road: !lane, anno: null, sail: sailOf(def),
     };
-    i.v = i.v0;
+    i.v = aim(i);
     const group = def.lane === 'sky' || def.lane === 'high' ? L.skyLane : def.lane === 'sea' ? L.seaLane : def.lane === 'far' ? L.farLane : L.road;
     const b = def.box || [-def.w / 2, -def.h, def.w, def.h];
     if (!i.air && def.lane !== 'sea' && def.shadow !== false) {
@@ -171,6 +180,9 @@ export function createWorld(scene, hooks = {}) {
     if (selected === i) deselect();
   }
 
+  // where a rider is trying to go right now: its cruising speed in this wind, or nothing if it is parked
+  const aim = (i) => (i.def.still || i.halt ? 0 : cruise(i.v0, state.wind, i.sail, i.kick));
+
   // distance from a rider's front wheel to its place in the queue at the crossing
   const gapTo = (i, d, slot) => wrapSigned(crossing.x - d * (118 + slot * 170) - i.x, W) * d - (i.def.w * (i.def.size || 1)) / 2;
   function marshal() {
@@ -180,7 +192,7 @@ export function createWorld(scene, hooks = {}) {
     if (!crossing.red) return;
     for (const d of [1, -1]) {
       instances
-        .filter((i) => i.road && !i.def.still && Math.sign(i.v0 * state.wind) === d && gapTo(i, d, 0) > -30 && gapTo(i, d, 0) < 900)
+        .filter((i) => i.road && Math.sign(aim(i)) === d && gapTo(i, d, 0) > -30 && gapTo(i, d, 0) < 900)
         .sort((a, b) => gapTo(a, d, 0) - gapTo(b, d, 0))
         .forEach((i) => {
           if (gapTo(i, d, crossing.q[d]) < 320) i.slot = crossing.q[d]++;
@@ -191,17 +203,22 @@ export function createWorld(scene, hooks = {}) {
   function step(i, dt) {
     const k = i.k, size = i.def.size || 1;
     if (!state.paused) {
-      let target = i.v0 * state.wind * i.kick;
       if (i.kickT > 0 && (i.kickT -= dt) <= 0) i.kick = 1;
-      if (i.def.still || i.halt) target = 0;
-      else if (crossing.red && i.road && target !== 0) {
-        const d = Math.sign(target);
+      let target = aim(i);
+      const d = Math.sign(target);
+      if (d !== i.dir) {
+        // Turned round by the wind (a rider can be blown backwards). A place in the queue belongs to one
+        // direction of travel, so give it up and have the queue dealt again.
+        i.dir = d;
+        if (i.slot != null) (i.slot = null), (crossing.stale = true);
+      }
+      if (crossing.red && i.road && d) {
         if (i.slot == null && gapTo(i, d, 0) > -30 && gapTo(i, d, crossing.q[d]) < 300) i.slot = crossing.q[d]++;
         if (i.slot != null) {
           const ahead = gapTo(i, d, i.slot);
           target *= clamp(ahead / 170, 0, 1);
           i.waiting = ahead < 40;
-        }
+        } else i.waiting = false;
       } else {
         i.waiting = false;
         i.slot = null;
@@ -235,7 +252,8 @@ export function createWorld(scene, hooks = {}) {
         i.gulp = Math.max(0, i.gulp - dt * 1.25);
         i.api.gulp?.(Math.sin(Math.min(1, i.gulp) * Math.PI));
       }
-      i.api.update?.({ t: state.t + i.phase, dt, s: i.s, v: (i.v * i.face) / size, wind: state.wind, waiting: i.waiting });
+      // `wind` is given from the rider's own point of view: positive at its back, negative in its face
+      i.api.update?.({ t: state.t + i.phase, dt, s: i.s, v: (i.v * i.face) / size, wind: state.wind * i.face, waiting: i.waiting });
       i.drawn = true;
     }
   }
@@ -473,12 +491,26 @@ export function createWorld(scene, hooks = {}) {
 
   /* ---------------------------------------------------------------- loop */
 
+  // The two halves of a step of the world, shared by our own loop and by anyone stepping it from outside.
+  function clock(dt) {
+    if (!state.paused) state.t += dt;
+    state.wind = lerp(state.wind, state.windT, 1 - Math.exp(-dt * 2.5));
+  }
+  function move(dt) {
+    if (crossing.red !== crossing.was || crossing.stale) {
+      crossing.was = crossing.red;
+      crossing.stale = false;
+      marshal();
+    }
+    for (const i of instances) step(i, dt);
+    for (const fn of tickers) fn(state, state.paused ? 0 : dt);
+  }
+
   function frame(now) {
     if (!running) return;
     const dt = Math.min(0.05, (now - last) / 1000 || 0.016);
     last = now;
-    if (!state.paused) state.t += dt;
-    state.wind = lerp(state.wind, state.windT, 1 - Math.exp(-dt * 2.5));
+    clock(dt);
     if (cam.follow) {
       const i = cam.follow;
       const fr = freeRect();
@@ -492,9 +524,7 @@ export function createWorld(scene, hooks = {}) {
     cam.z = lerp(cam.z, cam.zt, 1 - Math.exp(-dt * 4.5));
     applyView(dt);
     scenery.update(state.t, cam, view, state.paused ? 0 : dt, state.wind);
-    if (crossing.red !== crossing.was) (crossing.was = crossing.red), marshal();
-    for (const i of instances) step(i, dt);
-    for (const fn of tickers) fn(state, state.paused ? 0 : dt);
+    move(dt);
     stepFx(dt);
     requestAnimationFrame(frame);
   }
@@ -531,7 +561,9 @@ export function createWorld(scene, hooks = {}) {
       view.free = rect;
       if (selected) cam.zt = fitZoom(selected);
     },
-    setWind(v) { state.windT = v; },
+    setWind(v) { state.windT = clamp(v, -WIND_MAX, WIND_MAX); },
+    // which way a rider built from this definition would travel in the wind as it is now: 1, -1 or 0
+    heading: (def) => (def.still ? 0 : Math.sign(cruise(def.v || 0, state.windT, sailOf(def)))),
     setPaused(v) {
       state.paused = v;
       scene.classList.toggle('is-paused', v);
@@ -560,17 +592,14 @@ export function createWorld(scene, hooks = {}) {
     headless(dt, vw) {
       const keep = view.vw;
       view.vw = vw;
-      if (!state.paused) state.t += dt;
-      state.wind = lerp(state.wind, state.windT, 1 - Math.exp(-dt * 2.5));
-      if (crossing.red !== crossing.was) (crossing.was = crossing.red), marshal();
-      for (const i of instances) step(i, dt);
-      for (const fn of tickers) fn(state, state.paused ? 0 : dt);
+      clock(dt);
+      move(dt);
       view.vw = keep;
     },
     renderOnce() {
       layout();
       applyView(0);
-      scenery.update(state.t, cam, view, 0, 1);
+      scenery.update(state.t, cam, view, 0, state.wind);
       for (const i of instances) step(i, 0);
     },
   };

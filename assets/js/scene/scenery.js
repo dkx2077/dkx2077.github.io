@@ -114,7 +114,7 @@ const FURNITURE = {
     T(g, 0, -262, 'CROSSING', { class: 'sign-text', 'text-anchor': 'middle' });
   },
   grass(g) {
-    stroke(g, 'M0 0q-5 -20 -16 -27M5 0q0 -24 4 -35M10 0q8 -18 20 -22', 'var(--verge)', 5);
+    stroke(G(g, { class: 'tuft' }), 'M0 0q-5 -20 -16 -27M5 0q0 -24 4 -35M10 0q8 -18 20 -22', 'var(--verge)', 5);
   },
 };
 
@@ -230,7 +230,7 @@ export function buildScenery(L, skySvg) {
       stroke(t, `M${f1(x0)} ${f1(y0)}Q${f1((x0 + x1) / 2)} ${f1(y0 + sag * 2)} ${f1(x1)} ${f1(y0)}`, INK, 1.4);
       for (let n = 1; n < 18; n++) {
         const u = n / 18, x = lerp(x0, x1, u), y = y0 + sag * 2 * 2 * u * (1 - u);
-        shape(t, `M${f1(x - 8)} ${f1(y)}h16l-8 18Z`, ['#ef4b3b', '#ffcf3a', '#2f62e0', '#fffdf7', '#19b28f'][n % 5], { 'stroke-width': 1.8 });
+        shape(t, `M${f1(x - 8)} ${f1(y)}h16l-8 18Z`, ['#ef4b3b', '#ffcf3a', '#2f62e0', '#fffdf7', '#19b28f'][n % 5], { class: n % 2 ? 'pennant' : 'pennant alt', 'stroke-width': 1.8 });
       }
     });
   });
@@ -331,12 +331,30 @@ export function buildScenery(L, skySvg) {
 
   const slide = (node, x, y = 0) => set(node, 'transform', `translate(${f1(x)} ${f1(y)})`);
 
+  // What the wind moves. Both are running totals, stepped by dt: a position worked out as time x speed
+  // would leap across the sky the moment the speed changed.
+  let cloudX = 0, shiver = 0;
+  // Bunting and grass lean through two CSS variables (see .pennant and .tuft); whole degrees, written only on change.
+  const stage = L.land.ownerSVGElement, leans = {};
+  const lean = (name, deg) => {
+    const v = Math.round(deg);
+    if (leans[name] !== v) stage?.style.setProperty(name, (leans[name] = v));
+  };
+
   function update(t, cam, view, dt, wind) {
     const half = view.vw / 2;
     for (const b of bands) slide(b.wrap, half - mod(cam.x * b.par, b.period));
     for (const e of edges) slide(e.node, -mod(cam.x * e.par - half, e.len), e.node === foam ? Math.sin(t * 0.9) * 2.5 : 0);
     slide(far.wrap, half - mod(cam.x * 0.03, far.period));
-    slide(clouds.wrap, half - mod(cam.x * 0.02 + t * 6 * (wind || 1), clouds.period));
+    // clouds go where the wind goes; in still air they keep the slow leftward drift of high weather
+    const gust = Math.min(Math.abs(wind), 2.5);
+    cloudX += (wind * 30 - 6 * Math.max(0, 1 - gust * 4)) * dt;
+    slide(clouds.wrap, half - mod(cam.x * 0.02 - cloudX, clouds.period));
+    // cloth and grass lean with it and shiver in it; in still air they hang straight and nothing is written
+    shiver += (5 + gust * 3) * dt;
+    const tilt = clamp(wind * 24, -60, 60);
+    lean('--lean-a', tilt + Math.sin(shiver) * gust * 5);
+    lean('--lean-b', tilt * 0.9 + Math.sin(shiver * 0.86 + 1.7) * gust * 6);
     for (const w of waves) slide(w.node, -mod(cam.x * w.par + t * w.drift - half, w.len), Math.sin(t * 1.1 + w.len) * w.amp * 0.4);
     for (const g of glints) slide(g.node, -mod(cam.x * g.par - t * g.len * 0.04 - half, g.len));
     // zebra bars and stop lines, each corner projected at its own depth

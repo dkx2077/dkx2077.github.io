@@ -677,6 +677,19 @@ a:hover {
   font-weight: 600;
 }
 
+/* what the wind does to cloth and grass: scenery.js writes the two angles, in degrees */
+.pennant {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  transform: skewX(calc(var(--lean-a, 0) * 1deg));
+}
+.pennant.alt {
+  transform: skewX(calc(var(--lean-b, 0) * 1deg));
+}
+.tuft {
+  transform: skewX(calc(var(--lean-b, 0) * -0.45deg));
+}
+
 /* --------------------------------------------- the moon and what is behind it */
 
 .moon-btn {
