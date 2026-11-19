@@ -43,6 +43,12 @@ export function paletteAt(hour) {
   return out;
 }
 
+// The moon is in the sky from 19:00 until 05:30.
+export const moonUp = (hour) => {
+  const night = mod(hour - 19, 24) / 10.5;
+  return night >= 0 && night <= 1;
+};
+
 const wavy = (x0, x1, y, amp, len) => {
   let d = `M${x0} ${y}`;
   for (let x = x0; x < x1; x += len) d += `q${len / 4} ${-amp} ${len / 2} 0t${len / 2} 0`;
@@ -148,8 +154,10 @@ export function buildScenery(L, skySvg) {
   C(sun, 0, 0, 150, { fill: 'url(#sunGlow)' });
   C(sun, 0, 0, 54, { class: 'c-sun' });
   const moon = G(skySvg, { class: 'moon' });
-  C(moon, 0, 0, 120, { fill: 'url(#sunGlow)', opacity: 0.5 });
-  P(moon, 'M10 -44A46 46 0 1 0 44 22A38 38 0 1 1 10 -44Z', { fill: '#f6f1d5' });
+  const face = G(moon, { class: 'moon-face' }); // the part that answers a hover: see the Starry Night door in main.js
+  C(face, 0, 0, 120, { class: 'moon-glow', fill: 'url(#sunGlow)', opacity: 0.5 });
+  P(face, 'M10 -44A46 46 0 1 0 44 22A38 38 0 1 1 10 -44Z', { fill: '#f6f1d5' });
+  const moonPos = { x: 0, y: 0, r: 48, up: false };
   const cloudShape = (g, s) => {
     P(g, `M${-60 * s} 0a${26 * s} ${26 * s} 0 0 1 ${34 * s} ${-28 * s}a${34 * s} ${34 * s} 0 0 1 ${62 * s} ${-8 * s}a${26 * s} ${26 * s} 0 0 1 ${44 * s} ${36 * s}Z`, { class: 'c-cloud' });
   };
@@ -346,8 +354,13 @@ export function buildScenery(L, skySvg) {
     const day = (hour - 5.5) / 13.5, night = mod(hour - 19, 24) / 10.5;
     set(sun, 'transform', `translate(${f1(view.vw * (0.1 + 0.8 * day))} ${f1(HORIZON + 70 - Math.sin(Math.PI * clamp(day, -0.1, 1.1)) * skyH * 0.82)})`);
     set(sun, 'display', day > -0.08 && day < 1.08 ? 'inline' : 'none');
-    set(moon, 'transform', `translate(${f1(view.vw * (0.14 + 0.72 * night))} ${f1(HORIZON + 60 - Math.sin(Math.PI * clamp(night, 0, 1)) * skyH * 0.8)})`);
-    set(moon, 'display', night >= 0 && night <= 1 ? 'inline' : 'none');
+    moonPos.x = view.vw * (0.14 + 0.72 * night);
+    // the moon is a door now (see main.js), so its arc tops out below the text at the top of the page
+    const rise = Math.max(140, Math.min(skyH * 0.8, skyH + 60 - ((view.roof || 0) + 52) / (view.s || 1)));
+    moonPos.y = HORIZON + 60 - Math.sin(Math.PI * clamp(night, 0, 1)) * rise;
+    moonPos.up = moonUp(hour);
+    set(moon, 'transform', `translate(${f1(moonPos.x)} ${f1(moonPos.y)})`);
+    set(moon, 'display', moonPos.up ? 'inline' : 'none');
   }
 
   setTime(12);
@@ -355,5 +368,5 @@ export function buildScenery(L, skySvg) {
   beach.forEach((b) => b.wrap.setAttribute('class', 'beach'));
   const clearBeach = (on) => beach.forEach((b) => b.wrap.classList.toggle('is-ghost', on));
 
-  return { update, setTime, clearBeach, get hour() { return hour; }, get palette() { return pal; } };
+  return { update, setTime, clearBeach, moonAt: () => moonPos, get hour() { return hour; }, get palette() { return pal; } };
 }

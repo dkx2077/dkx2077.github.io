@@ -277,6 +277,9 @@ a:hover {
 .topbar > * {
   pointer-events: auto;
 }
+.topbar > .lede {
+  pointer-events: none; /* the moon may pass behind it and must stay clickable */
+}
 .lede {
   margin: 0;
   max-width: 27em;
@@ -674,6 +677,112 @@ a:hover {
   font-weight: 600;
 }
 
+/* --------------------------------------------- the moon and what is behind it */
+
+.moon-btn {
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  top: 0;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: none; /* it must be focusable the instant the painting closes */
+}
+.moon-btn[hidden],
+.starry-ui[hidden] {
+  display: none;
+}
+.moon-btn:focus-visible {
+  outline: 3px solid var(--sunny);
+  outline-offset: 4px;
+  border-radius: 50%;
+}
+.moon-face {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.4s;
+}
+.scene.moon-hot .moon-face {
+  transform: scale(1.16) rotate(-10deg);
+}
+/* the only hint that the moon is more than a moon: its halo breathes */
+.moon-glow {
+  animation: moon-breathe 5.5s ease-in-out infinite;
+}
+@keyframes moon-breathe {
+  50% {
+    opacity: 0.95;
+  }
+}
+.starry-canvas {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  opacity: 0;
+  transition: opacity 1.1s ease;
+  cursor: crosshair;
+  touch-action: pan-y;
+}
+.starry-canvas.is-on {
+  opacity: 1;
+}
+.scene.is-starry .hud,
+.scene.is-starry .hint,
+.scene.is-starry .card,
+.scene.is-starry .conditions,
+.scene.is-starry .moon-btn {
+  visibility: hidden;
+}
+/* the drawn scene stays put during the dissolve, then steps out of the way */
+.scene.is-starry .sky-svg,
+.scene.is-starry .world-svg,
+.scene.is-starry .monument {
+  visibility: hidden;
+  transition: visibility 0s 1.15s;
+}
+.scene.is-starry .topbar {
+  color: #f4ecc8;
+  background: none;
+  text-shadow: 0 1px 8px rgba(8, 12, 40, 0.85);
+}
+.scene.is-starry .lede {
+  visibility: visible;
+}
+.starry-ui {
+  position: absolute;
+  z-index: 4;
+  inset: auto 0 0 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 var(--pad) 20px;
+  pointer-events: none;
+}
+.starry-note {
+  margin: 0 0 6px;
+  max-width: 22em;
+  color: #f4ecc8;
+  font-size: 14.5px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-shadow: 0 1px 8px rgba(8, 12, 40, 0.9);
+}
+.starry-exit {
+  pointer-events: auto;
+  flex: none;
+  background: #f4ecc8;
+}
+
 html:not(.js) .hud,
 html:not(.js) .hint,
 html:not(.js) .lang,
@@ -1048,6 +1157,9 @@ html[data-phase='night'] .results .mk-q { color: #a3b0de; }
   }
   * {
     transition-duration: 0.01ms !important;
+  }
+  .moon-glow {
+    animation: none;
   }
 }
 

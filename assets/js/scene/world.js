@@ -36,14 +36,14 @@ export function createWorld(scene, hooks = {}) {
   L.anno = G(svg, { class: 'anno-layer' });
 
   const scenery = buildScenery(L, skySvg);
-  const view = { w: 1, h: 1, base: 1, s: 1, vw: 1000, vh: 1000, top: 0, hud: 90, free: null };
+  const view = { w: 1, h: 1, base: 1, s: 1, vw: 1000, vh: 1000, top: 0, hud: 90, roof: 0, free: null };
   const cam = { x: 0, z: 1, zt: 1, yb: 1100, vx: 0, follow: null };
   const state = { t: 0, wind: 1, windT: 1, paused: false, evalOn: false, lang: 'en', fed: 0 };
   const instances = [];
   const fx = [];
   const tickers = [];
   const crossing = { x: 1000, red: false, was: false, q: { 1: 0, '-1': 0 } };
-  let selected = null, running = false, last = 0, onScreen = true;
+  let selected = null, running = false, last = 0, onScreen = true, suspended = false;
 
   /* ---------------------------------------------------------------- view */
 
@@ -499,7 +499,7 @@ export function createWorld(scene, hooks = {}) {
     requestAnimationFrame(frame);
   }
   function start() {
-    if (running || !onScreen || document.hidden) return;
+    if (running || suspended || !onScreen || document.hidden) return;
     running = true;
     last = performance.now();
     requestAnimationFrame(frame);
@@ -524,6 +524,8 @@ export function createWorld(scene, hooks = {}) {
       view.hud = px;
       layout();
     },
+    // how much of the top of the scene (in px) is covered by text: the moon stays below it
+    setRoof(px) { view.roof = px; },
     // the part of the scene (in px) not covered by the open card
     setFree(rect) {
       view.free = rect;
@@ -548,6 +550,22 @@ export function createWorld(scene, hooks = {}) {
       layout();
       applyView(0);
       start();
+    },
+    // Hand the clock to another renderer: stop drawing, but keep the riders steppable from outside.
+    suspend(on) {
+      suspended = on;
+      on ? stop() : start();
+    },
+    // One step of the world with nothing drawn by us. `vw` is how wide a slice (in view units) the caller is showing.
+    headless(dt, vw) {
+      const keep = view.vw;
+      view.vw = vw;
+      if (!state.paused) state.t += dt;
+      state.wind = lerp(state.wind, state.windT, 1 - Math.exp(-dt * 2.5));
+      if (crossing.red !== crossing.was) (crossing.was = crossing.red), marshal();
+      for (const i of instances) step(i, dt);
+      for (const fn of tickers) fn(state, state.paused ? 0 : dt);
+      view.vw = keep;
     },
     renderOnce() {
       layout();

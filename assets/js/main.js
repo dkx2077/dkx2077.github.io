@@ -68,7 +68,7 @@ const clockHour = () => {
 };
 function setHour(h) {
   const pal = world.scenery.setTime(h);
-  document.documentElement.dataset.phase = pal.phase;
+  document.documentElement.dataset.phase = scene.classList.contains('is-starry') ? 'night' : pal.phase;
   themeMeta?.setAttribute('content', pal.skyA);
   $('c-time').value = h;
   const hh = Math.floor(h) % 24, mm = Math.round((h % 1) * 60);
@@ -118,6 +118,8 @@ function measureHud() {
   const open = !card.hidden, w = scene.clientWidth, h = scene.clientHeight;
   const px = hud.offsetHeight + 10;
   world.setHud(px);
+  const bar = scene.querySelector('.topbar').offsetHeight, tip = $('hint');
+  world.setRoof(narrow.matches ? Math.max(bar, tip.offsetTop + tip.offsetHeight) : bar);
   if (!open) world.setFree(null);
   else if (narrow.matches) world.setFree({ l: 0, r: w, t: 64, b: h - card.offsetHeight - 20 });
   else world.setFree({ l: card.offsetLeft + card.offsetWidth + 10, r: w, t: 84, b: h - px });
@@ -264,6 +266,10 @@ function setPaused(p) {
 $('t-pause').addEventListener('click', () => setPaused(!world.state.paused));
 
 document.addEventListener('keydown', (e) => {
+  if (starry) {
+    if (e.key === 'Escape') closeStarry();
+    return;
+  }
   if (e.key === 'Escape') {
     if (!cond.hidden) (cond.hidden = true), $('t-cond').setAttribute('aria-expanded', 'false'), $('t-cond').focus();
     else world.deselect();
@@ -276,6 +282,64 @@ document.addEventListener('keydown', (e) => {
   else if (k === 'e') toggleEval();
   else if (k === 'g') generate();
 });
+
+/* ------------------------------------------------- the moon: Starry Night */
+
+// At night the moon is a door. The painted version is a separate module, fetched only when someone opens it.
+const moonBtn = $('moon'), starryUi = $('starry-ui');
+let starry = null, starryBusy = false, moonKey = '';
+world.tick(() => {
+  const m = world.scenery.moonAt(), show = m.up && !starry;
+  if (moonBtn.hidden === show) moonBtn.hidden = !show;
+  if (!show) return;
+  const s = world.view.s, d = Math.max(48, m.r * 2 * s);
+  const key = `translate(${Math.round(m.x * s - d / 2)}px, ${Math.round((m.y - world.view.top) * s - d / 2)}px)`;
+  if (key !== moonKey) {
+    moonKey = key;
+    moonBtn.style.transform = key;
+    moonBtn.style.width = moonBtn.style.height = Math.round(d) + 'px';
+  }
+});
+// the moon leans in under a pointer, or under keyboard focus
+for (const [ev, on] of [['pointerenter', true], ['pointerleave', false], ['focus', null], ['blur', false]])
+  moonBtn.addEventListener(ev, () => scene.classList.toggle('moon-hot', on ?? moonBtn.matches(':focus-visible')));
+
+async function openStarry() {
+  if (starry || starryBusy) return;
+  starryBusy = true;
+  try {
+    world.deselect();
+    cond.hidden = true;
+    $('t-cond').setAttribute('aria-expanded', 'false');
+    if ($('t-eval').getAttribute('aria-pressed') === 'true') ($('t-eval').setAttribute('aria-pressed', 'false'), world.setEval(false));
+    const { enterStarry } = await import('./starry/starry.js');
+    starry = enterStarry({ scene, world, label: S.starryLabel, still: matchMedia('(prefers-reduced-motion: reduce)').matches, onMoon: closeStarry });
+    scene.classList.remove('moon-hot');
+    scene.classList.add('is-starry');
+    starryUi.hidden = false;
+    document.documentElement.dataset.phase = 'night';
+    dropHint();
+    $('starry-exit').focus({ preventScroll: true });
+  } finally {
+    starryBusy = false;
+  }
+}
+function closeStarry() {
+  if (!starry) return;
+  const st = starry;
+  starry = null;
+  st.exit();
+  scene.classList.remove('is-starry');
+  starryUi.hidden = true;
+  document.documentElement.dataset.phase = world.scenery.palette.phase;
+  moonBtn.hidden = !world.scenery.moonAt().up;
+  // Back where the visitor came in. Asked twice: a tap on the painted moon moves focus away again right after this.
+  const back = () => !starry && !moonBtn.hidden && moonBtn.focus({ preventScroll: true });
+  back();
+  setTimeout(back, 0);
+}
+moonBtn.addEventListener('click', openStarry);
+$('starry-exit').addEventListener('click', closeStarry);
 
 /* ------------------------------------------------------------------ table */
 
@@ -331,6 +395,7 @@ function setLang(l) {
   setPaused(world.state.paused);
   renderTable();
   if (current) showCard(current);
+  starry?.setLabel(S.starryLabel);
 }
 $('lang').addEventListener('click', () => setLang(lang === 'zh' ? 'en' : 'zh'));
 setLang(lang);
@@ -340,4 +405,6 @@ setLang(lang);
 if (matchMedia('(prefers-reduced-motion: reduce)').matches) setPaused(true);
 measureHud();
 world.start();
+if (query.has('starry')) openStarry(); // for testing: ?starry opens the painted version straight away
 window.pelicans = world; // for the curious: open the console
+Object.defineProperty(world, 'starry', { get: () => starry });
