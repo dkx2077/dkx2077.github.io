@@ -218,10 +218,28 @@ test('pedestrians and sign-writing: small things that are easy to get wrong', as
   for (let k = 1; k < sinks.length; k++) assert.ok(sinks[k] < sinks[k - 1], 'a nearer layer sinks less');
   // lamp halos and beams are laid in during the walk, at their own depth; nothing is painted over the finished picture
   assert.match(painter, /if \(n\.getAttribute\('data-f'\) === 'lamp'\) halo\(n\);/);
-  const tail = painter.slice(painter.indexOf('ctx.drawImage(lineC, 0, 0, W, H);'));
-  assert.doesNotMatch(tail.slice(0, tail.indexOf('/* ---')), /ctx\.(fill|stroke|arc)/);
+  // the one thing that goes on after the line work is laid: the evaluation boxes, which are not part of the picture
+  const at = painter.indexOf('layLines(boil);');
+  assert.ok(at > 0);
+  const tail = painter.slice(at, painter.indexOf('/* ---', at));
+  assert.match(tail, /walk\(L\.anno, 1\)/);
+  assert.doesNotMatch(tail, /ctx\.(fill|stroke|arc)\(|batcher\(/);
   // sign-writing and tiny patches are laid on whole instead of being broken into strokes
   assert.match(painter, /if \(flats\) \{/);
   assert.match(painter, /tiny\(n, tag\)/);
+});
+
+test('the painting is painted in one manner throughout', async () => {
+  const painter = await readFile(new URL('assets/js/starry/starry.js', root), 'utf8');
+  // one brush: riders and scenery use the same brush as the sky and the ground, a little narrower, in three sizes
+  assert.match(painter, /dw = clamp\(bw \* [\d.]+, [\d.]+, [\d.]+\);\s*BRUSH = \[dw \* [\d.]+, dw \* [\d.]+, dw\];/);
+  // strokes follow the form they paint, from a map of edge directions, and only then fall back on a hatch
+  assert.match(painter, /flowField\(\);/);
+  assert.match(painter, /fPow\[f\] > [\d.]+ \? fAng\[f\]/);
+  // outlines are brushed in Prussian blue, never the drawing's ink line, and never a rhythm of dashes
+  assert.match(painter, /col = ink \? contour\(far\) : grade\(/);
+  assert.doesNotMatch(painter, /setLineDash\(\[u \* 2\.3, gap/);
+  // nothing is ruled: the whole of the line work is given a tremor when it goes over the paint
+  assert.match(painter, /function layLines\(boil\)/);
 });
 
