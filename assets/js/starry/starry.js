@@ -29,7 +29,7 @@ const PALETTE = [...SKY, ...GOLD, ...HALO];
 const G0 = SKY.length, H0 = G0 + GOLD.length;
 const LIGHT = ['#fff8dc', '#fdeaa0', '#f9d65e', '#f7b82a', '#d7ecec', '#b4d5ee', '#ffffff'];
 const SEA = ['#0d1a4f', '#11246a', '#162f82', '#1c3d98', '#2255a6', '#2a6eae', '#3888b6'];
-const INK = '#16204a', NIGHT_INK = '#0a1130', LIT = '#f9c435';
+const INK = '#16204a', NIGHT_INK = '#0a1130', PRUSSIAN = '#0f1b55', LIT = '#f9c435';
 const CRESCENT = 'M10 -44A46 46 0 1 0 44 22A38 38 0 1 1 10 -44Z'; // the moon exactly as the scene draws it
 
 // Strokes are grouped by colour so a few thousand of them cost a few dozen draw calls.
@@ -77,21 +77,24 @@ function plain(v, pal) {
   return v;
 }
 const moonlit = new Map(), LAMPS = new Set(['#ffe38a', LIT]);
-// Daylight colours regraded for a night under a yellow moon. `far` sinks the street and the shore further into
-// the blue than the riders, the way a painter keeps a background back; lamps and lit doors are left burning.
-function grade(c, far = 0) {
-  const key = far ? c + far : c;
+// Daylight colours regraded for a night under a yellow moon. `far` sinks a thing into the blue, more the further
+// away it is, the way a painter keeps a background back; lamps and lit doors are left burning. `soft` is for
+// colours taken from the scene's own palette for the hour: those are night colours already, and a dark one of
+// them is a dark blue, not the black of an ink line.
+function grade(c, far = 0, soft = false) {
+  const key = far || soft ? c + far + soft : c;
   let v = moonlit.get(key);
   if (v) return v;
   v = c;
   if (c[0] === '#' && c.length === 7) {
     const [r, g, b] = hex(c), mx = Math.max(r, g, b), mn = Math.min(r, g, b), sat = mx ? (mx - mn) / mx : 0, lum = r * 0.3 + g * 0.59 + b * 0.11;
-    if (lum < 62) v = NIGHT_INK;
-    else if (sat < 0.16 && lum > 190) v = mixHex(c, '#bccbea', 0.5);
+    if (soft && lum < 62) v = mixHex(c, '#1b2f86', 0.3);
+    else if (lum < 62) v = NIGHT_INK;
+    else if (sat < 0.16 && lum > 190) v = mixHex(c, '#b2c2e8', 0.55);
     else if (sat < 0.32 && lum > 150) v = mixHex(c, '#8494cc', 0.5);
     else if (r > 200 && g > 110 && b < 130) v = c;
     else v = mixHex(c, '#1c2c78', 0.2);
-    if (far && lum >= 62 && !LAMPS.has(c)) v = mixHex(v, '#1a2a7c', far);
+    if (far && (soft || lum >= 62) && !LAMPS.has(c)) v = mixHex(v, '#1a2a7c', far);
   }
   moonlit.set(key, v);
   return v;
@@ -110,33 +113,42 @@ function tone(c) {
   }
   return v;
 }
-// One sampled colour becomes five neighbouring ones, as if the brush had been reloaded between touches:
-// a shadow leaning blue, the colour itself, a lighter one, and now and then pure moonlight or a cool grey.
+// One sampled colour becomes six neighbouring ones, as a brush is reloaded between touches: two shadows leaning
+// toward Prussian blue, the colour itself, a warmer and a lighter one, and an accent (moonlight on pale things,
+// orange on warm ones, a cool grey-blue on the rest). No area is left in a single flat tone.
 const shades = new Map();
 function shade(r, g, b, j) {
-  const key = (((r >> 3) << 10) | ((g >> 3) << 5) | (b >> 3)) * 5 + j;
+  const key = (((r >> 3) << 10) | ((g >> 3) << 5) | (b >> 3)) * 6 + j;
   let v = shades.get(key);
   if (!v) {
     const pale = r > 150 && g > 150 && b > 150, warm = r > 190 && g > 100 && b < 140;
     let R = r, G = g, B = b;
-    if (j === 0) (R = r * 0.78), (G = g * 0.8), (B = b * 0.86 + 16);
-    else if (j === 2) (R = r * 1.1 + 8), (G = g * 1.1 + 6), (B = b * 1.06);
-    else if (j === 3) [R, G, B] = pale ? [246, 232, 170] : warm ? [250, 205, 80] : [r * 1.16 + 10, g * 1.12 + 8, b * 0.96];
-    else if (j === 4) [R, G, B] = pale ? [150, 176, 226] : warm ? [226, 110, 34] : [r * 0.7, g * 0.74, b * 0.9 + 26];
+    if (j === 0) (R = r * 0.6 + 6), (G = g * 0.64 + 10), (B = b * 0.78 + 36);
+    else if (j === 1) (R = r * 0.8), (G = g * 0.82), (B = b * 0.88 + 14);
+    else if (j === 3) (R = r * 1.08 + 6), (G = g * 1.07 + 5), (B = b * 1.02);
+    else if (j === 4) [R, G, B] = pale ? [246, 232, 170] : warm ? [250, 205, 80] : [r * 1.2 + 12, g * 1.16 + 10, b * 0.98 + 4];
+    else if (j === 5) [R, G, B] = pale ? [160, 174, 226] : warm ? [232, 138, 40] : [r * 0.7, g * 0.78, b * 0.92 + 30];
     v = `rgb(${clamp(Math.round(R), 0, 255)},${clamp(Math.round(G), 0, 255)},${clamp(Math.round(B), 0, 255)})`;
-    if (shades.size > 8000) shades.clear();
+    if (shades.size > 9000) shades.clear();
     shades.set(key, v);
   }
   return v;
 }
-const VARIANT = [0, 0, 1, 1, 1, 1, 2, 2, 2, 3, 4, 1];
+const VARIANT = [0, 1, 1, 2, 2, 2, 3, 3, 4, 4, 5, 2];
+// the colour of a contour: Prussian blue, lifting toward the blue of the night the further away it is
+const contours = new Map();
+function contour(far) {
+  let v = contours.get(far);
+  if (!v) contours.set(far, (v = far ? mixHex(PRUSSIAN, '#27409c', far * 0.9) : PRUSSIAN));
+  return v;
+}
 
 /* ------------------------------------------------- reading the SVG */
 
 // Ground the scene fills with flat colour. Here it is painted by hand instead (see paintGround).
 const GROUND = new Set(['c-sea1', 'c-sea2', 'c-sea3', 'c-sand', 'c-prom', 'c-promLine', 's-promline', 'c-verge', 'c-road', 'c-curb', 'c-apron']);
-// never drawn: hit areas, light cones, the night tint, contact shadows (laid in separately)
-const UNSEEN = new Set(['hit', 'beam', 'shadow', 'veil', 'lights']);
+// never drawn as they stand: hit areas, the night tint, contact shadows and lamp light (each laid in separately)
+const UNSEEN = new Set(['hit', 'shadow', 'veil', 'lights']);
 // colours that come from a class rather than an attribute, by the palette entry they use
 const FILLS = { 'c-hill': 'hill', 'c-paint': 'paint', 'c-apronD': 'apronD' }, STROKES = { 's-rail': 'rail' };
 
@@ -228,7 +240,7 @@ export function enterStarry({ scene, world, origin = [0, 0] }) {
   const ctx = cv.getContext('2d');
 
   // The picture is laid out in the world's own view: `s` pixels to a unit, `top` the unit at the upper edge.
-  let quality = 1, W = 1, H = 1, dpr = 1, s = 1, top = 0, vw = 1, bw = 6, dw = 3.6;
+  let quality = 1, W = 1, H = 1, dpr = 1, s = 1, top = 0, vw = 1, bw = 6, dw = 5;
   const Y = (u) => (u - top) * s;
 
   // Fill a box with short strokes. angle(x, y, r) and color(x, y, r) decide each one.
@@ -313,7 +325,8 @@ export function enterStarry({ scene, world, origin = [0, 0] }) {
       if (r2 < 1 - (d - 1) / 2.2) return ring % 2 ? H0 + (r < 0.5 ? 0 : 1) : H0 + (r < 0.6 ? 2 : 3);
     }
     const skyH = HORIZON - top;
-    let lum = 0.2 + 0.09 * Math.sin((y + 60 * Math.sin(x * 0.004 + 1.3)) * 0.021 + t * 0.12);
+    // Even where there is no cloud to make a whirlpool, the sky is banded light and dark, so that every stroke shows.
+    let lum = 0.25 + 0.13 * Math.sin((y + 60 * Math.sin(x * 0.004 + 1.3)) * 0.021 + t * 0.12) + 0.06 * Math.sin(x * 0.011 - y * 0.007 + 2);
     for (const v of swirls) {
       const d = Math.hypot(x - v.x, y - v.y);
       lum += Math.exp(-((d / (v.r * 1.2)) ** 2)) * (0.3 + 0.3 * Math.cos((d / v.r) * 8.5 - t * 0.8 + v.id * 1.3));
@@ -572,20 +585,37 @@ export function enterStarry({ scene, world, origin = [0, 0] }) {
   //          be laid over the finished dabs as contour.
   // Whatever the scene shows is therefore in the painting, in the same place, with nothing listed here by name.
   let flatC = null, fa = null, lineC = null, lb = null, grid = null, own = null, cw = 1, jr = Math.random;
-  let pal = {}, lean = { a: 0, b: 0 }, far = 0, crisp = false, focused = null;
-  const halos = [];
+  let pal = {}, lean = { a: 0, b: 0 }, far = 0, sink = 0, crisp = false, focused = null, boilNow = 0;
+  let riding = 0, flats = 0; // how deep the walk is inside a rider, and inside a piece of sign-writing
+  // How far each layer of scenery sinks into the blue: the far shore most, the signs at the roadside hardly at all.
+  const SINK = new Map([[L.far, 0.44], [L.sea, 0.4], [L.land, 0.34], [L.mid, 0.14], [L.fore, 0.06]]);
+  const ROAD_TONE = '#232c6a', TINY = 20; // px: a patch of colour smaller than this is one touch of the brush
+  // One brush for the whole picture. The sky and the ground are laid with a brush `bw` wide; everything standing
+  // in the scene is painted with the same brush a little narrower, in three sizes so that a rider far away is
+  // not three strokes of paint. BRUSH[1] is the one used for scenery.
+  let BRUSH = [3.3, 4.1, 5], wobC = null, wb = null;
+  // the lie of the paint: a small map of which way strokes should run at each point (see flowField)
+  let halfC = null, hc = null, fieldC = null, fc = null, fW = 1, fH = 1;
+  let fS = null, jxx = null, jyy = null, jxy = null, fTmp = null, fAng = null, fPow = null;
   function buildFigures() {
-    flatC = document.createElement('canvas');
-    flatC.width = Math.ceil(W * FS);
-    flatC.height = Math.ceil(H * FS);
-    fa = flatC.getContext('2d', { willReadFrequently: true });
-    lineC = document.createElement('canvas');
-    lineC.width = cv.width;
-    lineC.height = cv.height;
-    lb = lineC.getContext('2d');
-    dw = clamp(bw * 0.64, 3, 4.8);
-    // where dabs may fall on anything that is not a rider: a jittered grid over the whole picture
-    const g = dw * 1.15, cols = Math.ceil(W / g), rows = Math.ceil(H / g), r = rng(4711);
+    const canvas = (w, h, opts) => {
+      const c = document.createElement('canvas');
+      c.width = Math.max(1, w);
+      c.height = Math.max(1, h);
+      return [c, c.getContext('2d', opts)];
+    };
+    [flatC, fa] = canvas(Math.ceil(W * FS), Math.ceil(H * FS), { willReadFrequently: true });
+    [lineC, lb] = canvas(cv.width, cv.height);
+    [wobC, wb] = canvas(cv.width, cv.height);
+    [halfC, hc] = canvas(Math.ceil(flatC.width / 2), Math.ceil(flatC.height / 2));
+    [fieldC, fc] = canvas(Math.ceil(halfC.width / 2), Math.ceil(halfC.height / 2), { willReadFrequently: true });
+    fW = fieldC.width;
+    fH = fieldC.height;
+    [fS, jxx, jyy, jxy, fTmp, fAng, fPow] = [0, 0, 0, 0, 0, 0, 0].map(() => new Float32Array(fW * fH));
+    dw = clamp(bw * 0.82, 3.4, 6.4);
+    BRUSH = [dw * 0.66, dw * 0.82, dw];
+    // where strokes may fall on anything that is not a rider: a jittered grid over the whole picture
+    const g = BRUSH[1] * 1.15, cols = Math.ceil(W / g), rows = Math.ceil(H / g), r = rng(4711);
     grid = new Float32Array(cols * rows * 4);
     for (let j = 0, k = 0; j < rows; j++) {
       for (let i = 0; i < cols; i++, k += 4) {
@@ -598,6 +628,58 @@ export function enterStarry({ scene, world, origin = [0, 0] }) {
     cw = Math.ceil(W / 16) + 1;
     own = new Uint8Array(cw * (Math.ceil(H / 16) + 1));
   }
+
+  // Which way the paint lies. A painter's strokes follow the thing being painted: round a body, along a roof,
+  // up a wall. The colour areas are shrunk to an eighth of the picture, and wherever there is an edge the strokes
+  // near it run along that edge. The edge directions are averaged as orientations (a structure tensor), so they
+  // spread smoothly into the middle of a shape instead of stopping at its outline.
+  function blur(a) {
+    for (let pass = 0; pass < 2; pass++) {
+      for (let y = 0, o = 0; y < fH; y++, o += fW) {
+        for (let x = 0; x < fW; x++) {
+          let sum = 0;
+          for (let k = Math.max(0, x - 2), e = Math.min(fW - 1, x + 2); k <= e; k++) sum += a[o + k];
+          fTmp[o + x] = sum * 0.2;
+        }
+      }
+      for (let y = 0, o = 0; y < fH; y++, o += fW) {
+        const y0 = Math.max(0, y - 2), y1 = Math.min(fH - 1, y + 2);
+        for (let x = 0; x < fW; x++) {
+          let sum = 0;
+          for (let k = y0; k <= y1; k++) sum += fTmp[k * fW + x];
+          a[o + x] = sum * 0.2;
+        }
+      }
+    }
+  }
+  function flowField() {
+    hc.clearRect(0, 0, halfC.width, halfC.height);
+    hc.drawImage(flatC, 0, 0, halfC.width, halfC.height);
+    fc.clearRect(0, 0, fW, fH);
+    fc.drawImage(halfC, 0, 0, fW, fH);
+    const d = fc.getImageData(0, 0, fW, fH).data, n = fW * fH;
+    // one number per cell: nothing where there is no paint, darker paint lower than lighter
+    for (let i = 0, q = 0; i < n; i++, q += 4) fS[i] = (d[q + 3] / 255) * ((d[q] * 0.3 + d[q + 1] * 0.59 + d[q + 2] * 0.11) / 255 - 1.3);
+    jxx.fill(0);
+    jyy.fill(0);
+    jxy.fill(0);
+    for (let y = 1; y < fH - 1; y++) {
+      for (let x = 1, i = y * fW + 1; x < fW - 1; x++, i++) {
+        const gx = fS[i + 1] - fS[i - 1], gy = fS[i + fW] - fS[i - fW];
+        jxx[i] = gx * gx;
+        jyy[i] = gy * gy;
+        jxy[i] = gx * gy;
+      }
+    }
+    blur(jxx);
+    blur(jyy);
+    blur(jxy);
+    for (let i = 0; i < n; i++) {
+      fPow[i] = jxx[i] + jyy[i];
+      fAng[i] = 0.5 * Math.atan2(2 * jxy[i], jxx[i] - jyy[i]) + Math.PI / 2;
+    }
+  }
+
   function area(p, a, stroke) {
     fa.globalAlpha = a;
     lb.globalAlpha = Math.min(1, a * 1.6);
@@ -642,21 +724,29 @@ export function enterStarry({ scene, world, origin = [0, 0] }) {
     const tag = n.tagName;
     if (tag === 'defs' || tag === 'use' || n.getAttribute('display') === 'none') return;
     const cls = n.getAttribute('class');
-    let a = alpha, skew = 0, pivot = 0, hit = false;
+    let a = alpha, skew = 0, pivot = 0, hit = false, spec = 0, flat = 0, light = false;
     if (cls) {
       if (GROUND.has(cls)) return;
       if (UNSEEN.has(cls)) {
         // the one hit area that shows is the keyboard focus ring
         if (cls !== 'hit' || !focused || n.parentNode.parentNode !== focused) return;
         hit = true;
-      } else if (cls.includes('is-ghost')) a *= 0.16;
+      } else if (cls === 'beam') {
+        // a headlamp's beam or the sweep of the lighthouse: as bright as the scene's lamps are at this hour
+        a *= (pal.lights || 0) * 0.55;
+        if (a < 0.02) return;
+        light = true;
+      } else if (cls === 'flat') flat = 1;
       else if (cls === 'tuft') skew = Math.tan(lean.b * -0.45 * 0.01745);
       else if (cls.startsWith('pennant')) {
         skew = Math.tan((cls.length > 7 ? lean.b : lean.a) * 0.01745);
         pivot = n._my ??= +firstM.exec(n.getAttribute('d'))[2];
+      } else {
+        if (cls.startsWith('spec')) spec = 1;
+        if (cls.includes('is-ghost')) a *= 0.16;
       }
     }
-    const op = n.getAttribute('opacity');
+    const op = light ? null : n.getAttribute('opacity'); // a beam's own opacity is the stylesheet's business
     if (op === '0') return;
     if (op) a *= +op;
     const tf = n.getAttribute('transform');
@@ -672,15 +762,16 @@ export function enterStarry({ scene, world, origin = [0, 0] }) {
       const first = n.firstElementChild;
       if (first && first.id.startsWith('tile-')) {
         const was = far;
-        far = 0.36; // street and shore sit further back in the blue than the riders
+        far = sink || 0.3; // a strip of scenery: it sits back in the blue by as much as its layer is far away
         walkTiles(n, first, a);
         far = was;
       } else {
-        if (n.getAttribute('data-f') === 'lamp') {
-          const m = lb.getTransform();
-          halos.push([(m.a * LAMP_HEAD[0] + m.c * LAMP_HEAD[1] + m.e) / dpr, (m.b * LAMP_HEAD[0] + m.d * LAMP_HEAD[1] + m.f) / dpr, Math.abs(m.d) / dpr]);
-        }
+        riding += spec;
+        flats += flat;
         for (let k = first; k; k = k.nextElementSibling) walk(k, a);
+        riding -= spec;
+        flats -= flat;
+        if (n.getAttribute('data-f') === 'lamp') halo(n);
       }
     } else if (tag === 'text') {
       const st = textStyle(n), x = num(n, 'x'), y = num(n, 'y');
@@ -704,7 +795,91 @@ export function enterStarry({ scene, world, origin = [0, 0] }) {
     lb.restore();
   }
 
+  // A street lamp is a small sun on a pole, ringed like the stars. It is laid into the line work at the lamp's
+  // own place in the walk, so whatever is nearer than the lamp (a sign, a rider) rubs it out where they overlap.
+  const haloBatch = batcher();
+  function halo(n) {
+    const m = lb.getTransform();
+    const hx = (m.a * LAMP_HEAD[0] + m.c * LAMP_HEAD[1] + m.e) / dpr, hy = (m.b * LAMP_HEAD[0] + m.d * LAMP_HEAD[1] + m.f) / dpr;
+    if (hx < -80 || hx > W + 80) return;
+    const u = clamp((Math.abs(m.d) / dpr) * 14, bw * 0.55, bw * 1.1), r = rng(311 + boilNow * 13 + (n._seed ??= hash(n.getAttribute('transform'))));
+    lb.save();
+    lb.setTransform(dpr, 0, 0, dpr, 0, 0);
+    lb.globalAlpha = 1;
+    lb.setLineDash([]);
+    lb.fillStyle = '#fff6cf';
+    lb.beginPath();
+    lb.arc(hx, hy, u * 1.1, 0, TAU);
+    lb.fill();
+    for (let ring = 1; ring < 5; ring++) {
+      const rr = u * (0.9 + ring * 0.95), count = Math.round(3 + ring * 3.2);
+      for (let j = 0; j < count; j++) {
+        if (ring > 2 && r() < 0.3) continue;
+        const a = (j / count) * TAU + r() * 0.4;
+        const col = ring < 2 ? pick(['#fde98a', '#fad24a'], r()) : ring < 3 ? pick(['#f7b82a', '#fad24a'], r()) : ring < 4 ? pick(['#f39a1f', '#f6e27a'], r()) : pick(['#bfd9a8', '#e3df9c'], r());
+        haloBatch.add(col, hx + Math.cos(a) * rr, hy + Math.sin(a) * rr, hx + Math.cos(a + 0.42) * rr, hy + Math.sin(a + 0.42) * rr);
+      }
+    }
+    haloBatch.flush(lb, u * 0.64);
+    lb.restore();
+  }
+
+  // Light thrown by a lamp is a thin glaze of warm colour over whatever is behind it, strongest at the lamp. It goes
+  // into the line work at the lamp's own depth, like the halos, so nearer things stand in front of it.
+  function beam(n, p, a) {
+    if (n._bc !== lb) {
+      let b;
+      try {
+        b = n.getBBox();
+      } catch {
+        return;
+      }
+      const fromLeft = n.getAttribute('fill').includes('beamR');
+      const g = lb.createLinearGradient(fromLeft ? b.x : b.x + b.width, 0, fromLeft ? b.x + b.width : b.x, 0);
+      g.addColorStop(0, 'rgba(255,233,166,.95)');
+      g.addColorStop(1, 'rgba(255,233,166,0)');
+      n._bc = lb;
+      n._bg = g;
+    }
+    lb.globalAlpha = a;
+    lb.fillStyle = n._bg;
+    lb.fill(p);
+  }
+
+  // Is this patch of colour too small to be built out of strokes? Sizes are taken at the scene's resting zoom, so
+  // nothing changes its manner when the camera moves in. A path is measured by the SVG, once, while its outline
+  // stays the same; scenery never changes scale, so its scale is kept too.
+  function tiny(n, tag) {
+    let e;
+    if (tag === 'circle') e = num(n, 'r') * 2;
+    else if (tag === 'ellipse') e = Math.min(num(n, 'rx'), num(n, 'ry')) * 2;
+    else if (tag === 'rect') e = Math.min(num(n, 'width'), num(n, 'height'));
+    else {
+      const d = n.getAttribute('d');
+      if (n._ed !== d) {
+        n._ed = d;
+        n._e = 1e9;
+        if (d.length < 400) {
+          try {
+            const b = n.getBBox();
+            n._e = Math.min(b.width, b.height);
+          } catch {}
+        }
+      }
+      e = n._e;
+    }
+    if (e > 400) return false;
+    let k = far ? n._ws : 0;
+    if (!k) {
+      const m = lb.getTransform();
+      k = Math.hypot(m.a, m.b) / (s * dpr);
+      if (far) n._ws = k;
+    }
+    return e * k * view.base < TINY;
+  }
+
   function shape(n, tag, p, cls, a, hit) {
+    if (cls === 'beam') return beam(n, p, a);
     if (hit) {
       lb.globalAlpha = 1;
       lb.strokeStyle = '#ffcf3a';
@@ -713,9 +888,11 @@ export function enterStarry({ scene, world, origin = [0, 0] }) {
       return;
     }
     let fill = n.getAttribute('fill'), st = n.getAttribute('stroke');
+    // colours that come from the scene's palette for the hour (by class, or as var(--name)) are night colours already
+    let softF = !!fill && fill[0] === 'v', softS = !!st && st[0] === 'v';
     if (cls) {
-      if (FILLS[cls]) fill = pal[FILLS[cls]];
-      else if (STROKES[cls]) st = pal[STROKES[cls]];
+      if (FILLS[cls]) (fill = pal[FILLS[cls]]), (softF = true);
+      else if (STROKES[cls]) (st = pal[STROKES[cls]]), (softS = true);
       else if (cls === 'door') fill = (n._lit ??= hash(n.parentNode.getAttribute('transform')) % 5 < 2) ? LIT : INK; // some of the huts are still up
     }
     fill = plain(fill, pal);
@@ -735,19 +912,35 @@ export function enterStarry({ scene, world, origin = [0, 0] }) {
       }
       return;
     }
+    if (flats) {
+      // Sign-writing: a figure on a road sign, in a signal lamp or painted on the tarmac is flat colour and has to
+      // stay readable at the size of a thumbnail, so it is laid on whole. Where it is faded (paint on the road),
+      // the colour is thinned instead of the alpha, or every overlap of two parts would show as a darker patch.
+      const thin = a > 0.3 && a < 0.99, tint = (c, soft) => (thin ? mixHex(ROAD_TONE, grade(c, far, soft), a) : grade(c, far, soft));
+      lb.globalAlpha = thin ? 1 : a;
+      if (fill) (lb.fillStyle = tint(fill, softF)), lb.fill(p);
+      if (st) {
+        lb.strokeStyle = tint(st, softS);
+        lb.lineWidth = sw;
+        lb.lineJoin = n.getAttribute('stroke-linejoin') || 'miter';
+        lb.lineCap = n.getAttribute('stroke-linecap') || 'butt';
+        lb.stroke(p);
+      }
+      return;
+    }
     if (fill) {
-      if (tag === 'circle' && num(n, 'r') <= 5) {
-        // an eye or a hub is a single touch of the brush: keep it whole
-        lb.fillStyle = grade(fill, far);
+      if (riding ? tag === 'circle' && num(n, 'r') <= 5 : tiny(n, tag)) {
+        // An eye, a hub, a pennant, a drop of spray: a patch this small is a single touch of the brush. Keep it whole.
+        lb.fillStyle = grade(fill, far, softF);
         lb.globalAlpha = a;
         lb.fill(p);
       } else {
-        fa.fillStyle = grade(fill, far);
+        fa.fillStyle = grade(fill, far, softF);
         area(p, a * (+n.getAttribute('fill-opacity') || 1), false);
       }
     }
     if (!st) return;
-    const ink = st === INK, col = grade(st, far);
+    const ink = st === INK, col = ink ? contour(far) : grade(st, far, softS);
     fa.lineJoin = lb.lineJoin = n.getAttribute('stroke-linejoin') || 'miter';
     fa.lineCap = lb.lineCap = n.getAttribute('stroke-linecap') || 'butt';
     fa.lineWidth = lb.lineWidth = sw;
@@ -767,43 +960,55 @@ export function enterStarry({ scene, world, origin = [0, 0] }) {
         lb.setLineDash([]);
         return;
       }
-      // A contour is a run of short strokes, never one ruled line: dark ones laid end to end in an
-      // uneven rhythm, then a second tone dragged loosely over them, as when a brush is reloaded.
-      // The background gets the plain version: at its size the rhythm would only read as a dotted line.
-      const u = Math.min(sw, 4.4), w = sw * 0.96, gap = w + u * 0.34;
+      // A contour is drawn with the brush, not ruled: one loaded stroke, heavier than the pen line it replaces and
+      // never quite on it, and on anything near a second, lighter stroke dragged loosely along the first. The whole
+      // of the line work is given a tremor when it is laid over the paint (see layLines).
+      const u = Math.min(sw, 4.4);
       lb.lineCap = lb.lineJoin = 'round';
-      lb.lineWidth = w;
-      if (far) {
-        lb.translate((jr() - 0.5) * 1.5, (jr() - 0.5) * 1.5);
-        lb.stroke(p);
-        return;
-      }
-      if (ink) {
-        lb.setLineDash([u * 2.3, gap, u * 4.6, gap, u * 3.2, gap, u * 6.1, gap, u * 2.8, gap]);
-        lb.lineDashOffset = jr() * u * 40;
-      }
+      lb.lineWidth = sw * (far ? 1.15 : ink ? 1.3 : 1.05);
       lb.save();
       lb.translate((jr() - 0.5) * 1.5, (jr() - 0.5) * 1.5);
       lb.stroke(p);
       lb.restore();
+      if (far) return;
       lb.strokeStyle = tone(col);
-      lb.globalAlpha = a * (ink ? 0.9 : 0.8);
-      lb.lineWidth = Math.min(sw * (ink ? 0.5 : 0.36), 3.2);
-      lb.setLineDash([u * 2.2, u * 3.1, u * 3.4, u * 4.2]);
-      lb.lineDashOffset = jr() * u * 13;
+      lb.globalAlpha = a * (ink ? 0.85 : 0.8);
+      lb.lineWidth = Math.min(sw * (ink ? 0.45 : 0.36), 3.2);
+      lb.setLineDash([u * 3.1, u * 2.6, u * 5.2, u * 3.8]);
+      lb.lineDashOffset = jr() * u * 15;
       lb.translate((jr() - 0.5) * (sw * 0.3 + 1), (jr() - 0.5) * (sw * 0.3 + 1));
       lb.stroke(p);
       lb.setLineDash([]);
     }
   }
 
-  // Where the dabs of one rider go: fixed to its own box, so the paint travels with it instead of swimming.
+  // The line work goes over the paint with a tremor in it, so that nothing in the picture is ruled: the layer is
+  // slid sideways by a different, slowly varying amount on every row, and then up and down on every column. The
+  // tremor is redrawn with the rest of the still paint, three times a second.
+  function layLines(boil) {
+    const cwid = lineC.width, chei = lineC.height, A = clamp(bw * 0.32, 1.3, 2.4) * dpr, step = Math.max(3, Math.round(5 * dpr));
+    const p1 = boil * 1.7, p2 = boil * 2.3 + 1, f1 = 0.043 / dpr, f2 = 0.107 / dpr;
+    wb.clearRect(0, 0, cwid, chei);
+    for (let y = 0; y < chei; y += step) {
+      const h = Math.min(step, chei - y);
+      wb.drawImage(lineC, 0, y, cwid, h, A * (Math.sin(y * f1 + p1) * 0.65 + Math.sin(y * f2 + p2) * 0.35), y, cwid, h);
+    }
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    for (let x = 0; x < cwid; x += step) {
+      const w = Math.min(step, cwid - x);
+      ctx.drawImage(wobC, x, 0, w, chei, x, A * (Math.sin(x * f1 * 0.93 + p2) * 0.65 + Math.sin(x * f2 * 1.07 + p1) * 0.35), w, chei);
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  // Where the strokes on one rider go: fixed to its own box, so the paint travels with it instead of swimming.
+  // A rider is painted with the widest brush it can take: how many strokes tall it would be decides which.
   const boxOf = (d) => d.box || [-d.w / 2, -d.h, d.w, d.h];
   function sitesFor(i, kpx) {
     const key = Math.round(kpx * 200);
     if (i._dabs && i._dabs.key === key) return i._dabs;
-    const b = boxOf(i.def);
-    const n = Math.min(2600, Math.ceil((b[2] * kpx * b[3] * kpx) / (dw * dw * 3.2 * 0.4)));
+    const b = boxOf(i.def), tall = (i.def.h * i.k * view.base) / dw, size = tall < 17 ? 0 : tall < 28 ? 1 : 2, w = BRUSH[size];
+    const n = Math.min(2600, Math.ceil((b[2] * kpx * b[3] * kpx) / (w * w * 3.3 * 0.4)));
     const r = rng(hash(i.def.id)), pts = new Float32Array(n * 4);
     for (let k = 0; k < n; k++) {
       pts[k * 4] = b[0] + r() * b[2];
@@ -811,10 +1016,10 @@ export function enterStarry({ scene, world, origin = [0, 0] }) {
       pts[k * 4 + 2] = r();
       pts[k * 4 + 3] = r();
     }
-    return (i._dabs = { key, n, pts });
+    return (i._dabs = { key, n, pts, size });
   }
 
-  const figBatch = batcher();
+  const strokes = [batcher(), batcher(), batcher()]; // one per width of brush
   function paintScene(boil) {
     const fw = flatC.width, fh = flatC.height, riders = [];
     for (const c of [fa, lb]) {
@@ -848,74 +1053,74 @@ export function enterStarry({ scene, world, origin = [0, 0] }) {
     lb.setTransform(s * dpr, 0, 0, s * dpr, 0, -top * s * dpr);
     pal = sc.palette;
     lean = sc.leanAt();
-    halos.length = 0;
+    boilNow = boil;
+    riding = flats = 0;
     const el = document.activeElement;
     focused = el && el.classList?.contains('spec') && el.matches(':focus-visible') ? el : null;
     jr = rng(9176 + boil * 7919);
     for (let n = svg.firstElementChild; n; n = n.nextElementSibling) {
-      if (n === L.lights) continue;
-      crisp = n === L.anno;
-      if (n === L.far || n === L.sea || n === L.land || n === L.mid) {
-        // loose paths in a layer of scenery (the surf, the zebra crossing) belong to the background too
-        for (let k = n.firstElementChild; k; k = k.nextElementSibling) (far = k.tagName === 'g' ? 0 : 0.36), walk(k, 1);
-        far = 0;
-      } else walk(n, 1);
+      if (n === L.glow || n === L.anno) continue;
+      if (n === L.lights) {
+        // the pools of light the street lamps throw on the boardwalk: a glaze, as faint as it is drawn
+        crisp = true;
+        for (let k = n.firstElementChild; k; k = k.nextElementSibling) walk(k, pal.lights || 0);
+        continue;
+      }
+      crisp = false;
+      sink = SINK.get(n) || 0;
+      // loose paths in a layer of scenery (the surf, the zebra crossing) sit as far back as the strips around them
+      far = sink;
+      walk(n, 1);
     }
     crisp = false;
+    far = sink = 0;
 
-    // underpainting, then dabs read back from it, then the contours
+    // underpainting, then strokes read back from it, then the contours
     ctx.drawImage(flatC, 0, 0, W, H);
     const img = fa.getImageData(0, 0, fw, fh).data;
-    const lum = (q) => img[q] * 0.3 + img[q + 1] * 0.59 + img[q + 2] * 0.11 - img[q + 3];
-    const half = (dw * 3.2) / 2;
-    const touch = (X, Y2, r, r2, k, hatch) => {
+    flowField();
+    const touch = (size, X, Y2, r, r2, k, hatch) => {
       const u = (X * FS) | 0, v = (Y2 * FS) | 0;
       if (u < 1 || v < 1 || u >= fw - 1 || v >= fh - 1) return;
       const q = (v * fw + u) * 4;
       if (img[q + 3] < 110) return;
-      // strokes follow an edge where there is one, and fall into a slanting hatch where there is not
-      const gx = lum(q + 4) - lum(q - 4), gy = lum(q + fw * 4) - lum(q - fw * 4);
-      const ang = gx * gx + gy * gy > 1200 ? Math.atan2(gy, gx) + Math.PI / 2 : hatch;
-      const l = half * (0.7 + r2 * 0.6), cx = Math.cos(ang) * l, cy = Math.sin(ang) * l;
-      figBatch.add(shade(img[q], img[q + 1], img[q + 2], VARIANT[(Math.floor(r * 12) + ((k + boil) % 3 ? 0 : 1)) % 12]), X - cx, Y2 - cy, X + cx, Y2 + cy);
+      // the stroke lies the way the form runs here; in the middle of something large and plain it falls into a hatch
+      const f = (v >> 2) * fW + (u >> 2);
+      const ang = fPow[f] > 0.0012 ? fAng[f] + (r2 - 0.5) * 0.34 : hatch;
+      const l = BRUSH[size] * 1.65 * (0.7 + r2 * 0.6), cx = Math.cos(ang) * l, cy = Math.sin(ang) * l;
+      strokes[size].add(shade(img[q], img[q + 1], img[q + 2], VARIANT[(Math.floor(r * 12) + ((k + boil) % 3 ? 0 : 1)) % 12]), X - cx, Y2 - cy, X + cx, Y2 + cy);
     };
+    // everything that is not a rider, on sites that stay put on the canvas. What stands up is hatched close to
+    // upright; what is painted on the road lies flat, so its strokes run with the road's.
+    const g = grid, ox = (boil * 37) % 5, oy = (boil * 53) % 5, lying = Y(742);
+    for (let k = 0, n = 0; k < g.length; k += 4, n++) {
+      const X = g[k] + ox, Y2 = g[k + 1] + oy;
+      if (own[((Y2 / 16) | 0) * cw + ((X / 16) | 0)]) continue;
+      touch(1, X, Y2, g[k + 2], g[k + 3], n, Y2 > lying ? (g[k + 3] - 0.5) * 0.24 : -1.42 + (g[k + 3] - 0.5) * 0.5);
+    }
     for (const { i, px, py, kpx } of riders) {
       const st = sitesFor(i, kpx), p = st.pts, face = i.face;
       for (let k = 0; k < st.n; k++) {
         const lx = p[k * 4], ly = p[k * 4 + 1], r2 = p[k * 4 + 3];
         const h = -0.95 + 0.55 * Math.sin(lx * 0.035 + ly * 0.022) + (r2 - 0.5) * 0.5;
-        touch(px + lx * kpx * face, py + ly * kpx, p[k * 4 + 2], r2, k, face < 0 ? Math.PI - h : h);
+        touch(st.size, px + lx * kpx * face, py + ly * kpx, p[k * 4 + 2], r2, k, face < 0 ? Math.PI - h : h);
       }
     }
-    // everything that is not a rider: the same touch, on sites that stay put on the canvas
-    const g = grid, ox = (boil * 37) % 5, oy = (boil * 53) % 5;
-    for (let k = 0, n = 0; k < g.length; k += 4, n++) {
-      const X = g[k] + ox, Y2 = g[k + 1] + oy;
-      if (own[((Y2 / 16) | 0) * cw + ((X / 16) | 0)]) continue;
-      touch(X, Y2, g[k + 2], g[k + 3], n, -1.25 + (g[k + 3] - 0.5) * 0.7);
-    }
-    figBatch.flush(ctx, dw);
-    ctx.drawImage(lineC, 0, 0, W, H);
+    for (let k = 0; k < 3; k++) strokes[k].flush(ctx, BRUSH[k]);
+    layLines(boil);
 
-    // street lamps: small suns on poles, ringed like the stars
-    const r = rng(311 + boil);
-    for (const [hx, hy, k] of halos) {
-      if (hx < -80 || hx > W + 80) continue;
-      const u = clamp(k * 14, bw * 0.55, bw * 1.1), b = batcher();
-      ctx.fillStyle = '#fff6cf';
-      ctx.beginPath();
-      ctx.arc(hx, hy, u * 1.1, 0, TAU);
-      ctx.fill();
-      for (let ring = 1; ring < 5; ring++) {
-        const rr = u * (0.9 + ring * 0.95), n = Math.round(3 + ring * 3.2);
-        for (let j = 0; j < n; j++) {
-          if (ring > 2 && r() < 0.3) continue;
-          const a = (j / n) * TAU + r() * 0.4;
-          const col = ring < 2 ? pick(['#fde98a', '#fad24a'], r()) : ring < 3 ? pick(['#f7b82a', '#fad24a'], r()) : ring < 4 ? pick(['#f39a1f', '#f6e27a'], r()) : pick(['#bfd9a8', '#e3df9c'], r());
-          b.add(col, hx + Math.cos(a) * rr, hy + Math.sin(a) * rr, hx + Math.cos(a + 0.42) * rr, hy + Math.sin(a + 0.42) * rr);
-        }
-      }
-      b.flush(ctx, u * 0.64);
+    // marks laid over the picture (the evaluation boxes) are not part of it: they go on last, as sharp as drawn
+    if (L.anno.firstElementChild) {
+      const keep = lb;
+      lb = ctx;
+      ctx.save();
+      ctx.setTransform(s * dpr, 0, 0, s * dpr, 0, -top * s * dpr);
+      crisp = true;
+      walk(L.anno, 1);
+      crisp = false;
+      ctx.restore();
+      ctx.globalAlpha = 1;
+      lb = keep;
     }
   }
 
@@ -961,7 +1166,7 @@ export function enterStarry({ scene, world, origin = [0, 0] }) {
   // everything a still picture depends on: if none of it has changed while the scene is paused, nothing is repainted
   const stillKey = () =>
     [cam.x.toFixed(1), view.s.toFixed(3), view.top.toFixed(1), scene.clientWidth, scene.clientHeight, world.instances.length, world.selected?.def.id, state.evalOn, state.lang, state.wind.toFixed(2),
-      L.fx.childElementCount, L.anno.childElementCount, added.length, ground.frames.length, document.activeElement?.dataset?.spec, scene.classList.contains('moon-hot'), sc.moonAt().x.toFixed(0)].join('|');
+      world.fxCount, L.anno.childElementCount, added.length, ground.frames.length, document.activeElement?.dataset?.spec, scene.classList.contains('moon-hot'), sc.moonAt().x.toFixed(0)].join('|');
   function loop(now) {
     if (!alive) return;
     raf = requestAnimationFrame(loop);

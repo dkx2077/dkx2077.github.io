@@ -4,7 +4,17 @@ import { pelican } from './parts.js';
 import { CROSSING_X, W, depth } from './scenery.js';
 import { walker, L } from './specimens.js';
 
-const GLYPH = 'M-9 8q-3 -10 5 -12q0 -8 6 -9q5 0 5 4l12 4l-12 3q-1 5 -5 6q-5 8 -16 4Z';
+// The figure in the lamps, as on any pedestrian signal: standing still for stop, striding for go. Here it is a pelican.
+function figure(g, fill, walking) {
+  const line = (parent, d, w) => P(parent, d, { fill: 'none', stroke: fill, 'stroke-width': w, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
+  const b = G(g, walking ? { transform: 'rotate(14 0 4)' } : null);
+  P(b, 'M-7.5 1.5C-8 -5 -3 -9.5 2 -8.5C6.5 -7.5 7.5 -1 6 4C4.5 9 -1.5 10 -4.5 8C-6.5 6.5 -7.3 4.5 -7.5 1.5Z', { fill });
+  P(b, 'M-6 -1L-11 -3L-8 4Z', { fill, stroke: fill, 'stroke-width': 1, 'stroke-linejoin': 'round' }); // tail
+  line(b, 'M2.5 -7C6 -9 3 -12 5 -15.5', 3.4); // neck
+  C(b, 5.6, -16.6, 2.9, { fill });
+  P(b, 'M6 -19.4L19 -15.2C14.5 -14.8 10 -10.8 6.4 -14.4Z', { fill, stroke: fill, 'stroke-width': 0.8, 'stroke-linejoin': 'round' }); // bill and pouch
+  line(g, walking ? 'M0 8L-6 14.5h-3.4M3 8L7.5 14l3.2 1.2' : 'M-1.5 8.5V15h3.6M3 8.5V15h3.6', 2.4); // legs
+}
 
 export function setupCrossing(world, hooks = {}) {
   const X = CROSSING_X, S = [X + 20, 1006], E = [X - 20, 714], DUR = 6.4, LAG = 0.6;
@@ -26,9 +36,11 @@ export function setupCrossing(world, hooks = {}) {
       shape(g, 'M-24 -262h48v94h-48Z', '#2a2545');
       const red = G(g, { transform: 'translate(0 -238)' }), green = G(g, { transform: 'translate(0 -194)' });
       C(red, 0, 0, 18, { fill: '#3a1f33' });
-      const redOn = P(red, GLYPH, { fill: '#ff5a4a', transform: 'translate(-3 2) scale(.8)' });
+      const redOn = G(red, { class: 'flat', transform: 'translate(-3 2) scale(.92)' });
+      figure(redOn, '#ff5a4a', false);
       C(green, 0, 0, 18, { fill: '#17332f' });
-      const greenOn = P(green, GLYPH, { fill: '#5df0a0', transform: 'translate(-3 2) scale(.8) rotate(-8)' });
+      const greenOn = G(green, { class: 'flat', transform: 'translate(-3 2) scale(.92)' });
+      figure(greenOn, '#5df0a0', true);
       shape(g, 'M-15 -128h30v46h-30Z', '#ffcf3a');
       const wait = R(g, -10, -123, 20, 9, { rx: 2, fill: '#6b5a1a' });
       const btn = C(g, 0, -98, 8, { fill: '#ef4b3b', stroke: INK, 'stroke-width': 2.6 });
@@ -47,11 +59,28 @@ export function setupCrossing(world, hooks = {}) {
     },
   };
 
-  // the pedestrians
-  const walkG = G(world.L.fore);
+  // The pedestrians. They cross the whole depth of the road, so each of them is kept among the riders in order of
+  // distance: a pelican that has reached the far kerb is behind everyone still on the road, not in front of them.
+  const { road, farLane } = world.L;
+  function seat(root, y) {
+    root.dataset.y = f1(y);
+    if (y < 738) {
+      // off the road, on the promenade side of the verge and its signs
+      if (root.parentNode !== farLane || root.nextElementSibling) farLane.appendChild(root);
+      return;
+    }
+    let before = null;
+    for (let n = road.firstElementChild; n; n = n.nextElementSibling) {
+      if (n !== root && +n.dataset.y > y) {
+        before = n;
+        break;
+      }
+    }
+    if (root.parentNode !== road || root.nextElementSibling !== before) road.insertBefore(root, before);
+  }
   const family = [0, 1, 2, 3].map((n) => {
     const p = pelican(n ? { pal: 'chick', legs: [36, 40], neckW: 16 } : { legs: [36, 40], hat: 'beret', hatColor: '#2f62e0' });
-    const root = G(walkG, { display: 'none' }), inner = G(root);
+    const root = G(world.L.fore, { display: 'none' }), inner = G(root);
     Ell(inner, -10, 3, 62, 9, { fill: '#16204a', opacity: 0.2 });
     inner.append(p.far, p.mid, p.near);
     return { p, root, inner, size: n ? 0.5 : 0.95, pose: walker(p, { stride: n ? 20 : 24, lift: 12, lean: 0.5, hipY: -60, neckAng: 1.2, neckLen: n ? 44 : 60, head: -0.12 }) };
@@ -93,6 +122,7 @@ export function setupCrossing(world, hooks = {}) {
       const x = lerp(S[0], E[0], u), y = lerp(S[1], E[1], u);
       const p = depth(y), k = p * m.size;
       const sx = view.vw / 2 + wrapSigned(x - cam.x, W) * p;
+      seat(m.root, y);
       set(m.root, 'transform', `translate(${f1(sx)} ${f1(y)})`);
       set(m.inner, 'transform', `scale(${f1(-k * 100) / 100} ${f1(k * 100) / 100})`);
       set(m.root, 'opacity', f1(clamp((1.06 - u) * 18, 0, 1)));

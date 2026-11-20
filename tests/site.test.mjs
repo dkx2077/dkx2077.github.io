@@ -187,3 +187,59 @@ test('nothing that moves is computed as time multiplied by a changing speed', as
   }
 });
 
+test('what is nearer hides what is farther: lamp light and spray included', async () => {
+  const read = (f) => readFile(new URL('assets/js/scene/' + f, root), 'utf8');
+  const [world, specimens] = await Promise.all([read('world.js'), read('specimens.js')]);
+  // document order is depth, and the light of the street lamps sits at the depth of the lamps:
+  // after the promenade they stand on, before the promenade lane, the signs and the road
+  assert.match(world, /land: G\(svg\), lights: G\(svg\), farLane: G\(svg\)/);
+  // water and dust are put next to whoever threw them up, and shrink with distance like everything else
+  assert.match(world, /from\.root\.after\(node\)/);
+  assert.match(world, /\* f\.k \* 100/);
+  const splashes = [...specimens.matchAll(/world\.puff\([^;]*'(?:drop|dot)'[^;]*;/g)];
+  assert.ok(splashes.length >= 3);
+  for (const m of splashes) assert.match(m[0], /from: inst/, 'a splash with no owner would float in front of everything');
+});
+
+test('pedestrians and sign-writing: small things that are easy to get wrong', async () => {
+  const read = (f) => readFile(new URL('assets/js/' + f, root), 'utf8');
+  const [scenery, crossing, painter] = await Promise.all([read('scene/scenery.js'), read('scene/crossing.js'), read('starry/starry.js')]);
+  // the family on the crossing is kept among the riders in order of distance, not parked in a layer on top
+  assert.match(crossing, /road\.insertBefore\(root, before\)/);
+  assert.doesNotMatch(crossing, /G\(walkG/);
+  // figures on signs, in the signal and on the tarmac are marked as flat colour for any renderer that breaks colour up
+  assert.match(scenery, /function pictogram\(g, fill\) \{\s*const p = G\(g, \{ class: 'flat' \}\)/);
+  assert.equal(crossing.split("class: 'flat'").length - 1, 2);
+
+  // the painter: scenery sinks into the blue by distance, nearest least
+  const m = painter.match(/SINK = new Map\(\[\[L\.far, ([\d.]+)\], \[L\.sea, ([\d.]+)\], \[L\.land, ([\d.]+)\], \[L\.mid, ([\d.]+)\], \[L\.fore, ([\d.]+)\]\]\)/);
+  assert.ok(m, 'one sink per layer of scenery');
+  const sinks = m.slice(1).map(Number);
+  for (let k = 1; k < sinks.length; k++) assert.ok(sinks[k] < sinks[k - 1], 'a nearer layer sinks less');
+  // lamp halos and beams are laid in during the walk, at their own depth; nothing is painted over the finished picture
+  assert.match(painter, /if \(n\.getAttribute\('data-f'\) === 'lamp'\) halo\(n\);/);
+  // the one thing that goes on after the line work is laid: the evaluation boxes, which are not part of the picture
+  const at = painter.indexOf('layLines(boil);');
+  assert.ok(at > 0);
+  const tail = painter.slice(at, painter.indexOf('/* ---', at));
+  assert.match(tail, /walk\(L\.anno, 1\)/);
+  assert.doesNotMatch(tail, /ctx\.(fill|stroke|arc)\(|batcher\(/);
+  // sign-writing and tiny patches are laid on whole instead of being broken into strokes
+  assert.match(painter, /if \(flats\) \{/);
+  assert.match(painter, /tiny\(n, tag\)/);
+});
+
+test('the painting is painted in one manner throughout', async () => {
+  const painter = await readFile(new URL('assets/js/starry/starry.js', root), 'utf8');
+  // one brush: riders and scenery use the same brush as the sky and the ground, a little narrower, in three sizes
+  assert.match(painter, /dw = clamp\(bw \* [\d.]+, [\d.]+, [\d.]+\);\s*BRUSH = \[dw \* [\d.]+, dw \* [\d.]+, dw\];/);
+  // strokes follow the form they paint, from a map of edge directions, and only then fall back on a hatch
+  assert.match(painter, /flowField\(\);/);
+  assert.match(painter, /fPow\[f\] > [\d.]+ \? fAng\[f\]/);
+  // outlines are brushed in Prussian blue, never the drawing's ink line, and never a rhythm of dashes
+  assert.match(painter, /col = ink \? contour\(far\) : grade\(/);
+  assert.doesNotMatch(painter, /setLineDash\(\[u \* 2\.3, gap/);
+  // nothing is ruled: the whole of the line work is given a tremor when it goes over the paint
+  assert.match(painter, /function layLines\(boil\)/);
+});
+

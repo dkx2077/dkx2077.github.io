@@ -147,7 +147,7 @@ export const SPECIMENS = [
           const hand = [bx + gx * Math.cos(rr) - gy * Math.sin(rr), by + gx * Math.sin(rr) + gy * Math.cos(rr)];
           const H = p.headPos();
           set(reins, 'd', `M${pt(hand)}Q${f1((hand[0] + H[0]) / 2)} ${f1(Math.max(hand[1], H[1]) + 26)} ${f1(H[0] + 14)} ${f1(H[1] + 6)}`);
-          if (a > 0.3 && Math.random() < 0.3) world.puff(...world.toView(inst, [-40, -6]), 'dot', { vx: -60 * inst.face, vy: -30, ttl: 0.5, r: 6, grow: 1, color: '#e9e2d2' });
+          if (a > 0.3 && Math.random() < 0.3) world.puff(...world.toView(inst, [-40, -6]), 'dot', { from: inst, vx: -60 * inst.face, vy: -30, ttl: 0.5, r: 6, grow: 1, color: '#e9e2d2' });
         },
         trick() {
           go.go(1.8);
@@ -464,7 +464,7 @@ export const SPECIMENS = [
           if ((drip -= f.dt) < 0) {
             drip = 0.55 - a * 0.4;
             const h = r.p.headPos();
-            world.puff(...world.toView(inst, [h[0] - 16, h[1] - 6]), 'drop', { vx: -50 - Math.random() * 40, vy: -70, g: 420, ttl: 0.7 });
+            world.puff(...world.toView(inst, [h[0] - 16, h[1] - 6]), 'drop', { from: inst, vx: -50 - Math.random() * 40, vy: -70, g: 420, ttl: 0.7 });
           }
         },
         trick: () => sp.go(2.6),
@@ -631,7 +631,7 @@ export const SPECIMENS = [
       return {
         update: (f) => r.update(f),
         trick() {
-          for (let n = 0; n < 3; n++) setTimeout(() => world.puff(...world.toView(inst, [40, -150]), 'note', { vy: -90, vx: 30 * inst.face, color: '#ef4b3b' }), n * 140);
+          for (let n = 0; n < 3; n++) setTimeout(() => world.puff(...world.toView(inst, [40, -150]), 'note', { from: inst, vy: -90, vx: 30 * inst.face, color: '#ef4b3b' }), n * 140);
         },
         beak: r.beak, gulp: r.gulp,
       };
@@ -823,7 +823,7 @@ export const SPECIMENS = [
           r.update(f);
           if ((drip -= f.dt) < 0) {
             drip = 0.3 - a * 0.24;
-            world.puff(...world.toView(inst, [-96, -20]), 'drop', { vx: (-60 - Math.random() * 60) * inst.face, vy: -120 - a * 120, g: 500, ttl: 0.7 });
+            world.puff(...world.toView(inst, [-96, -20]), 'drop', { from: inst, vx: (-60 - Math.random() * 60) * inst.face, vy: -120 - a * 120, g: 500, ttl: 0.7 });
           }
         },
         trick: () => sp.go(1.6),
@@ -903,7 +903,7 @@ export function remix(seed, n) {
       return {
         update: (f) => r.update(f, kind === 'uni' ? { flap: 0.2 + Math.sin(f.t * 3) * 0.2, flapF: 1.7, span: 70 } : null),
         trick() {
-          world.puff(...world.toView(inst, [40, -170]), 'note', { vy: -90, vx: 30 * inst.face, color: '#ef4b3b' });
+          world.puff(...world.toView(inst, [40, -170]), 'note', { from: inst, vy: -90, vx: 30 * inst.face, color: '#ef4b3b' });
           inst.kick = 1.5;
           inst.kickT = 1;
         },
