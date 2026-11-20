@@ -201,3 +201,27 @@ test('what is nearer hides what is farther: lamp light and spray included', asyn
   for (const m of splashes) assert.match(m[0], /from: inst/, 'a splash with no owner would float in front of everything');
 });
 
+test('pedestrians and sign-writing: small things that are easy to get wrong', async () => {
+  const read = (f) => readFile(new URL('assets/js/' + f, root), 'utf8');
+  const [scenery, crossing, painter] = await Promise.all([read('scene/scenery.js'), read('scene/crossing.js'), read('starry/starry.js')]);
+  // the family on the crossing is kept among the riders in order of distance, not parked in a layer on top
+  assert.match(crossing, /road\.insertBefore\(root, before\)/);
+  assert.doesNotMatch(crossing, /G\(walkG/);
+  // figures on signs, in the signal and on the tarmac are marked as flat colour for any renderer that breaks colour up
+  assert.match(scenery, /function pictogram\(g, fill\) \{\s*const p = G\(g, \{ class: 'flat' \}\)/);
+  assert.equal(crossing.split("class: 'flat'").length - 1, 2);
+
+  // the painter: scenery sinks into the blue by distance, nearest least
+  const m = painter.match(/SINK = new Map\(\[\[L\.far, ([\d.]+)\], \[L\.sea, ([\d.]+)\], \[L\.land, ([\d.]+)\], \[L\.mid, ([\d.]+)\], \[L\.fore, ([\d.]+)\]\]\)/);
+  assert.ok(m, 'one sink per layer of scenery');
+  const sinks = m.slice(1).map(Number);
+  for (let k = 1; k < sinks.length; k++) assert.ok(sinks[k] < sinks[k - 1], 'a nearer layer sinks less');
+  // lamp halos and beams are laid in during the walk, at their own depth; nothing is painted over the finished picture
+  assert.match(painter, /if \(n\.getAttribute\('data-f'\) === 'lamp'\) halo\(n\);/);
+  const tail = painter.slice(painter.indexOf('ctx.drawImage(lineC, 0, 0, W, H);'));
+  assert.doesNotMatch(tail.slice(0, tail.indexOf('/* ---')), /ctx\.(fill|stroke|arc)/);
+  // sign-writing and tiny patches are laid on whole instead of being broken into strokes
+  assert.match(painter, /if \(flats\) \{/);
+  assert.match(painter, /tiny\(n, tag\)/);
+});
+

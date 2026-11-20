@@ -59,8 +59,9 @@ const SPAN = 4600; // wider than any viewport, in view units
 // A pelican on a bicycle the way a road sign would draw it: one flat colour, heavy enough to read at thumbnail
 // size. The bicycle has a real frame, the rider sits on the saddle with a leg down to the pedal, and the bill has
 // its pouch. Used on the signs and painted on the road. It spans x -37..51 and y -66..14, wheels resting on y = 14.
+// The class says it is sign-writing: flat colour, to be left whole by any renderer that breaks colour into strokes.
 function pictogram(g, fill) {
-  const p = G(g);
+  const p = G(g, { class: 'flat' });
   const line = (d, w) => P(p, d, { fill: 'none', stroke: fill, 'stroke-width': w, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
   line('M-37 0a14 14 0 1 0 28 0a14 14 0 1 0 -28 0M9 0a14 14 0 1 0 28 0a14 14 0 1 0 -28 0', 4.8);
   line('M-23 0L-9 -22L14 -23L0 0ZM-9 -22L0 0M14 -23L23 0M14 -23L13 -31M9 -32h9', 4.2); // frame, fork, stem and bars

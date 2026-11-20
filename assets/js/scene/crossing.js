@@ -36,10 +36,10 @@ export function setupCrossing(world, hooks = {}) {
       shape(g, 'M-24 -262h48v94h-48Z', '#2a2545');
       const red = G(g, { transform: 'translate(0 -238)' }), green = G(g, { transform: 'translate(0 -194)' });
       C(red, 0, 0, 18, { fill: '#3a1f33' });
-      const redOn = G(red, { transform: 'translate(-3 2) scale(.92)' });
+      const redOn = G(red, { class: 'flat', transform: 'translate(-3 2) scale(.92)' });
       figure(redOn, '#ff5a4a', false);
       C(green, 0, 0, 18, { fill: '#17332f' });
-      const greenOn = G(green, { transform: 'translate(-3 2) scale(.92)' });
+      const greenOn = G(green, { class: 'flat', transform: 'translate(-3 2) scale(.92)' });
       figure(greenOn, '#5df0a0', true);
       shape(g, 'M-15 -128h30v46h-30Z', '#ffcf3a');
       const wait = R(g, -10, -123, 20, 9, { rx: 2, fill: '#6b5a1a' });
@@ -59,11 +59,28 @@ export function setupCrossing(world, hooks = {}) {
     },
   };
 
-  // the pedestrians
-  const walkG = G(world.L.fore);
+  // The pedestrians. They cross the whole depth of the road, so each of them is kept among the riders in order of
+  // distance: a pelican that has reached the far kerb is behind everyone still on the road, not in front of them.
+  const { road, farLane } = world.L;
+  function seat(root, y) {
+    root.dataset.y = f1(y);
+    if (y < 738) {
+      // off the road, on the promenade side of the verge and its signs
+      if (root.parentNode !== farLane || root.nextElementSibling) farLane.appendChild(root);
+      return;
+    }
+    let before = null;
+    for (let n = road.firstElementChild; n; n = n.nextElementSibling) {
+      if (n !== root && +n.dataset.y > y) {
+        before = n;
+        break;
+      }
+    }
+    if (root.parentNode !== road || root.nextElementSibling !== before) road.insertBefore(root, before);
+  }
   const family = [0, 1, 2, 3].map((n) => {
     const p = pelican(n ? { pal: 'chick', legs: [36, 40], neckW: 16 } : { legs: [36, 40], hat: 'beret', hatColor: '#2f62e0' });
-    const root = G(walkG, { display: 'none' }), inner = G(root);
+    const root = G(world.L.fore, { display: 'none' }), inner = G(root);
     Ell(inner, -10, 3, 62, 9, { fill: '#16204a', opacity: 0.2 });
     inner.append(p.far, p.mid, p.near);
     return { p, root, inner, size: n ? 0.5 : 0.95, pose: walker(p, { stride: n ? 20 : 24, lift: 12, lean: 0.5, hipY: -60, neckAng: 1.2, neckLen: n ? 44 : 60, head: -0.12 }) };
@@ -105,6 +122,7 @@ export function setupCrossing(world, hooks = {}) {
       const x = lerp(S[0], E[0], u), y = lerp(S[1], E[1], u);
       const p = depth(y), k = p * m.size;
       const sx = view.vw / 2 + wrapSigned(x - cam.x, W) * p;
+      seat(m.root, y);
       set(m.root, 'transform', `translate(${f1(sx)} ${f1(y)})`);
       set(m.inner, 'transform', `scale(${f1(-k * 100) / 100} ${f1(k * 100) / 100})`);
       set(m.root, 'opacity', f1(clamp((1.06 - u) * 18, 0, 1)));
