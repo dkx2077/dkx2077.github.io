@@ -458,6 +458,7 @@ export function createWorld(scene, hooks = {}) {
       if (i) return selected === i ? trick(i) : select(i);
     }
     const [ux, uy] = toUnits(e.clientX, e.clientY);
+    if (api.onEmptyTap?.(ux, uy)) return; // someone else has a use for a tap on nothing
     throwFish(ux, uy);
   };
   svg.addEventListener('pointerup', endDrag);
@@ -491,26 +492,11 @@ export function createWorld(scene, hooks = {}) {
 
   /* ---------------------------------------------------------------- loop */
 
-  // The two halves of a step of the world, shared by our own loop and by anyone stepping it from outside.
-  function clock(dt) {
+  // One whole step of the world: clock, wind, camera, scenery, riders, effects. Our own loop takes it once a
+  // frame; another renderer (the painted version) can take it at its own pace through headless().
+  function advance(dt) {
     if (!state.paused) state.t += dt;
     state.wind = lerp(state.wind, state.windT, 1 - Math.exp(-dt * 2.5));
-  }
-  function move(dt) {
-    if (crossing.red !== crossing.was || crossing.stale) {
-      crossing.was = crossing.red;
-      crossing.stale = false;
-      marshal();
-    }
-    for (const i of instances) step(i, dt);
-    for (const fn of tickers) fn(state, state.paused ? 0 : dt);
-  }
-
-  function frame(now) {
-    if (!running) return;
-    const dt = Math.min(0.05, (now - last) / 1000 || 0.016);
-    last = now;
-    clock(dt);
     if (cam.follow) {
       const i = cam.follow;
       const fr = freeRect();
@@ -524,8 +510,21 @@ export function createWorld(scene, hooks = {}) {
     cam.z = lerp(cam.z, cam.zt, 1 - Math.exp(-dt * 4.5));
     applyView(dt);
     scenery.update(state.t, cam, view, state.paused ? 0 : dt, state.wind);
-    move(dt);
+    if (crossing.red !== crossing.was || crossing.stale) {
+      crossing.was = crossing.red;
+      crossing.stale = false;
+      marshal();
+    }
+    for (const i of instances) step(i, dt);
+    for (const fn of tickers) fn(state, state.paused ? 0 : dt);
     stepFx(dt);
+  }
+
+  function frame(now) {
+    if (!running) return;
+    const dt = Math.min(0.05, (now - last) / 1000 || 0.016);
+    last = now;
+    advance(dt);
     requestAnimationFrame(frame);
   }
   function start() {
@@ -546,7 +545,8 @@ export function createWorld(scene, hooks = {}) {
   }).observe(scene);
 
   const api = {
-    L, view, cam, state, instances, crossing, scenery, svg,
+    L, view, cam, state, instances, crossing, scenery, svg, monument,
+    onEmptyTap: null,
     add, remove, select, deselect, trick, throwFish, ringAll, setEval, puff, toView, toUnits,
     get selected() { return selected; },
     setHud(px) {
@@ -583,19 +583,14 @@ export function createWorld(scene, hooks = {}) {
       applyView(0);
       start();
     },
-    // Hand the clock to another renderer: stop drawing, but keep the riders steppable from outside.
+    // Hand the clock to another renderer: our own loop stops, and the world moves only when headless() is called.
     suspend(on) {
       suspended = on;
       on ? stop() : start();
     },
-    // One step of the world with nothing drawn by us. `vw` is how wide a slice (in view units) the caller is showing.
-    headless(dt, vw) {
-      const keep = view.vw;
-      view.vw = vw;
-      clock(dt);
-      move(dt);
-      view.vw = keep;
-    },
+    // One step of the world at somebody else's pace. Everything is kept up to date exactly as in our own loop,
+    // the SVG included, so whoever is drawing can read the scene straight from it.
+    headless: (dt) => advance(Math.min(dt, 0.2)),
     renderOnce() {
       layout();
       applyView(0);

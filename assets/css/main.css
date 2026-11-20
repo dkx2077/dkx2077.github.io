@@ -708,7 +708,7 @@ a:hover {
   transition: none; /* it must be focusable the instant the painting closes */
 }
 .moon-btn[hidden],
-.starry-ui[hidden] {
+.starry-exit[hidden] {
   display: none;
 }
 .moon-btn:focus-visible {
@@ -733,6 +733,7 @@ a:hover {
     opacity: 0.95;
   }
 }
+/* The painted version sits on top of the drawn one and lets every click through to it. It opens out of the moon. */
 .starry-canvas {
   position: absolute;
   z-index: 3;
@@ -740,60 +741,41 @@ a:hover {
   width: 100%;
   height: 100%;
   display: block;
-  opacity: 0;
-  transition: opacity 1.1s ease;
-  cursor: crosshair;
-  touch-action: pan-y;
-}
-.starry-canvas.is-on {
-  opacity: 1;
-}
-.scene.is-starry .hud,
-.scene.is-starry .hint,
-.scene.is-starry .card,
-.scene.is-starry .conditions,
-.scene.is-starry .moon-btn {
-  visibility: hidden;
-}
-/* the drawn scene stays put during the dissolve, then steps out of the way */
-.scene.is-starry .sky-svg,
-.scene.is-starry .world-svg,
-.scene.is-starry .monument {
-  visibility: hidden;
-  transition: visibility 0s 1.15s;
-}
-.scene.is-starry .topbar {
-  color: #f4ecc8;
-  background: none;
-  text-shadow: 0 1px 8px rgba(8, 12, 40, 0.85);
-}
-.scene.is-starry .lede {
-  visibility: visible;
-}
-.starry-ui {
-  position: absolute;
-  z-index: 4;
-  inset: auto 0 0 0;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 0 var(--pad) 20px;
   pointer-events: none;
+  transition: clip-path 1.1s cubic-bezier(0.5, 0, 0.2, 1);
 }
-.starry-note {
-  margin: 0 0 6px;
-  max-width: 22em;
-  color: #f4ecc8;
-  font-size: 14.5px;
-  font-weight: 600;
-  line-height: 1.4;
-  text-shadow: 0 1px 8px rgba(8, 12, 40, 0.9);
+/* once it covers everything, the drawing underneath stops being painted but goes on being clicked */
+.scene.is-painted .world-svg {
+  opacity: 0;
+}
+.scene.is-painted .sky-svg,
+.scene.is-painted .monument {
+  visibility: hidden;
+}
+.scene.is-starry .hint {
+  visibility: hidden;
+}
+/* the painted sky is busier than the drawn one: keep the words at the top of the page readable over it */
+.scene.is-starry .topbar {
+  text-shadow: 0 1px 7px rgba(8, 12, 40, 0.95), 0 0 2px rgba(8, 12, 40, 0.7);
 }
 .starry-exit {
-  pointer-events: auto;
-  flex: none;
+  position: absolute;
+  z-index: 3;
+  left: var(--pad);
+  bottom: 92px;
+  padding: 7px 14px;
+  font: 700 14.5px var(--sans);
+  color: var(--ink);
   background: #f4ecc8;
+  border: 2.5px solid var(--ink);
+  border-radius: 10px;
+  box-shadow: 0 3px 0 var(--ink);
+  cursor: pointer;
+}
+.starry-exit:active {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 var(--ink);
 }
 
 html:not(.js) .hud,
@@ -1118,6 +1100,16 @@ html[data-phase='night'] .results .mk-q { color: #a3b0de; }
     text-align: center;
     font-size: 13.5px;
   }
+  .starry-exit {
+    left: 50%;
+    top: 138px;
+    bottom: auto;
+    transform: translateX(-50%);
+    font-size: 13.5px;
+  }
+  .starry-exit:active {
+    transform: translate(-50%, 3px);
+  }
   .conditions {
     bottom: 158px;
   }
@@ -1146,6 +1138,7 @@ html[data-phase='night'] .results .mk-q { color: #a3b0de; }
     font-size: 15px;
   }
   .scene.has-card .hud,
+  .scene.has-card .starry-exit,
   .scene.has-card .hint,
   .scene.has-card .lede {
     visibility: hidden;

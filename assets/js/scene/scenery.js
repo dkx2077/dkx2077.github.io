@@ -78,12 +78,13 @@ function tiled(parent, period, build) {
 /* ------------------------------------------------- street furniture, real size */
 
 const SW = 8; // outline for furniture, in real units (it thins with distance like everything else)
+export const LAMP_HEAD = [110, -430]; // where a street lamp's light is, measured from the foot of its pole
 const FURNITURE = {
   hut(g, c) {
     shape(g, 'M0 0V-250H250V0Z', '#fffdf7', { 'stroke-width': SW });
     P(g, 'M36 -246V-4M95 -246V-4M155 -246V-4M214 -246V-4', { stroke: c, 'stroke-width': 30, fill: 'none' });
     shape(g, 'M-28 -244L125 -372L278 -244Z', c, { 'stroke-width': SW });
-    P(g, 'M86 0V-132h78V0Z', { fill: INK });
+    P(g, 'M86 0V-132h78V0Z', { class: 'door', fill: INK });
   },
   parasol(g, c) {
     stroke(g, 'M0 0V-290', INK, SW);
@@ -124,7 +125,7 @@ export function buildScenery(L, skySvg) {
   // a strip of ground at screen row y: everything in it shares one depth, so it scrolls as one piece
   const band = (parent, y, build) => {
     const p = depth(y);
-    const b = tiled(parent, W * p, (t) => build(t, p, (x, kind, arg) => FURNITURE[kind](G(t, { transform: `translate(${f1(x * p)} ${y}) scale(${f1(p * 1000) / 1000})` }), arg)));
+    const b = tiled(parent, W * p, (t) => build(t, p, (x, kind, arg) => FURNITURE[kind](G(t, { 'data-f': kind, transform: `translate(${f1(x * p)} ${y}) scale(${f1(p * 1000) / 1000})` }), arg)));
     b.par = p;
     bands.push(b);
     return b;
@@ -144,9 +145,11 @@ export function buildScenery(L, skySvg) {
   el('stop', { offset: 0, 'stop-color': '#fff', 'stop-opacity': 0.55 }, glow);
   el('stop', { offset: 1, 'stop-color': '#fff', 'stop-opacity': 0 }, glow);
   const stars = G(skySvg, { class: 'stars' });
+  const starAt = []; // [x, y, r] of every star, for anyone who wants to draw the same sky another way
   let sd = '';
   for (let n = 0; n < 150; n++) {
     const x = rnd() * 3600, y = -900 + rnd() * 1330, r = 1 + rnd() * 2.2;
+    starAt.push([x, y, r]);
     sd += `M${f1(x)} ${f1(y)}m${-r} 0a${f1(r)} ${f1(r)} 0 1 0 ${f1(r * 2)} 0a${f1(r)} ${f1(r)} 0 1 0 ${f1(-r * 2)} 0`;
   }
   P(stars, sd, { fill: '#fff' });
@@ -161,9 +164,11 @@ export function buildScenery(L, skySvg) {
   const cloudShape = (g, s) => {
     P(g, `M${-60 * s} 0a${26 * s} ${26 * s} 0 0 1 ${34 * s} ${-28 * s}a${34 * s} ${34 * s} 0 0 1 ${62 * s} ${-8 * s}a${26 * s} ${26 * s} 0 0 1 ${44 * s} ${36 * s}Z`, { class: 'c-cloud' });
   };
+  const CLOUDS = [[200, 120, 1.5], [760, 30, 1], [1300, 190, 1.8], [1900, 70, 1.2], [2450, 150, 1.4], [1050, -220, 2], [2200, -330, 1.7], [300, -480, 2.2]];
   const clouds = tiled(skySvg, 2800, (t) => {
-    [[200, 120, 1.5], [760, 30, 1], [1300, 190, 1.8], [1900, 70, 1.2], [2450, 150, 1.4], [1050, -220, 2], [2200, -330, 1.7], [300, -480, 2.2]].forEach(([x, y, s]) => cloudShape(G(t, { transform: `translate(${x} ${y})` }), s));
+    CLOUDS.forEach(([x, y, s]) => cloudShape(G(t, { transform: `translate(${x} ${y})` }), s));
   });
+  clouds.at = 0;
 
   /* ------------------------------------------------- far shore and the sea */
   R(L.far, -200, HORIZON - 2, SPAN, 800, { class: 'c-sea1' });
@@ -308,7 +313,7 @@ export function buildScenery(L, skySvg) {
   el('stop', { offset: 1, 'stop-color': '#ffe9a6', 'stop-opacity': 0 }, lg);
   band(L.lights, 662, (t, p) => {
     for (const x of LAMPS) {
-      const hx = (x + 110) * p, hy = 662 - 430 * p;
+      const hx = (x + LAMP_HEAD[0]) * p, hy = 662 + LAMP_HEAD[1] * p;
       C(t, hx, hy, 105, { fill: 'url(#lampGlow)' });
       P(t, `M${f1(hx - 14)} ${f1(hy)}L${f1(hx - 150)} 742H${f1(hx + 150)}L${f1(hx + 14)} ${f1(hy)}Z`, { fill: '#ffe9a6', opacity: 0.1 });
     }
@@ -349,7 +354,8 @@ export function buildScenery(L, skySvg) {
     // clouds go where the wind goes; in still air they keep the slow leftward drift of high weather
     const gust = Math.min(Math.abs(wind), 2.5);
     cloudX += (wind * 30 - 6 * Math.max(0, 1 - gust * 4)) * dt;
-    slide(clouds.wrap, half - mod(cam.x * 0.02 - cloudX, clouds.period));
+    clouds.at = half - mod(cam.x * 0.02 - cloudX, clouds.period);
+    slide(clouds.wrap, clouds.at);
     // cloth and grass lean with it and shiver in it; in still air they hang straight and nothing is written
     shiver += (5 + gust * 3) * dt;
     const tilt = clamp(wind * 24, -60, 60);
@@ -386,5 +392,14 @@ export function buildScenery(L, skySvg) {
   beach.forEach((b) => b.wrap.setAttribute('class', 'beach'));
   const clearBeach = (on) => beach.forEach((b) => b.wrap.classList.toggle('is-ghost', on));
 
-  return { update, setTime, clearBeach, moonAt: () => moonPos, get hour() { return hour; }, get palette() { return pal; } };
+  // Where the things in the sky are right now, in view units, for a renderer that draws them its own way.
+  // A cloud is given as the middle and rough radius of its shape; `id` stays with it as the tiles wrap round.
+  const cloudsAt = () => {
+    const out = [];
+    for (const k of [-1, 0, 1]) CLOUDS.forEach(([x, y, s], n) => out.push({ id: n, x: clouds.at + k * clouds.period + x + 10 * s, y: y - 18 * s, r: 64 * s }));
+    return out;
+  };
+  const leanAt = () => ({ a: leans['--lean-a'] || 0, b: leans['--lean-b'] || 0 });
+
+  return { update, setTime, clearBeach, moonAt: () => moonPos, cloudsAt, leanAt, stars: starAt, get hour() { return hour; }, get palette() { return pal; } };
 }
