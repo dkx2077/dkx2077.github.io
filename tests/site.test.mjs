@@ -187,3 +187,17 @@ test('nothing that moves is computed as time multiplied by a changing speed', as
   }
 });
 
+test('what is nearer hides what is farther: lamp light and spray included', async () => {
+  const read = (f) => readFile(new URL('assets/js/scene/' + f, root), 'utf8');
+  const [world, specimens] = await Promise.all([read('world.js'), read('specimens.js')]);
+  // document order is depth, and the light of the street lamps sits at the depth of the lamps:
+  // after the promenade they stand on, before the promenade lane, the signs and the road
+  assert.match(world, /land: G\(svg\), lights: G\(svg\), farLane: G\(svg\)/);
+  // water and dust are put next to whoever threw them up, and shrink with distance like everything else
+  assert.match(world, /from\.root\.after\(node\)/);
+  assert.match(world, /\* f\.k \* 100/);
+  const splashes = [...specimens.matchAll(/world\.puff\([^;]*'(?:drop|dot)'[^;]*;/g)];
+  assert.ok(splashes.length >= 3);
+  for (const m of splashes) assert.match(m[0], /from: inst/, 'a splash with no owner would float in front of everything');
+});
+

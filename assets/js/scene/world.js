@@ -36,12 +36,16 @@ export function createWorld(scene, hooks = {}) {
     el('stop', { offset: 0, 'stop-color': '#ffe9a6', 'stop-opacity': 0.95 }, lg);
     el('stop', { offset: 1, 'stop-color': '#ffe9a6', 'stop-opacity': 0 }, lg);
   }
+  // Document order is depth: whatever comes later is nearer and hides what came before. The wide glow and the
+  // cones of the street lamps come straight after the promenade the lamps stand on, so that anything nearer than
+  // a lamp (a sign on the verge, a rider on the road) stands in front of its light instead of being washed over by
+  // it. Only the small bright heart of each lamp is drawn last of all, above the night tint, to keep it burning.
   const L = {
-    far: G(svg), sea: G(svg), seaLane: G(svg), land: G(svg), farLane: G(svg), mid: G(svg), road: G(svg),
+    far: G(svg), sea: G(svg), seaLane: G(svg), land: G(svg), lights: G(svg), farLane: G(svg), mid: G(svg), road: G(svg),
     fore: G(svg), skyLane: G(svg), fx: G(svg),
   };
   R(svg, -6000, -6000, 20000, 12000, { class: 'veil' });
-  L.lights = G(svg);
+  L.glow = G(svg);
   L.anno = G(svg, { class: 'anno-layer' });
 
   const scenery = buildScenery(L, skySvg);
@@ -158,7 +162,7 @@ export function createWorld(scene, hooks = {}) {
     // generous transparent hit area
     R(inner, b[0], b[1], b[2], b[3], { class: 'hit', fill: 'transparent', rx: 12 });
     if (group === L.road) {
-      const after = [...L.road.children].find((n) => +n.dataset.y > y);
+      const after = [...L.road.children].find((n) => +n.dataset.y > y); // effects parked among the riders have no row and are passed over
       root.dataset.y = y;
       L.road.insertBefore(root, after || null);
     } else group.appendChild(root);
@@ -276,14 +280,19 @@ export function createWorld(scene, hooks = {}) {
   /* ------------------------------------------------------------- effects */
 
   const NOTE = 'M0 0V-22l14 -4V-6M0 0a5 4 0 1 1 -10 0a5 4 0 1 1 10 0M14 -6a5 4 0 1 1 -10 0a5 4 0 1 1 10 0';
+  // Water and dust belong to whoever threw them up: they are put at that rider's depth, so whatever hides the rider
+  // hides them too. Everything a rider gives off is also as small as the rider is far. Words stay full size, and
+  // words and notes float over everything: a sound is not hidden by a beach hut.
   function puff(x, y, kind = 'note', o = {}) {
+    const from = o.from, k = from && kind !== 'text' ? from.k : 1;
     let node;
     if (kind === 'note') node = P(L.fx, NOTE, { fill: 'none', stroke: o.color || INK, 'stroke-width': 3, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
     else if (kind === 'text') {
       node = T(L.fx, 0, 0, o.text, { class: 'fx-text', 'text-anchor': 'middle', 'font-size': o.size || 26, fill: o.color || INK });
     } else if (kind === 'drop') node = P(L.fx, 'M0 -8Q6 2 0 5Q-6 2 0 -8Z', { fill: o.color || '#8fd6f0', stroke: INK, 'stroke-width': 2 });
     else node = C(L.fx, 0, 0, o.r || 7, { fill: o.color || '#fffdf7', stroke: INK, 'stroke-width': 2, opacity: 0.9 });
-    fx.push({ node, x, y, vx: o.vx ?? (Math.random() - 0.5) * 40, vy: o.vy ?? -70, g: o.g ?? 0, life: 0, ttl: o.ttl || 1.2, rot: o.rot || 0, grow: o.grow || 0 });
+    if (from && (kind === 'drop' || kind === 'dot')) from.root.after(node);
+    fx.push({ node, k, x, y, vx: (o.vx ?? (Math.random() - 0.5) * 40) * k, vy: (o.vy ?? -70) * k, g: (o.g ?? 0) * k, life: 0, ttl: o.ttl || 1.2, rot: o.rot || 0, grow: o.grow || 0 });
     if (fx.length > 90) fx.shift().node.remove();
   }
 
@@ -324,7 +333,7 @@ export function createWorld(scene, hooks = {}) {
         fx.splice(n, 1);
         continue;
       }
-      set(f.node, 'transform', `translate(${f1(f.x)} ${f1(f.y)}) rotate(${f1(f.rot * f.life)}) scale(${f1((1 + f.grow * u) * 10) / 10})`);
+      set(f.node, 'transform', `translate(${f1(f.x)} ${f1(f.y)}) rotate(${f1(f.rot * f.life)}) scale(${f1((1 + f.grow * u) * f.k * 100) / 100})`);
       set(f.node, 'opacity', f1(Math.min(1, (1 - u) * 2.5)));
     }
   }
@@ -349,7 +358,7 @@ export function createWorld(scene, hooks = {}) {
       if (!i.vis || i.def.noBell) continue;
       const p = toView(i, [i.def.bell?.[0] ?? 40, i.def.bell?.[1] ?? -i.def.h * 0.62]);
       setTimeout(() => {
-        puff(p[0], p[1], 'note', { vy: -90, vx: 20 * i.face, ttl: 1.1, color: n % 2 ? '#ef4b3b' : INK });
+        puff(p[0], p[1], 'note', { from: i, vy: -90, vx: 20 * i.face, ttl: 1.1, color: n % 2 ? '#ef4b3b' : INK });
         hooks.onRing?.(i);
       }, n * 70);
       n++;
@@ -397,7 +406,7 @@ export function createWorld(scene, hooks = {}) {
     if (selected && selected !== i) selected.root.classList.remove('is-selected');
     selected = i;
     i.root.classList.add('is-selected');
-    scenery.clearBeach(i.def.lane === 'sea');
+    scenery.clearView(i.def.lane);
     cam.follow = i;
     cam.vx = 0;
     cam.zt = fitZoom(i);
@@ -407,7 +416,7 @@ export function createWorld(scene, hooks = {}) {
   function deselect() {
     if (!selected) return;
     selected.root.classList.remove('is-selected');
-    scenery.clearBeach(false);
+    scenery.clearView(null);
     selected = null;
     cam.follow = null;
     cam.zt = 1;
@@ -549,6 +558,7 @@ export function createWorld(scene, hooks = {}) {
     onEmptyTap: null,
     add, remove, select, deselect, trick, throwFish, ringAll, setEval, puff, toView, toUnits,
     get selected() { return selected; },
+    get fxCount() { return fx.length; },
     setHud(px) {
       if (Math.abs(px - view.hud) < 2) return;
       view.hud = px;

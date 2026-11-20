@@ -853,7 +853,7 @@ export function enterStarry({ scene, world, origin = [0, 0] }) {
     focused = el && el.classList?.contains('spec') && el.matches(':focus-visible') ? el : null;
     jr = rng(9176 + boil * 7919);
     for (let n = svg.firstElementChild; n; n = n.nextElementSibling) {
-      if (n === L.lights) continue;
+      if (n === L.lights || n === L.glow) continue;
       crisp = n === L.anno;
       if (n === L.far || n === L.sea || n === L.land || n === L.mid) {
         // loose paths in a layer of scenery (the surf, the zebra crossing) belong to the background too
@@ -961,7 +961,7 @@ export function enterStarry({ scene, world, origin = [0, 0] }) {
   // everything a still picture depends on: if none of it has changed while the scene is paused, nothing is repainted
   const stillKey = () =>
     [cam.x.toFixed(1), view.s.toFixed(3), view.top.toFixed(1), scene.clientWidth, scene.clientHeight, world.instances.length, world.selected?.def.id, state.evalOn, state.lang, state.wind.toFixed(2),
-      L.fx.childElementCount, L.anno.childElementCount, added.length, ground.frames.length, document.activeElement?.dataset?.spec, scene.classList.contains('moon-hot'), sc.moonAt().x.toFixed(0)].join('|');
+      world.fxCount, L.anno.childElementCount, added.length, ground.frames.length, document.activeElement?.dataset?.spec, scene.classList.contains('moon-hot'), sc.moonAt().x.toFixed(0)].join('|');
   function loop(now) {
     if (!alive) return;
     raf = requestAnimationFrame(loop);

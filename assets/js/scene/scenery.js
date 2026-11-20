@@ -56,14 +56,25 @@ const wavy = (x0, x1, y, amp, len) => {
 };
 const SPAN = 4600; // wider than any viewport, in view units
 
-// a flat little pelican-on-a-bike pictogram for signs and road paint
+// A pelican on a bicycle the way a road sign would draw it: one flat colour, heavy enough to read at thumbnail
+// size. The bicycle has a real frame, the rider sits on the saddle with a leg down to the pedal, and the bill has
+// its pouch. Used on the signs and painted on the road. It spans x -37..51 and y -66..14, wheels resting on y = 14.
 function pictogram(g, fill) {
   const p = G(g);
-  P(p, 'M-30 0a14 14 0 1 0 28 0a14 14 0 1 0 -28 0M6 0a14 14 0 1 0 28 0a14 14 0 1 0 -28 0', { fill: 'none', stroke: fill, 'stroke-width': 5 });
-  P(p, 'M-16 0L-6 -22L16 -22L20 0M-6 -22L2 0', { fill: 'none', stroke: fill, 'stroke-width': 4, 'stroke-linejoin': 'round' });
-  P(p, 'M-18 -30q4 -16 20 -14q6 -18 14 -22q10 -2 10 6l24 6l-24 4q-4 14 -12 18q-14 10 -32 2Z', { fill });
+  const line = (d, w) => P(p, d, { fill: 'none', stroke: fill, 'stroke-width': w, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
+  line('M-37 0a14 14 0 1 0 28 0a14 14 0 1 0 -28 0M9 0a14 14 0 1 0 28 0a14 14 0 1 0 -28 0', 4.8);
+  line('M-23 0L-9 -22L14 -23L0 0ZM-9 -22L0 0M14 -23L23 0M14 -23L13 -31M9 -32h9', 4.2); // frame, fork, stem and bars
+  line('M-15 -26h11', 5.2); // saddle
+  P(p, 'M-27 -38C-24 -51 -5 -55 7 -47C14 -42 12 -31 1 -28.5C-9 -26.5 -22 -29 -27 -38Z', { fill });
+  P(p, 'M-22 -42L-32 -43L-25 -34Z', { fill, stroke: fill, 'stroke-width': 2, 'stroke-linejoin': 'round' }); // tail
+  line('M5 -43C13 -45 13 -53 18 -58', 6.6); // neck
+  C(p, 19.5, -60.5, 5.4, { fill });
+  P(p, 'M20 -65.6L51 -57.5C41 -56 30 -47 21 -55.5Z', { fill, stroke: fill, 'stroke-width': 1.6, 'stroke-linejoin': 'round' }); // bill and pouch
+  line('M-4 -30L6 -17L3 -4', 4.2); // a leg down to the pedal
   return p;
 }
+// where to put it so that it sits in the middle of a sign whose centre is (0, cy)
+const centred = (cy, k) => `translate(${f1(-7 * k)} ${f1(cy + 26 * k)}) scale(${k})`;
 
 function tiled(parent, period, build) {
   const wrap = G(parent);
@@ -96,17 +107,21 @@ const FURNITURE = {
     shape(g, 'M74 -460h72l-14 46h-44Z', '#ffe38a', { 'stroke-width': SW });
   },
   bench(g) {
-    stroke(g, 'M0 0V-72M236 0V-72M-14 -72H250M-14 -120H250M0 -72V-142M236 -72V-142', INK, 13);
+    // legs and back posts, then three planks of wood, so the bench does not melt into a dark doorway behind it
+    const planks = 'M-14 -76H250M-10 -112H246M-10 -138H246';
+    stroke(g, 'M6 0V-76M230 0V-76M6 -76V-140M230 -76V-140', INK, 13);
+    stroke(g, planks, INK, 24);
+    stroke(g, planks, '#c98a5a', 11);
   },
   warning(g) {
     stroke(g, 'M0 0V-170', INK, 13);
     shape(g, 'M0 -362L100 -262L0 -162L-100 -262Z', '#ffcf3a', { 'stroke-width': 10 });
-    pictogram(G(g, { transform: 'translate(-2 -240) scale(1.32)' }), INK);
+    pictogram(G(g, { transform: centred(-262, 1.06) }), INK);
   },
   cycleway(g) {
     stroke(g, 'M0 0V-176', INK, 13);
     C(g, 0, -266, 92, { fill: '#2f62e0', stroke: INK, 'stroke-width': 10 });
-    pictogram(G(g, { transform: 'translate(-2 -244) scale(1.32)' }), '#fffdf7');
+    pictogram(G(g, { transform: centred(-266, 1.2) }), '#fffdf7');
   },
   nameplate(g) {
     stroke(g, 'M0 0V-250', INK, 13);
@@ -220,14 +235,14 @@ export function buildScenery(L, skySvg) {
   });
   slab(L.land, 656, 68, 'c-prom');
   P(L.land, `M-200 669H${SPAN}M-200 683H${SPAN}M-200 699H${SPAN}`, { class: 's-promline', 'stroke-width': 1.6, fill: 'none', opacity: 0.5 });
-  band(L.land, 658, (t, p) => {
+  beach[2] = band(L.land, 658, (t, p) => {
     // waist-high railing along the back of the boardwalk
     let d = `M0 ${f1(658 - 165 * p)}H${f1(W * p)}M0 ${f1(658 - 88 * p)}H${f1(W * p)}`;
     for (let x = 0; x < W; x += 320) d += `M${f1(x * p)} 658V${f1(658 - 172 * p)}`;
     P(t, d, { class: 's-rail', 'stroke-width': 3, fill: 'none', 'stroke-linecap': 'round' });
   });
   const LAMPS = [400, 2000, 3600, 5200];
-  band(L.land, 662, (t, p, put) => {
+  beach[3] = band(L.land, 662, (t, p, put) => {
     for (const x of LAMPS) put(x, 'lamp');
     // bunting strung between two pairs of posts
     [[400, 2000], [3600, 5200]].forEach(([a, b]) => {
@@ -239,7 +254,7 @@ export function buildScenery(L, skySvg) {
       }
     });
   });
-  band(L.land, 690, (t, p, put) => {
+  beach[4] = band(L.land, 690, (t, p, put) => {
     put(2700, 'bench');
     put(4500, 'bench');
     put(6000, 'bench');
@@ -254,7 +269,7 @@ export function buildScenery(L, skySvg) {
   });
 
   /* ------------------------------------------ verge signs, road, near kerb */
-  band(L.mid, 738, (t, p, put) => {
+  const signs = band(L.mid, 738, (t, p, put) => {
     put(CROSSING_X - 330, 'nameplate');
     put(2300, 'warning');
     put(4380, 'cycleway');
@@ -269,11 +284,12 @@ export function buildScenery(L, skySvg) {
       P(t, d, { class: 'c-paint', opacity: 0.8 });
     });
   }
+  // the cycle lane is marked on the tarmac: the same figure lying flat, so squashed, midway between the two lane lines
   band(L.mid, 880, (t, p) => {
     for (const x of [2900, 4900]) {
-      const s = G(t, { transform: `translate(${f1(x * p)} 880) scale(${f1(p * 150) / 100} ${f1(p * 62) / 100})`, opacity: 0.55 });
+      const s = G(t, { transform: `translate(${f1(x * p)} 888) scale(${f1(p * 150) / 100} ${f1(p * 58) / 100})`, opacity: 0.6 });
       pictogram(s, 'var(--paint)');
-      P(s, 'M60 -30l22 12l-22 12M90 -30l22 12l-22 12', { fill: 'none', stroke: 'var(--paint)', 'stroke-width': 6, 'stroke-linejoin': 'round' });
+      P(s, 'M68 -42l20 16l-20 16M98 -42l20 16l-20 16', { fill: 'none', stroke: 'var(--paint)', 'stroke-width': 6.5, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' });
     }
   });
   // the pelican crossing is painted on the ground, so it is redrawn in perspective as the camera moves
@@ -309,16 +325,25 @@ export function buildScenery(L, skySvg) {
   /* -------------------------------------------------------------- lights */
   const ldefs = el('defs', null, L.lights);
   const lg = el('radialGradient', { id: 'lampGlow' }, ldefs);
-  el('stop', { offset: 0, 'stop-color': '#ffe9a6', 'stop-opacity': 0.9 }, lg);
+  el('stop', { offset: 0, 'stop-color': '#ffe9a6', 'stop-opacity': 0.85 }, lg);
   el('stop', { offset: 1, 'stop-color': '#ffe9a6', 'stop-opacity': 0 }, lg);
+  const lc = el('radialGradient', { id: 'lampCore' }, ldefs);
+  el('stop', { offset: 0, 'stop-color': '#fff1c0', 'stop-opacity': 0.95 }, lc);
+  el('stop', { offset: 0.45, 'stop-color': '#ffe9a6', 'stop-opacity': 0.42 }, lc);
+  el('stop', { offset: 1, 'stop-color': '#ffe9a6', 'stop-opacity': 0 }, lc);
   band(L.lights, 662, (t, p) => {
     for (const x of LAMPS) {
       const hx = (x + LAMP_HEAD[0]) * p, hy = 662 + LAMP_HEAD[1] * p;
-      C(t, hx, hy, 105, { fill: 'url(#lampGlow)' });
-      P(t, `M${f1(hx - 14)} ${f1(hy)}L${f1(hx - 150)} 742H${f1(hx + 150)}L${f1(hx + 14)} ${f1(hy)}Z`, { fill: '#ffe9a6', opacity: 0.1 });
+      C(t, hx, hy, 124, { fill: 'url(#lampGlow)' });
+      P(t, `M${f1(hx - 14)} ${f1(hy)}L${f1(hx - 150)} 742H${f1(hx + 150)}L${f1(hx + 14)} ${f1(hy)}Z`, { fill: '#ffe9a6', opacity: 0.15 });
     }
   });
   L.lights.setAttribute('class', 'lights');
+  // the heart of each lamp, small enough that nothing nearer than the lamp ever passes in front of it
+  band(L.glow, 662, (t, p) => {
+    for (const x of LAMPS) C(t, (x + LAMP_HEAD[0]) * p, 662 + LAMP_HEAD[1] * p, 54, { fill: 'url(#lampCore)' });
+  });
+  L.glow.setAttribute('class', 'lights');
 
   let hour = 12, pal = paletteAt(12);
   const root = skySvg.closest('.scene');
@@ -388,9 +413,14 @@ export function buildScenery(L, skySvg) {
   }
 
   setTime(12);
-  // whatever is inspected out at sea should not be hidden behind a beach hut
-  beach.forEach((b) => b.wrap.setAttribute('class', 'beach'));
-  const clearBeach = (on) => beach.forEach((b) => b.wrap.classList.toggle('is-ghost', on));
+  // Whoever is being inspected should not be hidden behind scenery. Out at sea that is everything standing on the
+  // shore: parasols, huts, railing, lamps and benches, and the signs on the verge. For the promenade lane it is
+  // the signs alone. They all turn to glass, as riders do when they are in the way.
+  for (const b of [...beach, signs]) b.wrap.setAttribute('class', 'beach');
+  const clearView = (lane) => {
+    for (const b of beach) b.wrap.classList.toggle('is-ghost', lane === 'sea');
+    signs.wrap.classList.toggle('is-ghost', lane === 'sea' || lane === 'far');
+  };
 
   // Where the things in the sky are right now, in view units, for a renderer that draws them its own way.
   // A cloud is given as the middle and rough radius of its shape; `id` stays with it as the tiles wrap round.
@@ -401,5 +431,5 @@ export function buildScenery(L, skySvg) {
   };
   const leanAt = () => ({ a: leans['--lean-a'] || 0, b: leans['--lean-b'] || 0 });
 
-  return { update, setTime, clearBeach, moonAt: () => moonPos, cloudsAt, leanAt, stars: starAt, get hour() { return hour; }, get palette() { return pal; } };
+  return { update, setTime, clearView, moonAt: () => moonPos, cloudsAt, leanAt, stars: starAt, get hour() { return hour; }, get palette() { return pal; } };
 }
