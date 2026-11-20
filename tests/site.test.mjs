@@ -109,16 +109,15 @@ test('the page references files that exist and keeps its landmarks', async () =>
   assert.equal((await readFile(new URL('CNAME', root), 'utf8')).trim(), 'www.dengkaixin.com');
 });
 
-test('the moon is a door to the painted version, and only at night', async () => {
+test('the moon is a switch to the painted version, and only at night', async () => {
   for (const h of [19, 21.5, 0, 3, 5.5]) assert.ok(moonUp(h), `the moon should be up at ${h}`);
   for (const h of [5.6, 8, 12, 16, 18.9]) assert.ok(!moonUp(h), `the moon should be down at ${h}`);
   // whenever the moon is drawn the sky behind it is a night sky
   for (let h = 0; h < 24; h += 0.25) if (moonUp(h)) assert.equal(paletteAt(h).phase, 'night', `at ${h} the moon is up over a day sky`);
 
-  assert.match(html, /<button[^>]*id="moon"[^>]*hidden/, 'the moon button starts hidden, so it is not offered without JavaScript');
-  assert.match(html, /id="starry-ui"[^>]*hidden/);
-  assert.match(html, /id="starry-exit"/);
-  for (const k of ['moonLabel', 'starryNote', 'starryExit', 'starryLabel']) assert.ok(STR.en[k] && STR.zh[k], `${k} in both languages`);
+  assert.match(html, /<button[^>]*id="moon"[^>]*hidden[^>]*aria-pressed="false"/, 'the moon button starts hidden, so it is not offered without JavaScript');
+  assert.match(html, /<button[^>]*id="starry-exit"[^>]*hidden/);
+  for (const k of ['moonLabel', 'moonBack', 'starryOn', 'starryExit']) assert.ok(STR.en[k] && STR.zh[k], `${k} in both languages`);
 
   // the painter is fetched on demand: it must load on its own, and main.js must not import it up front
   const { enterStarry } = await import('../assets/js/starry/starry.js');
@@ -126,6 +125,24 @@ test('the moon is a door to the painted version, and only at night', async () =>
   const main = await readFile(new URL('assets/js/main.js', root), 'utf8');
   assert.match(main, /await import\('\.\/starry\/starry\.js'\)/);
   assert.doesNotMatch(main, /from '\.\/starry\//);
+});
+
+test('the painted version is the same scene, not a second one', async () => {
+  const read = (f) => readFile(new URL('assets/' + f, root), 'utf8');
+  const [painter, world, css] = await Promise.all([read('js/starry/starry.js'), read('js/scene/world.js'), read('css/main.css')]);
+  // it is laid out in the world's own view, so nothing moves when it takes over
+  assert.match(painter, /s = view\.s\b/);
+  assert.match(painter, /top = view\.top\b/);
+  assert.doesNotMatch(painter, /\bs = Math\.min\(/, 'the painter must not work out a scale of its own');
+  // it takes the sky from the scene and the wind from the world
+  for (const k of ['moonAt()', 'cloudsAt()', 'leanAt()', 'sc.stars', 'state.wind']) assert.ok(painter.includes(k), `the painter should read ${k}`);
+  // the world has one way of taking a step, whoever asks for it
+  assert.equal(world.split('for (const i of instances) step(i, dt);').length - 1, 1);
+  assert.match(world, /headless: \(dt\) => advance\(/);
+  // the drawn scene stays underneath and stays in charge: the picture lets clicks through, and no control is hidden
+  assert.match(css, /\.starry-canvas \{[^}]*pointer-events: none/);
+  assert.doesNotMatch(css, /is-starry \.(hud|card|conditions|moon-btn)/);
+  assert.match(css, /\.scene\.is-painted \.world-svg \{\s*opacity: 0;/, 'hidden by opacity, which still takes clicks, never by visibility');
 });
 
 test('nothing on the page or in the readme credits the drawing to a model', async () => {
